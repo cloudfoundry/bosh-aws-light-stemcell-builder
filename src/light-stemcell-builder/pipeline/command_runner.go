@@ -6,7 +6,13 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+	"time"
 )
+
+type result struct {
+	out string
+	err error
+}
 
 // Run chains an ordered collection of commands via standard out.
 // Each command in the pipeline will have its standard error sent to STDERR
@@ -42,4 +48,22 @@ func Run(errStream io.Writer, procs ...*exec.Cmd) (string, error) {
 	}
 
 	return strings.Trim(out.String(), " \n\t"), nil
+}
+
+// RunWithTimeout makes sure that the given commands run within the given timeout, or returns an error,
+// while keeping the underlying behavior from the Run() function.
+func RunWithTimeout(errStream io.Writer, timeout time.Duration, procs ...*exec.Cmd) (string, error) {
+	ch := make(chan result, 1)
+
+	go func() {
+		out, err := Run(errStream, procs...)
+		ch <- result{out, err}
+	}()
+
+	select {
+	case res := <-ch:
+		return res.out, res.err
+	case <-time.After(timeout):
+		return "", fmt.Errorf("command timed out after %s", timeout)
+	}
 }

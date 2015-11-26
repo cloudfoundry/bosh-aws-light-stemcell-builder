@@ -73,12 +73,12 @@ func (b *Builder) PrepareHeavy(stemcellPath string) (string, error) {
 }
 
 // ImportImage creates a single AMI from a source machine image
-// We expect to parse output of the form:
-//
-// Requesting volume size: 3 GB
-// TaskType  IMPORTVOLUME  TaskId  import-vol-fggu8ihs ExpirationTime  2015-12-01T21:51:13Z  Status  active  StatusMessage Pending
-// DISKIMAGE DiskImageFormat RAW DiskImageSize 3221225472  VolumeSize  3 AvailabilityZone  cn-north-1b ApproximateBytesConverted 0
 func (b *Builder) ImportImage(imagePath string) (string, error) {
+	taskID, _ := b.importVolume(imagePath)
+	return taskID, nil
+}
+
+func (b *Builder) importVolume(imagePath string) (string, error) {
 	zone := fmt.Sprintf("%sa", b.awsConfig.Region)
 
 	importImage := exec.Command(
@@ -95,8 +95,40 @@ func (b *Builder) ImportImage(imagePath string) (string, error) {
 		imagePath,
 	)
 
+	// We expect to parse output of the form:
+	//
+	// Requesting volume size: 3 GB
+	// TaskType  IMPORTVOLUME  TaskId  import-vol-fggu8ihs ExpirationTime  2015-12-01T21:51:13Z  Status  active  StatusMessage Pending
+	// DISKIMAGE DiskImageFormat RAW DiskImageSize 3221225472  VolumeSize  3 AvailabilityZone  cn-north-1b ApproximateBytesConverted 0
 	sed := exec.Command("sed", "-n", "2,2p")
 	awk := exec.Command("awk", "{print $4}")
 
-	return pipeline.Run(os.Stderr, importImage, sed, awk)
+	taskID, err := pipeline.Run(os.Stderr, importImage, sed, awk)
+	if err != nil {
+		return "", fmt.Errorf("creating import volume task: %s", err)
+	}
+
+	return taskID, nil
+}
+
+func (b *Builder) uploadImage(taskID string) (string, error) {
+	return "", nil
+}
+
+func (b *Builder) describeTask(taskID string) (string, error) {
+	describeTask := exec.Command("ec2-describe-conversion-tasks", taskID)
+
+	// We expect to parse output of the form:
+	//
+	// TaskType	IMPORTVOLUME	TaskId	import-vol-fg1rl0n6	ExpirationTime	2015-12-02T23:43:30Z	Status	active	StatusMessage	Pending
+	// DISKIMAGE	DiskImageFormat	RAW	DiskImageSize	3221225472	VolumeSize	3	AvailabilityZone	cn-north-1a	ApproximateBytesConverted	0
+	head := exec.Command("head", "-1")
+	awk := exec.Command("awk", "{print $8}")
+
+	taskStatus, err := pipeline.Run(os.Stderr, describeTask, head, awk)
+	if err != nil {
+		return "", fmt.Errorf("describing conversion task: %s", err)
+	}
+
+	return taskStatus, nil
 }

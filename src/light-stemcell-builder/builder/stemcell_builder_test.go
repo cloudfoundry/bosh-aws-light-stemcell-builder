@@ -44,9 +44,9 @@ var _ = Describe("StemcellBuilder", func() {
 			imagePath, err := b.PrepareHeavy(stemcellPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			amiID, err := b.ImportImage(imagePath)
+			taskID, err := b.ImportImage(imagePath)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(amiID).To(ContainSubstring("import-vol-"))
+			Expect(taskID).To(ContainSubstring("import-vol-"))
 		})
 
 		It("Creates an AMI from an EBS volume", func() {
