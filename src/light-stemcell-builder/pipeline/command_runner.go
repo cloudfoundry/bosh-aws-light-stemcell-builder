@@ -3,7 +3,6 @@ package pipeline
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"os/exec"
 	"strings"
 	"time"
@@ -17,46 +16,40 @@ type result struct {
 // Run chains an ordered collection of commands via standard out.
 // Each command in the pipeline will have its standard error sent to STDERR
 // Leading and trailing whitespace will be removed from output
-func Run(errStream io.Writer, procs ...*exec.Cmd) (string, error) {
+func Run(procs []*exec.Cmd) (string, error) {
+	stderr := &bytes.Buffer{}
+
 	var err error
 	lastIndex := len(procs) - 1
 
 	for i := range procs[:lastIndex] {
-		procs[i].Stderr = errStream
-		procs[i+1].Stdin, err = procs[i].StdoutPipe()
-		if err != nil {
-			return "", fmt.Errorf("opening pipe for command %d of %d, %s: %s", i, len(procs), procs[i].Path, err)
-		}
+		b := &bytes.Buffer{}
+
+		procs[i].Stderr = stderr
+		procs[i].Stdout = b
+		procs[i+1].Stdin = b
 	}
 
 	out := &bytes.Buffer{}
-	procs[lastIndex].Stderr = errStream
+	procs[lastIndex].Stderr = stderr
 	procs[lastIndex].Stdout = out
 
 	for i := range procs {
-		err = procs[i].Start()
+		err = procs[i].Run()
 		if err != nil {
-			return "", fmt.Errorf("starting command %d of %d, %s: %s", i, len(procs), procs[i].Path, err)
+			return "", fmt.Errorf("running command %d of %d, %s: %s standard error: %s", i, len(procs), procs[i].Path, err, stderr.String())
 		}
 	}
-
-	for i := range procs {
-		err = procs[i].Wait()
-		if err != nil {
-			return "", fmt.Errorf("running command %d of %d, %s: %s", i, len(procs), procs[i].Path, err)
-		}
-	}
-
 	return strings.Trim(out.String(), " \n\t"), nil
 }
 
 // RunWithTimeout makes sure that the given commands run within the given timeout, or returns an error,
 // while keeping the underlying behavior from the Run() function.
-func RunWithTimeout(errStream io.Writer, timeout time.Duration, procs ...*exec.Cmd) (string, error) {
+func RunWithTimeout(timeout time.Duration, procs []*exec.Cmd) (string, error) {
 	ch := make(chan result, 1)
 
 	go func() {
-		out, err := Run(errStream, procs...)
+		out, err := Run(procs)
 		ch <- result{out, err}
 	}()
 
