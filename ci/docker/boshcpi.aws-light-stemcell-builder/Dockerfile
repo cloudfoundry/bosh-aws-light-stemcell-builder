@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:15.04
 
 RUN locale-gen en_US.UTF-8
 RUN dpkg-reconfigure locales
