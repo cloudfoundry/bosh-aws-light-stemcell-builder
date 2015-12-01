@@ -6,7 +6,9 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
-RUN apt-get install -y git curl python unzip python-pip openjdk-7-jre; apt-get clean
+RUN apt-get install -y git tar curl wget make python unzip python-pip openjdk-7-jre jq; apt-get clean
+RUN apt-get install -y libxslt-dev libxml2-dev zlib1g-dev; apt-get clean;
+RUN apt-get install -y vagrant; apt-get clean; vagrant plugin install vagrant-aws
 RUN pip install awscli
 
 RUN mkdir /usr/local/ec2;
