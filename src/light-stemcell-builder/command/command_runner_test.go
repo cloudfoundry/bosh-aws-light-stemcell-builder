@@ -1,9 +1,9 @@
-package pipeline_test
+package command_test
 
 import (
 	"fmt"
 	"io/ioutil"
-	"light-stemcell-builder/pipeline"
+	"light-stemcell-builder/command"
 	"os"
 	"os/exec"
 	"time"
@@ -13,7 +13,73 @@ import (
 )
 
 var _ = Describe("CommandRunner", func() {
-	Describe("Run()", func() {
+	Describe("NewSelectLine", func() {
+		It("retuns a command which selects a given line", func() {
+			secondLine, err := command.NewSelectLine(2)
+			Expect(err).ToNot(HaveOccurred())
+
+			f, err := ioutil.TempFile("", "3linefile")
+			Expect(err).ToNot(HaveOccurred())
+			fileName := f.Name()
+			defer os.Remove(fileName)
+
+			cat := exec.Command("cat", fileName)
+
+			_, err = f.Write([]byte("one\ntwo\nthree"))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = f.Close()
+			Expect(err).ToNot(HaveOccurred())
+
+			out, err := command.RunPipeline([]*exec.Cmd{cat, secondLine})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(out).To(Equal("two"))
+		})
+
+		It("returns an error for non-positive line selections", func() {
+			_, err := command.NewSelectLine(0)
+			Expect(err).To(MatchError("line selection 0 is not positive"))
+
+			_, err = command.NewSelectLine(-1)
+			Expect(err).To(MatchError("line selection -1 is not positive"))
+		})
+	})
+
+	Describe("NewSelectField", func() {
+		It("returns a command which selects a given field", func() {
+			secondField, err := command.NewSelectField(2)
+			Expect(err).ToNot(HaveOccurred())
+
+			f, err := ioutil.TempFile("", "3fieldfile")
+			Expect(err).ToNot(HaveOccurred())
+			fileName := f.Name()
+			defer os.Remove(fileName)
+
+			cat := exec.Command("cat", fileName)
+
+			_, err = f.Write([]byte("one   two three"))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = f.Close()
+			Expect(err).ToNot(HaveOccurred())
+
+			out, err := command.RunPipeline([]*exec.Cmd{cat, secondField})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(out).To(Equal("two"))
+		})
+
+		It("returns an error for non-positive field selections", func() {
+			_, err := command.NewSelectField(0)
+			Expect(err).To(MatchError("field selection 0 is not positive"))
+
+			_, err = command.NewSelectField(-1)
+			Expect(err).To(MatchError("field selection -1 is not positive"))
+		})
+	})
+
+	Describe("RunPipeline()", func() {
 		It("chains the STDOUT of one command to the STDIN of the next", func() {
 			ps := exec.Command("ps")
 			head := exec.Command("head", "-1")
@@ -21,7 +87,7 @@ var _ = Describe("CommandRunner", func() {
 
 			cmds := []*exec.Cmd{ps, head, awk}
 
-			out, err := pipeline.Run(cmds)
+			out, err := command.RunPipeline(cmds)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(out).To(Equal("PID"))
 		})
@@ -32,7 +98,7 @@ var _ = Describe("CommandRunner", func() {
 
 			cmds := []*exec.Cmd{ps, awk}
 
-			out, err := pipeline.Run(cmds)
+			out, err := command.RunPipeline(cmds)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("running command 1 of 2"))
 			Expect(out).To(BeEmpty())
@@ -56,7 +122,7 @@ var _ = Describe("CommandRunner", func() {
 
 			cmds := []*exec.Cmd{ps, awk, dd}
 
-			_, err = pipeline.Run(cmds)
+			_, err = command.RunPipeline(cmds)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("running command 1 of 3"))
 
@@ -69,7 +135,7 @@ var _ = Describe("CommandRunner", func() {
 		})
 	})
 
-	Describe("RunWithTimeout()", func() {
+	Describe("RunPipelineWithTimeout()", func() {
 		It("chains the STDOUT of one command to the STDIN of the next", func() {
 			ps := exec.Command("ps")
 			head := exec.Command("head", "-1")
@@ -77,7 +143,7 @@ var _ = Describe("CommandRunner", func() {
 
 			cmds := []*exec.Cmd{ps, head, awk}
 
-			out, err := pipeline.RunWithTimeout(5*time.Second, cmds)
+			out, err := command.RunPipelineWithTimeout(5*time.Second, cmds)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(out).To(Equal("PID"))
 		})
@@ -88,7 +154,7 @@ var _ = Describe("CommandRunner", func() {
 
 			cmds := []*exec.Cmd{ps, awk}
 
-			out, err := pipeline.RunWithTimeout(5*time.Second, cmds)
+			out, err := command.RunPipelineWithTimeout(5*time.Second, cmds)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("running command 1 of 2"))
 			Expect(out).To(BeEmpty())
@@ -100,7 +166,7 @@ var _ = Describe("CommandRunner", func() {
 
 			cmds := []*exec.Cmd{sleep}
 
-			out, err := pipeline.RunWithTimeout(5*time.Millisecond, cmds)
+			out, err := command.RunPipelineWithTimeout(5*time.Millisecond, cmds)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("command timed out after 5ms"))
 			Expect(out).To(BeEmpty())

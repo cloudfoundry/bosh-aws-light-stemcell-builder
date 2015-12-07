@@ -1,4 +1,4 @@
-package pipeline_test
+package command_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestPipeline(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Pipeline Suite")
+	RunSpecs(t, "Command Suite")
 }
