@@ -3,19 +3,58 @@ package ec2
 import (
 	"fmt"
 	"light-stemcell-builder/ec2/ec2ami"
-	"light-stemcell-builder/ec2/ec2cli"
+	"time"
 )
 
 // CreateAmi creates a single AMI by creating a snapshot of a provided EBS volume
-func CreateAmi(volumeID string, ec2Config ec2cli.Config, amiConfig ec2ami.Config) (string, error) {
+func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, error) {
 	if validationError := amiConfig.Validate(); validationError != nil {
-		return "", validationError
+		return ec2ami.Info{}, validationError
 	}
 
-	snapshotID, err := ec2cli.CreateSnapshot(ec2Config, volumeID)
+	snapshotID, err := aws.CreateSnapshot(volumeID)
 	if err != nil {
-		return "", fmt.Errorf("creating snapshot: %s", err)
+		return ec2ami.Info{}, fmt.Errorf("creating snapshot: %s", err)
 	}
 
-	return ec2cli.RegisterImage(ec2Config, amiConfig, snapshotID)
+	waiterConfig := WaiterConfig{
+		Resource:      SnapshotResource{SnapshotID: snapshotID},
+		DesiredStatus: SnapshotCompletedStatus,
+		PollTimeout:   10 * time.Minute,
+	}
+
+	_, err = WaitForStatus(aws.DescribeSnapshot, waiterConfig)
+	if err != nil {
+		return ec2ami.Info{}, fmt.Errorf("waiting for snapshot to become available: %s", err)
+	}
+
+	amiID, err := aws.RegisterImage(amiConfig, snapshotID)
+	if err != nil {
+		return ec2ami.Info{}, err
+	}
+
+	amiConfig.AmiID = amiID
+
+	waiterConfig = WaiterConfig{
+		Resource:      &amiConfig,
+		DesiredStatus: ec2ami.AmiAvailableStatus,
+	}
+
+	statusInfo, err := WaitForStatus(aws.DescribeImage, waiterConfig)
+	if err != nil {
+		return ec2ami.Info{}, fmt.Errorf("waiting for ami %s to be available %s", amiID, err)
+	}
+
+	if amiConfig.Public {
+		err = aws.MakeImagePublic(amiConfig)
+		if err != nil {
+			return ec2ami.Info{}, fmt.Errorf("making image %s public", amiID)
+		}
+	}
+	amiInfo := statusInfo.(ec2ami.Info)
+	if validationError := amiInfo.InputConfig.Validate(); validationError != nil {
+		return ec2ami.Info{}, validationError
+	}
+
+	return amiInfo, nil
 }
