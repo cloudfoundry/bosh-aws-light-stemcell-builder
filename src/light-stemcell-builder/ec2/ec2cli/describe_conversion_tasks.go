@@ -1,61 +1,51 @@
 package ec2cli
 
 import (
-	"light-stemcell-builder/command"
+	"bufio"
+	"bytes"
+	"fmt"
+	"light-stemcell-builder/ec2"
 	"os/exec"
+	"strings"
 )
 
-type ConversionTaskInfo struct {
-	conversionStatus string
-}
-
-func (i ConversionTaskInfo) Status() string {
-	return i.conversionStatus
-}
-
-func DescribeConverionTaskStatus(c Config, taskID string) (string, error) {
+func (e *EC2Cli) DescribeConversionTask(taskResource ec2.StatusResource) (ec2.StatusInfo, error) {
 	describeTask := exec.Command(
 		"ec2-describe-conversion-tasks",
-		"-O", c.AccessKey,
-		"-W", c.SecretKey,
-		"--region", c.Region,
-		taskID,
+		"-O", e.config.AccessKey,
+		"-W", e.config.SecretKey,
+		"--region", e.config.Region,
+		"--show-transfer-details",
+		taskResource.ID(),
 	)
 
-	firstLine, err := command.SelectLine(1)
+	stderr := &bytes.Buffer{}
+	describeTask.Stderr = stderr
+
+	stdout, err := describeTask.Output()
 	if err != nil {
-		return "", err
+		return ec2.ConversionTaskInfo{}, fmt.Errorf("getting import volume status for task: %s: %s, stderr: %s", taskResource.ID(), err, stderr.String())
 	}
 
-	eighthField, err := command.SelectField(8)
-	if err != nil {
-		return "", err
+	outputLines := []string{}
+	scanner := bufio.NewScanner(bytes.NewReader(stdout))
+	for scanner.Scan() {
+		outputLines = append(outputLines, scanner.Text())
 	}
 
-	describeTaskCommands := []*exec.Cmd{describeTask, firstLine, eighthField}
+	firstLineFields := strings.Fields(outputLines[0])
+	secondLineFields := strings.Fields(outputLines[1])
 
-	return command.RunPipeline(describeTaskCommands)
-}
-
-func DescribeEbsVolumeID(c Config, taskID string) (string, error) {
-	describeTask := exec.Command(
-		"ec2-describe-conversion-tasks",
-		"-O", c.AccessKey,
-		"-W", c.SecretKey,
-		"--region", c.Region,
-		taskID,
-	)
-
-	secondLine, err := command.SelectLine(2)
-	if err != nil {
-		return "", err
+	info := ec2.ConversionTaskInfo{
+		TaskID:           taskResource.ID(),
+		ConversionStatus: firstLineFields[7],
 	}
 
-	seventhField, err := command.SelectField(7)
-	if err != nil {
-		return "", err
+	// the ec2 api cli changes the output format if the task is completed :(
+	if info.ConversionStatus == ec2.SnapshotCompletedStatus {
+		info.EBSVolumeID = secondLineFields[6]
+		info.ManifestUrl = secondLineFields[12] // ManifestUrl is used for cleaning later
 	}
 
-	volumeIDCommands := []*exec.Cmd{describeTask, secondLine, seventhField}
-	return command.RunPipeline(volumeIDCommands)
+	return info, nil
 }

@@ -1,41 +1,47 @@
 package ec2cli
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
-	"light-stemcell-builder/command"
+	"light-stemcell-builder/ec2"
 	"os/exec"
+	"strings"
 )
 
-type SnapshotInfo struct {
-	SnapshotStatus string
-}
-
-func (i SnapshotInfo) Status() string {
-	return i.SnapshotStatus
-}
-
-func DescribeSnapshot(c Config, snapshotID string) (statusInfo, error) {
+func (e *EC2Cli) DescribeSnapshot(snapshotResource ec2.StatusResource) (ec2.StatusInfo, error) {
 	describeSnapshot := exec.Command(
 		"ec2-describe-snapshots",
-		"-O", c.AccessKey,
-		"-W", c.SecretKey,
-		"--region", c.Region,
-		snapshotID,
+		"-O", e.config.AccessKey,
+		"-W", e.config.SecretKey,
+		"--region", e.config.Region,
+		snapshotResource.ID(),
 	)
 
-	fourthField, err := command.SelectField(4)
+	stderr := &bytes.Buffer{}
+	describeSnapshot.Stderr = stderr
+
+	stdout, err := describeSnapshot.Output()
 	if err != nil {
-		return SnapshotInfo{}, err
+		if strings.Contains(stderr.String(), "Client.InvalidSnapshot.NotFound") {
+			return ec2.SnapshotInfo{}, ec2.NonCompletedSnapshotError{SnapshotID: snapshotResource.ID(), SnapshotStatus: ec2.SnapshotUnknownStatus}
+		}
+		return ec2.SnapshotInfo{}, fmt.Errorf("getting snapshot status for snapshot: %s: %s, stderr: %s", snapshotResource.ID(), err, stderr.String())
 	}
 
-	describeSnapshotCommands := []*exec.Cmd{describeSnapshot, fourthField}
-	status, err := command.RunPipeline(describeSnapshotCommands)
-	if err != nil {
-		return SnapshotInfo{}, fmt.Errorf("fetching snapshot information for snapshot %s: %s", snapshotID, err)
+	outputLines := []string{}
+	scanner := bufio.NewScanner(bytes.NewReader(stdout))
+	for scanner.Scan() {
+		outputLines = append(outputLines, scanner.Text())
 	}
 
-	snapshotInfo := SnapshotInfo{
-		SnapshotStatus: status,
+	if len(outputLines) == 0 {
+		return ec2.SnapshotInfo{}, ec2.NonCompletedSnapshotError{SnapshotID: snapshotResource.ID(), SnapshotStatus: ec2.SnapshotUnknownStatus}
+	}
+
+	firstLineFields := strings.Fields(outputLines[0])
+	snapshotInfo := ec2.SnapshotInfo{
+		SnapshotStatus: firstLineFields[3],
 	}
 	return snapshotInfo, nil
 }

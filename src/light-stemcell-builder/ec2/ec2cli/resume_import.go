@@ -6,15 +6,15 @@ import (
 	"time"
 )
 
-func ResumeImport(c Config, taskID string, imagePath string) error {
+func (e *EC2Cli) ResumeImport(taskID string, imagePath string) error {
 	importVolume := exec.Command(
 		"ec2-resume-import",
 		"-t", taskID,
-		"-o", c.AccessKey,
-		"-w", c.SecretKey,
-		"-O", c.AccessKey,
-		"-W", c.SecretKey,
-		"--region", c.Region,
+		"-o", e.config.AccessKey,
+		"-w", e.config.SecretKey,
+		"-O", e.config.AccessKey,
+		"-W", e.config.SecretKey,
+		"--region", e.config.Region,
 		imagePath,
 	)
 

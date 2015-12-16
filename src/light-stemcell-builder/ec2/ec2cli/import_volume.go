@@ -6,19 +6,19 @@ import (
 	"os/exec"
 )
 
-func ImportVolume(c Config, imagePath string) (string, error) {
-	zone := fmt.Sprintf("%sa", c.Region)
+func (e *EC2Cli) ImportVolume(imagePath string) (string, error) {
+	zone := fmt.Sprintf("%sa", e.config.Region)
 
 	createTask := exec.Command(
 		"ec2-import-volume",
 		"-f", "RAW",
-		"-b", c.BucketName,
-		"-o", c.AccessKey,
-		"-w", c.SecretKey,
-		"-O", c.AccessKey,
-		"-W", c.SecretKey,
+		"-b", e.config.BucketName,
+		"-o", e.config.AccessKey,
+		"-w", e.config.SecretKey,
+		"-O", e.config.AccessKey,
+		"-W", e.config.SecretKey,
 		"-z", zone,
-		"--region", c.Region,
+		"--region", e.config.Region,
 		"--no-upload",
 		imagePath,
 	)
@@ -33,12 +33,12 @@ func ImportVolume(c Config, imagePath string) (string, error) {
 		return "", err
 	}
 
-	fourhField, err := command.SelectField(4)
+	fourthField, err := command.SelectField(4)
 	if err != nil {
 		return "", err
 	}
 
-	createTaskPipeline := []*exec.Cmd{createTask, secondLine, fourhField}
+	createTaskPipeline := []*exec.Cmd{createTask, secondLine, fourthField}
 
 	return command.RunPipeline(createTaskPipeline)
 }

@@ -8,7 +8,7 @@ import (
 	"light-stemcell-builder/ec2/ec2ami"
 )
 
-func RegisterImage(c Config, amiConfig ec2ami.Config, snapshotID string) (string, error) {
+func (e *EC2Cli) RegisterImage(amiConfig ec2ami.Config, snapshotID string) (string, error) {
 	amiName, err := amiConfig.Name()
 	if err != nil {
 		return "", fmt.Errorf("creating ami: %s", err)
@@ -17,9 +17,9 @@ func RegisterImage(c Config, amiConfig ec2ami.Config, snapshotID string) (string
 	registerSnapshot := exec.Command(
 		"ec2-register",
 		"-a", ec2ami.AmiArchitecture,
-		"-O", c.AccessKey,
-		"-W", c.SecretKey,
-		"--region", c.Region,
+		"-O", e.config.AccessKey,
+		"-W", e.config.SecretKey,
+		"--region", amiConfig.Region,
 		"-s", snapshotID,
 		"-n", amiName,
 		"-d", amiConfig.Description,
@@ -34,24 +34,6 @@ func RegisterImage(c Config, amiConfig ec2ami.Config, snapshotID string) (string
 	amiID, err := command.RunPipeline([]*exec.Cmd{registerSnapshot, secondField})
 	if err != nil {
 		return "", fmt.Errorf("registering image: %s", err)
-	}
-
-	waiterConfig := WaiterConfig{
-		ResourceID:    amiID,
-		DesiredStatus: imageAvailableStatus,
-		FetcherConfig: c,
-	}
-
-	err = WaitForStatus(DescribeImageStatus, waiterConfig)
-	if err != nil {
-		return "", fmt.Errorf("waiting for ami %s to be available %s", amiID, err)
-	}
-
-	if amiConfig.Public {
-		err = makeImagePublic(c, amiID)
-		if err != nil {
-			return "", fmt.Errorf("making image %s public", amiID)
-		}
 	}
 
 	return amiID, nil

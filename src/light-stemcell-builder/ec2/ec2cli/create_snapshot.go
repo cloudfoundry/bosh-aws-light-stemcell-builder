@@ -6,12 +6,12 @@ import (
 	"os/exec"
 )
 
-func CreateSnapshot(c Config, volumeID string) (string, error) {
+func (e *EC2Cli) CreateSnapshot(volumeID string) (string, error) {
 	createSnapshot := exec.Command(
 		"ec2-create-snapshot",
-		"-O", c.AccessKey,
-		"-W", c.SecretKey,
-		"--region", c.Region,
+		"-O", e.config.AccessKey,
+		"-W", e.config.SecretKey,
+		"--region", e.config.Region,
 		volumeID,
 	)
 	secondField, err := command.SelectField(2)
@@ -22,17 +22,6 @@ func CreateSnapshot(c Config, volumeID string) (string, error) {
 	snapshotID, err := command.RunPipeline([]*exec.Cmd{createSnapshot, secondField})
 	if err != nil {
 		return "", fmt.Errorf("waiting for snapshot %s to be ready: %s", snapshotID, err)
-	}
-
-	waiterConfig := WaiterConfig{
-		ResourceID:    snapshotID,
-		DesiredStatus: snapshotCompletedStatus,
-		FetcherConfig: c,
-	}
-
-	err = WaitForStatus(DescribeSnapshot, waiterConfig)
-	if err != nil {
-		return "", fmt.Errorf("waiting for snapshot to become available: %s", err)
 	}
 
 	return snapshotID, nil
