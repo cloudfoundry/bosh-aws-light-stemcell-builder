@@ -1,9 +1,13 @@
 package builder
 
 import (
-	"fmt"
 	"io/ioutil"
-	"light-stemcell-builder/pipeline"
+	"light-stemcell-builder/ec2"
+	"light-stemcell-builder/ec2/ec2ami"
+	"light-stemcell-builder/ec2/ec2cli"
+	"light-stemcell-builder/ec2/ec2stage"
+	"light-stemcell-builder/stage"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -72,63 +76,68 @@ func (b *Builder) PrepareHeavy(stemcellPath string) (string, error) {
 	return rootImgPath, nil
 }
 
-// ImportImage creates a single AMI from a source machine image
-func (b *Builder) ImportImage(imagePath string) (string, error) {
-	taskID, _ := b.importVolume(imagePath)
-	return taskID, nil
-}
-
-func (b *Builder) importVolume(imagePath string) (string, error) {
-	zone := fmt.Sprintf("%sa", b.awsConfig.Region)
-
-	importImage := exec.Command(
-		"ec2-import-volume",
-		"-f", "RAW",
-		"-b", b.awsConfig.BucketName,
-		"-o", b.awsConfig.AccessKey,
-		"-w", b.awsConfig.SecretKey,
-		"-O", b.awsConfig.AccessKey,
-		"-W", b.awsConfig.SecretKey,
-		"-z", zone,
-		"-U", regionToEndpointMapping[b.awsConfig.Region],
-		"--no-upload",
-		imagePath,
-	)
-
-	// We expect to parse output of the form:
-	//
-	// Requesting volume size: 3 GB
-	// TaskType  IMPORTVOLUME  TaskId  import-vol-fggu8ihs ExpirationTime  2015-12-01T21:51:13Z  Status  active  StatusMessage Pending
-	// DISKIMAGE DiskImageFormat RAW DiskImageSize 3221225472  VolumeSize  3 AvailabilityZone  cn-north-1b ApproximateBytesConverted 0
-	sed := exec.Command("sed", "-n", "2,2p")
-	awk := exec.Command("awk", "{print $4}")
-
-	taskID, err := pipeline.Run(os.Stderr, importImage, sed, awk)
-	if err != nil {
-		return "", fmt.Errorf("creating import volume task: %s", err)
+func (b *Builder) BuildLightStemcells(imagePath string, awsConfig AwsConfig, copyDests []string) (map[string]ec2ami.Info, error) {
+	ec2Config := ec2.Config{
+		BucketName: awsConfig.BucketName,
+		Region:     awsConfig.Region,
+		Credentials: &ec2.Credentials{
+			AccessKey: awsConfig.AccessKey,
+			SecretKey: awsConfig.SecretKey,
+		},
+	}
+	amiConfig := ec2ami.Config{
+		Region:             awsConfig.Region,
+		VirtualizationType: "hvm",
+		Description:        "BOSH CI test AMI",
 	}
 
-	return taskID, nil
-}
+	ec2CLI := &ec2cli.EC2Cli{}
+	ec2CLI.Configure(ec2Config)
 
-func (b *Builder) uploadImage(taskID string) (string, error) {
-	return "", nil
-}
+	ebsVolumeStage := ec2stage.NewCreateEBSVolumeStage(ec2.ImportVolume,
+		ec2.CleanupImportVolume, ec2.DeleteVolume, ec2CLI)
 
-func (b *Builder) describeTask(taskID string) (string, error) {
-	describeTask := exec.Command("ec2-describe-conversion-tasks", taskID)
+	createAmiStage := ec2stage.NewCreateAmiStage(ec2.CreateAmi, ec2.DeleteAmi, ec2CLI, amiConfig)
 
-	// We expect to parse output of the form:
-	//
-	// TaskType	IMPORTVOLUME	TaskId	import-vol-fg1rl0n6	ExpirationTime	2015-12-02T23:43:30Z	Status	active	StatusMessage	Pending
-	// DISKIMAGE	DiskImageFormat	RAW	DiskImageSize	3221225472	VolumeSize	3	AvailabilityZone	cn-north-1a	ApproximateBytesConverted	0
-	head := exec.Command("head", "-1")
-	awk := exec.Command("awk", "{print $8}")
+	copyAmiStage := ec2stage.NewCopyAmiStage(ec2.CopyAmis, ec2.DeleteCopiedAmis, ec2CLI, copyDests)
 
-	taskStatus, err := pipeline.Run(os.Stderr, describeTask, head, awk)
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+	outputData, err := stage.RunStages(logger, []stage.Stage{ebsVolumeStage, createAmiStage, copyAmiStage}, imagePath)
 	if err != nil {
-		return "", fmt.Errorf("describing conversion task: %s", err)
+		return nil, err
 	}
 
-	return taskStatus, nil
+	// Delete the EBS Volume created for the AMI; We no longer need it at this point
+	err = ec2.DeleteVolume(ec2CLI, outputData[0].(string))
+	if err != nil {
+		logger.Printf("Unable to clean up volume due to error: %s\n", err.Error())
+	}
+
+	copiedAmiCollection := outputData[2].(*ec2ami.Collection)
+	resultMap := copiedAmiCollection.GetAll()
+	resultMap[awsConfig.Region] = outputData[1].(ec2ami.Info)
+
+	return resultMap, nil
 }
+
+func (b *Builder) DeleteLightStemcells(awsConfig AwsConfig, amis map[string]ec2ami.Info) error {
+	ec2Config := ec2.Config{
+		BucketName: awsConfig.BucketName,
+		Region:     awsConfig.Region,
+		Credentials: &ec2.Credentials{
+			AccessKey: awsConfig.AccessKey,
+			SecretKey: awsConfig.SecretKey,
+		},
+	}
+	ec2CLI := &ec2cli.EC2Cli{}
+	ec2CLI.Configure(ec2Config)
+
+	for _, amiInfo := range amis {
+		err := ec2.DeleteAmi(ec2CLI, amiInfo)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+

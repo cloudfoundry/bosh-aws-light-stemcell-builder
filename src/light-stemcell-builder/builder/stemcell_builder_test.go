@@ -16,8 +16,10 @@ var awsConfig = builder.AwsConfig{
 }
 
 var _ = Describe("StemcellBuilder", func() {
-	Describe("Preparing a heavy stemcell for import", func() {
-		It("extracts the machine image and returns the path", func() {
+	Describe("Importing a machine image into AWS", func() {
+		It("Creates an AMI from a heavy stemcell in all desired regions and can delete them", func() {
+			Expect(awsConfig.Region).ToNot(Equal("cn-north-1"), "Cannot copy stemcells from China to US regions")
+
 			stemcellPath := os.Getenv("HEAVY_STEMCELL_TARBALL")
 			Expect(stemcellPath).ToNot(BeEmpty())
 
@@ -30,39 +32,19 @@ var _ = Describe("StemcellBuilder", func() {
 
 			_, err = os.Stat(imagePath)
 			Expect(err).ToNot(HaveOccurred())
-		})
-	})
 
-	Describe("Importing a machine image into AWS", func() {
-		It("Creates an EBS volume inside of AWS", func() {
-			stemcellPath := os.Getenv("HEAVY_STEMCELL_TARBALL")
-			Expect(stemcellPath).ToNot(BeEmpty())
-
-			b, err := builder.New(awsConfig)
+			copyDests := []string{"us-west-1", "us-west-2"}
+			amis, err := b.BuildLightStemcells(imagePath, awsConfig, copyDests)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(amis).To(HaveKey(awsConfig.Region))
+			Expect(amis).To(HaveKey("us-west-1"))
+			Expect(amis).To(HaveKey("us-west-2"))
+			Expect(amis[awsConfig.Region].AmiID).To(MatchRegexp("ami-.*"))
+			Expect(amis["us-west-1"].AmiID).To(MatchRegexp("ami-.*"))
+			Expect(amis["us-west-2"].AmiID).To(MatchRegexp("ami-.*"))
 
-			imagePath, err := b.PrepareHeavy(stemcellPath)
+			err = b.DeleteLightStemcells(awsConfig, amis)
 			Expect(err).ToNot(HaveOccurred())
-
-			taskID, err := b.ImportImage(imagePath)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(taskID).To(ContainSubstring("import-vol-"))
-		})
-
-		It("Creates an AMI from an EBS volume", func() {
-
-		})
-
-		It("Makes the AMI public if desired", func() {
-
-		})
-
-		It("Clones the AMI to other regions if desired", func() {
-
-		})
-
-		It("Creates an AMI from a Machine Image in all desired regions", func() {
-
 		})
 	})
 })
