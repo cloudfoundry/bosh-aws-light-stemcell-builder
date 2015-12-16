@@ -34,17 +34,17 @@ type Config struct {
 }
 
 type Info struct {
-	InputConfig        Config
-	AmiID              string
-	Region             string
-	SnapshotID         string
-	Accessibility      string
-	Name               string
-	ImageStatus        string
-	KernelId           string
-	Architecture       string
-	VirtualizationType string
-	StorageType        string
+	InputConfig        Config `json:"-"`
+	AmiID              string `json:"ami_id"`
+	Region             string `json:"region"`
+	SnapshotID         string `json:"snapshot_id"`
+	Accessibility      string `json:"accessibility"`
+	Name               string `json:"name"`
+	ImageStatus        string `json:"-"`
+	KernelId           string `json:"-"`
+	Architecture       string `json:"-"`
+	VirtualizationType string `json:"virtualization_type"`
+	StorageType        string `json:"-"`
 }
 
 func (i Info) Status() string {

@@ -140,4 +140,3 @@ func (b *Builder) DeleteLightStemcells(awsConfig AwsConfig, amis map[string]ec2a
 	}
 	return nil
 }
-
