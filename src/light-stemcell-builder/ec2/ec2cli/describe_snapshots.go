@@ -10,11 +10,12 @@ import (
 )
 
 func (e *EC2Cli) DescribeSnapshot(snapshotResource ec2.StatusResource) (ec2.StatusInfo, error) {
+	snapshotRegion := snapshotResource.(ec2.SnapshotResource).SnapshotRegion
 	describeSnapshot := exec.Command(
 		"ec2-describe-snapshots",
 		"-O", e.config.AccessKey,
 		"-W", e.config.SecretKey,
-		"--region", e.config.Region,
+		"--region", snapshotRegion,
 		snapshotResource.ID(),
 	)
 

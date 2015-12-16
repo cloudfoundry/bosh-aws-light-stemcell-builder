@@ -7,12 +7,12 @@ import (
 )
 
 // DeleteSnapshot deletes a snapshot, does not return an error if the AMI does not exist
-func (e *EC2Cli) DeleteSnapshot(snapshotID string) error {
+func (e *EC2Cli) DeleteSnapshot(snapshotID string, region string) error {
 	deleteSnapshot := exec.Command(
 		"ec2-delete-snapshot",
 		"-O", e.config.AccessKey,
 		"-W", e.config.SecretKey,
-		"--region", e.config.Region,
+		"--region", region,
 		snapshotID,
 	)
 

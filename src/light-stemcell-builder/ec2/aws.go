@@ -25,5 +25,5 @@ type AWS interface {
 	DeregisterImage(amiConfig ec2ami.Config) error
 
 	CreateSnapshot(volumeID string) (string, error)
-	DeleteSnapshot(snapshotID string) error
+	DeleteSnapshot(snapshotID string, region string) error
 }

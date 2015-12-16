@@ -66,7 +66,7 @@ func (a dummyAWS) DeregisterImage(amiConfig ec2ami.Config) error {
 func (a dummyAWS) CreateSnapshot(volumeID string) (string, error) {
 	return "", nil
 }
-func (a dummyAWS) DeleteSnapshot(snapshotID string) error {
+func (a dummyAWS) DeleteSnapshot(snapshotID string, region string) error {
 	return nil
 }
 

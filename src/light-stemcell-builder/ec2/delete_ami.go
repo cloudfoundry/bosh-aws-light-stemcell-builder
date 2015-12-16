@@ -28,9 +28,12 @@ func DeleteAmi(aws AWS, amiInfo ec2ami.Info) error {
 		return err
 	}
 
-	err = aws.DeleteSnapshot(amiInfo.SnapshotID)
+	err = aws.DeleteSnapshot(amiInfo.SnapshotID, amiInfo.Region)
 	waiterConfig = WaiterConfig{
-		Resource:      SnapshotResource{SnapshotID: amiInfo.SnapshotID},
+		Resource:      SnapshotResource{
+			SnapshotID: amiInfo.SnapshotID,
+			SnapshotRegion: amiInfo.Region,
+		},
 		DesiredStatus: "", // we're abusing the waiter functionality here as a cheap timeout
 		PollTimeout:   30 * time.Minute,
 	}

@@ -12,7 +12,8 @@ type SnapshotInfo struct {
 }
 
 type SnapshotResource struct {
-	SnapshotID string
+	SnapshotID     string
+	SnapshotRegion string
 }
 
 func (e SnapshotResource) ID() string {
