@@ -31,14 +31,14 @@ func NewCreateAmiStage(runner CreateAmiRunner, undoer CreateAmiUndoer, aws ec2.A
 
 func (s *createAmiStage) Run(logger *log.Logger, data interface{}) (interface{}, error) {
 	if reflect.TypeOf(data) != reflect.TypeOf("") {
-		return nil, fmt.Errorf("stage: CreateAmi expected type string, got: %s", reflect.TypeOf(data))
+		return nil, fmt.Errorf("CreateAmi expected type string, got: %s", reflect.TypeOf(data))
 	}
 
 	logger.Printf("Running stage with data: %s\n", data.(string))
 	var err error
 	s.amiInfo, err = s.run(s.aws, data.(string), s.amiConfig)
 	if err != nil {
-		return nil, fmt.Errorf("stage: CreateAmi running: %s", err)
+		return nil, fmt.Errorf("CreateAmi error running: %s", err)
 	}
 
 	logger.Printf("Output of stage : %s\n", s.amiInfo)

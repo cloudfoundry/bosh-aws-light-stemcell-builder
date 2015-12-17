@@ -31,20 +31,20 @@ func NewCreateEBSVolumeStage(runner CreateEBSVolumeRunner, cleaner CreateEBSVolu
 
 func (s *createEBSVolumeStage) Run(logger *log.Logger, data interface{}) (interface{}, error) {
 	if reflect.TypeOf(data) != reflect.TypeOf("") {
-		return nil, fmt.Errorf("stage: CreateVolume expected type string, got: %s", reflect.TypeOf(data))
+		return nil, fmt.Errorf("CreateVolume expected type string, got: %s", reflect.TypeOf(data))
 	}
 
 	logger.Printf("Running stage with data: %s\n", data.(string))
 	taskInfo, err := s.run(s.aws, data.(string))
 	if err != nil {
-		return nil, fmt.Errorf("stage: CreateVolume running: %s", err)
+		return nil, fmt.Errorf("CreateVolume error running: %s", err)
 	}
 	logger.Println("Successfully finished running stage.")
 
 	logger.Printf("Cleaning up stage with task ID: %s\n", taskInfo.TaskID)
 	err = s.clean(s.aws, taskInfo.TaskID)
 	if err != nil {
-		return nil, fmt.Errorf("stage: CreateVolume cleaning after run: %s", err)
+		return nil, fmt.Errorf("CreateVolume error cleaning after run: %s", err)
 	}
 
 	s.volumeID = taskInfo.EBSVolumeID
