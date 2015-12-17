@@ -41,6 +41,7 @@ func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, 
 	waiterConfig = WaiterConfig{
 		Resource:      &amiConfig,
 		DesiredStatus: ec2ami.AmiAvailableStatus,
+		PollTimeout:   10 * time.Minute,
 	}
 
 	statusInfo, err := WaitForStatus(aws.DescribeImage, waiterConfig)
