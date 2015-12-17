@@ -25,12 +25,12 @@ func (e NonAvailableAmiError) Error() string {
 }
 
 type Config struct {
-	Description        string
-	Public             bool
-	VirtualizationType string
-	UniqueName         string
-	Region             string
-	AmiID              string
+	Description        string `json:"description"`
+	Public             bool   `json:"public"`
+	VirtualizationType string `json:"virtualization_type"`
+	UniqueName         string `json:"unique_name"`
+	Region             string `json:"-"`
+	AmiID              string `json:"-"`
 }
 
 type Info struct {

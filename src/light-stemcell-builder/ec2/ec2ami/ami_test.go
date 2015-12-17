@@ -115,4 +115,27 @@ var _ = Describe("Ami", func() {
 			}`))
 		})
 	})
+	Describe("JSON decoding", func() {
+		It("Sets the configurable fields and ignores the AmiID and Region", func() {
+			jsonInput := []byte(`{
+				"description": "Some Description",
+				"public": true,
+				"virtualization_type": "hvm",
+				"unique_name": "Some Unique Name",
+				"Region": "blah",
+				"region": "blah",
+				"AmiID": "blahblah",
+				"ami_id": "blahblah"
+			}`)
+			var config ec2ami.Config
+			err := json.Unmarshal(jsonInput, &config)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(config.AmiID).To(BeEmpty())
+			Expect(config.Region).To(BeEmpty())
+			Expect(config.Description).To(Equal("Some Description"))
+			Expect(config.Public).To(BeTrue())
+			Expect(config.VirtualizationType).To(Equal("hvm"))
+			Expect(config.UniqueName).To(Equal("Some Unique Name"))
+		})
+	})
 })
