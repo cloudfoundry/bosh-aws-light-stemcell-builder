@@ -21,7 +21,7 @@ func (e *EC2Cli) DeleteSnapshot(snapshotID string, region string) error {
 
 	err := deleteSnapshot.Run()
 	if err != nil {
-		return fmt.Errorf("deleting snapshot with id %s: %s, stderr: %s", snapshotID, err, errBuff.String())
+		return fmt.Errorf("Error deleting snapshot with id %s: %s, stderr: %s", snapshotID, err, errBuff.String())
 	}
 
 	return nil

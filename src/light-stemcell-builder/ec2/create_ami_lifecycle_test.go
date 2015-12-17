@@ -33,7 +33,7 @@ var _ = Describe("CreateAmi lifecycle", func() {
 
 			rawOut, err := createVolCmd.Output()
 			if err != nil {
-				return "", fmt.Errorf("creating test volume: %s, stderr %s", err, stderr)
+				return "", fmt.Errorf("Error creating test volume: %s, stderr %s", err, stderr)
 			}
 
 			out := string(rawOut)

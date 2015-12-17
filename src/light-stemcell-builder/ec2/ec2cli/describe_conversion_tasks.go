@@ -24,7 +24,7 @@ func (e *EC2Cli) DescribeConversionTask(taskResource ec2.StatusResource) (ec2.St
 
 	stdout, err := describeTask.Output()
 	if err != nil {
-		return ec2.ConversionTaskInfo{}, fmt.Errorf("getting import volume status for task: %s: %s, stderr: %s", taskResource.ID(), err, stderr.String())
+		return ec2.ConversionTaskInfo{}, fmt.Errorf("Error getting import volume status for task: %s: %s, stderr: %s", taskResource.ID(), err, stderr.String())
 	}
 
 	outputLines := []string{}

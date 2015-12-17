@@ -11,7 +11,7 @@ import (
 func (e *EC2Cli) RegisterImage(amiConfig ec2ami.Config, snapshotID string) (string, error) {
 	amiName, err := amiConfig.Name()
 	if err != nil {
-		return "", fmt.Errorf("creating ami: %s", err)
+		return "", fmt.Errorf("Error creating ami: %s", err)
 	}
 
 	registerSnapshot := exec.Command(
@@ -33,7 +33,7 @@ func (e *EC2Cli) RegisterImage(amiConfig ec2ami.Config, snapshotID string) (stri
 
 	amiID, err := command.RunPipeline([]*exec.Cmd{registerSnapshot, secondField})
 	if err != nil {
-		return "", fmt.Errorf("registering image: %s", err)
+		return "", fmt.Errorf("Error registering image: %s", err)
 	}
 
 	return amiID, nil

@@ -21,7 +21,7 @@ func (e *EC2Cli) CreateSnapshot(volumeID string) (string, error) {
 
 	snapshotID, err := command.RunPipeline([]*exec.Cmd{createSnapshot, secondField})
 	if err != nil {
-		return "", fmt.Errorf("waiting for snapshot %s to be ready: %s", snapshotID, err)
+		return "", fmt.Errorf("Error waiting for snapshot %s to be ready: %s", snapshotID, err)
 	}
 
 	return snapshotID, nil

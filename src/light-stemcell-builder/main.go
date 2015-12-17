@@ -48,8 +48,10 @@ func validateConfig(config *Config) error {
 }
 
 func main() {
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+
 	if len(os.Args) != 2 {
-		log.Fatalln("Usage: light-stemcell-builder path_to_config.json")
+		logger.Fatalln("Usage: light-stemcell-builder path_to_config.json")
 	}
 	pathToConfig := os.Args[1]
 
@@ -57,13 +59,13 @@ func main() {
 	defer configFile.Close()
 
 	if err != nil {
-		log.Fatalf("opening config file: %s\n", err.Error())
+		logger.Fatalf("Error opening config file: %s\n", err.Error())
 	}
 
 	config := &Config{}
 	jsonParser := json.NewDecoder(configFile)
 	if err = jsonParser.Decode(config); err != nil {
-		log.Fatalf("Can't parse %s config file. Error is : %s\n", pathToConfig, err.Error())
+		logger.Fatalf("Can't parse %s config file. Error is : %s\n", pathToConfig, err.Error())
 	}
 
 	config.AmiConfig.Region = config.Region
@@ -78,14 +80,14 @@ func main() {
 
 	stemcellBuilder, err := builder.New(awsConfig)
 	if err != nil {
-		log.Fatalf("Error during creating stemcell builder: %s\n", err)
+		logger.Fatalf("Error during creating stemcell builder: %s\n", err)
 	}
 	stemcellBuilder.PrepareHeavy(config.StemcellPath)
 
-	err = stemcellBuilder.BuildLightStemcell(config.StemcellPath, config.OutputPath, config.AmiConfig, config.CopyDests)
+	err = stemcellBuilder.BuildLightStemcell(logger, config.StemcellPath, config.OutputPath, config.AmiConfig, config.CopyDests)
 
 	if err != nil {
-		log.Fatalf("Error during stemcell builder: %s\n", err)
+		logger.Fatalf("Error during stemcell builder: %s\n", err)
 	}
-	log.Printf("Output saved to: %s\n", config.OutputPath)
+	logger.Printf("Output saved to: %s\n", config.OutputPath)
 }

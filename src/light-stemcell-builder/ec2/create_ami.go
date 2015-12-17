@@ -14,7 +14,7 @@ func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, 
 
 	snapshotID, err := aws.CreateSnapshot(volumeID)
 	if err != nil {
-		return ec2ami.Info{}, fmt.Errorf("creating snapshot: %s", err)
+		return ec2ami.Info{}, fmt.Errorf("Error creating snapshot: %s", err)
 	}
 
 	waiterConfig := WaiterConfig{
@@ -28,7 +28,7 @@ func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, 
 
 	_, err = WaitForStatus(aws.DescribeSnapshot, waiterConfig)
 	if err != nil {
-		return ec2ami.Info{}, fmt.Errorf("waiting for snapshot to become available: %s", err)
+		return ec2ami.Info{}, fmt.Errorf("Error waiting for snapshot to become available: %s", err)
 	}
 
 	amiID, err := aws.RegisterImage(amiConfig, snapshotID)
@@ -46,13 +46,13 @@ func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, 
 
 	statusInfo, err := WaitForStatus(aws.DescribeImage, waiterConfig)
 	if err != nil {
-		return ec2ami.Info{}, fmt.Errorf("waiting for ami %s to be available %s", amiID, err)
+		return ec2ami.Info{}, fmt.Errorf("Error waiting for ami %s to be available %s", amiID, err)
 	}
 
 	if amiConfig.Public {
 		err = aws.MakeImagePublic(amiConfig)
 		if err != nil {
-			return ec2ami.Info{}, fmt.Errorf("making image %s public", amiID)
+			return ec2ami.Info{}, fmt.Errorf("Error making image %s public", amiID)
 		}
 	}
 	amiInfo := statusInfo.(ec2ami.Info)

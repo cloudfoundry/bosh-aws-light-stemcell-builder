@@ -104,7 +104,7 @@ func copyAmi(aws AWS, amiInfo ec2ami.Info, dest string) (ec2ami.Info, error) {
 	fmt.Printf("waiting for status %s to %s\n", amiInfo.AmiID, copiedAmiID)
 	statusInfo, err := WaitForStatus(aws.DescribeImage, waiterConfig)
 	if err != nil {
-		return ec2ami.Info{}, fmt.Errorf("waiting for copied ami %s to be available %s", copiedAmiID, err)
+		return ec2ami.Info{}, fmt.Errorf("Error waiting for copied ami %s to be available %s", copiedAmiID, err)
 	}
 
 	err = aws.MakeImagePublic(copiedAmiConfig)

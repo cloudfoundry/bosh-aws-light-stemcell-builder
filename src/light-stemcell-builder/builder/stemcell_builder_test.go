@@ -3,6 +3,7 @@ package builder_test
 import (
 	"light-stemcell-builder/builder"
 	"light-stemcell-builder/ec2/ec2ami"
+	"log"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -20,6 +21,8 @@ var _ = Describe("StemcellBuilder", func() {
 	Describe("Importing a machine image into AWS", func() {
 		It("Creates an AMI from a heavy stemcell in all desired regions and can delete them", func() {
 			Expect(awsConfig.Region).ToNot(Equal("cn-north-1"), "Cannot copy stemcells from China to US regions")
+
+			logger := log.New(os.Stdout, "", log.LstdFlags)
 
 			stemcellPath := os.Getenv("HEAVY_STEMCELL_TARBALL")
 			Expect(stemcellPath).ToNot(BeEmpty())
@@ -42,12 +45,12 @@ var _ = Describe("StemcellBuilder", func() {
 
 			copyDests := []string{"us-west-1", "us-west-2"}
 			amiConfig := ec2ami.Config{
-				Description: "BOSH Stemcell Builder Test AMI",
-				Public: false,
+				Description:        "BOSH Stemcell Builder Test AMI",
+				Public:             false,
 				VirtualizationType: "hvm",
-				Region: awsConfig.Region,
+				Region:             awsConfig.Region,
 			}
-			amis, err := b.BuildAmis(imagePath, amiConfig, copyDests)
+			amis, err := b.BuildAmis(logger, imagePath, amiConfig, copyDests)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(amis).To(HaveKey(awsConfig.Region))
 			Expect(amis).To(HaveKey("us-west-1"))
@@ -55,7 +58,6 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(amis[awsConfig.Region].AmiID).To(MatchRegexp("ami-.*"))
 			Expect(amis["us-west-1"].AmiID).To(MatchRegexp("ami-.*"))
 			Expect(amis["us-west-2"].AmiID).To(MatchRegexp("ami-.*"))
-
 
 			err = b.BuildLightStemcellTarball(outputPath, amis)
 			Expect(err).ToNot(HaveOccurred())

@@ -27,7 +27,7 @@ func (e *EC2Cli) DescribeSnapshot(snapshotResource ec2.StatusResource) (ec2.Stat
 		if strings.Contains(stderr.String(), "Client.InvalidSnapshot.NotFound") {
 			return ec2.SnapshotInfo{}, ec2.NonCompletedSnapshotError{SnapshotID: snapshotResource.ID(), SnapshotStatus: ec2.SnapshotUnknownStatus}
 		}
-		return ec2.SnapshotInfo{}, fmt.Errorf("getting snapshot status for snapshot: %s: %s, stderr: %s", snapshotResource.ID(), err, stderr.String())
+		return ec2.SnapshotInfo{}, fmt.Errorf("Error getting snapshot status for snapshot: %s: %s, stderr: %s", snapshotResource.ID(), err, stderr.String())
 	}
 
 	outputLines := []string{}

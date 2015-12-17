@@ -11,7 +11,7 @@ func New(prefix string) (string, error) {
 	cmd := exec.Command("uuidgen")
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("generating uuid: %s", err)
+		return "", fmt.Errorf("Error generating uuid: %s", err)
 	}
 
 	uuid := string(out)

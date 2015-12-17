@@ -38,6 +38,7 @@ func RunStages(logger *log.Logger, stages []Stage, inputData interface{}) ([]int
 		}
 		completedStages = append(completedStages, stage)
 	}
+	logger.SetPrefix("")
 	return returnData, nil
 }
 

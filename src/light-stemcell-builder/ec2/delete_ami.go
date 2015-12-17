@@ -13,7 +13,7 @@ func DeleteAmi(aws AWS, amiInfo ec2ami.Info) error {
 	}
 	err := aws.DeregisterImage(amiInfo.InputConfig)
 	if err != nil {
-		return fmt.Errorf("deregistering AMI: %s", err)
+		return fmt.Errorf("Error deregistering AMI: %s", err)
 	}
 
 	waiterConfig := WaiterConfig{

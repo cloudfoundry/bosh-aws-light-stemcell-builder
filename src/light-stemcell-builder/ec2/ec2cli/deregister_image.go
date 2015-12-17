@@ -22,7 +22,7 @@ func (e *EC2Cli) DeregisterImage(amiConfig ec2ami.Config) error {
 
 	err := deregisterImage.Run()
 	if err != nil {
-		return fmt.Errorf("deleting AMI with id %s: %s, stderr: %s", amiConfig.AmiID, err, errBuff.String())
+		return fmt.Errorf("Error deleting AMI with id %s: %s, stderr: %s", amiConfig.AmiID, err, errBuff.String())
 	}
 
 	return nil

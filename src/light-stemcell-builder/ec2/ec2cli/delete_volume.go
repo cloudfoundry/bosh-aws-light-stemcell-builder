@@ -21,7 +21,7 @@ func (e *EC2Cli) DeleteVolume(volumeID string) error {
 
 	err := deleteVolume.Run()
 	if err != nil {
-		return fmt.Errorf("deleting volume with id %s: %s, stderr: %s", volumeID, err, errBuff.String())
+		return fmt.Errorf("Error deleting volume with id %s: %s, stderr: %s", volumeID, err, errBuff.String())
 	}
 
 	return nil

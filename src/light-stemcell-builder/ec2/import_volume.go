@@ -17,7 +17,7 @@ const (
 func ImportVolume(aws AWS, imagePath string) (ConversionTaskInfo, error) {
 	taskID, err := aws.ImportVolume(imagePath)
 	if err != nil {
-		return ConversionTaskInfo{}, fmt.Errorf("creating import volume task: %s", err)
+		return ConversionTaskInfo{}, fmt.Errorf("Error creating import volume task: %s", err)
 	}
 
 	for i := 0; i < importVolumeRetryAttempts; i++ {
@@ -27,7 +27,7 @@ func ImportVolume(aws AWS, imagePath string) (ConversionTaskInfo, error) {
 		}
 
 		if reflect.TypeOf(err) != reflect.TypeOf(command.TimeoutError{}) {
-			return ConversionTaskInfo{}, fmt.Errorf("uploading machine image: %s", err)
+			return ConversionTaskInfo{}, fmt.Errorf("Error uploading machine image: %s", err)
 		}
 	}
 
@@ -39,11 +39,11 @@ func ImportVolume(aws AWS, imagePath string) (ConversionTaskInfo, error) {
 
 	info, err := WaitForStatus(aws.DescribeConversionTask, waiterConfig)
 	if err != nil {
-		return ConversionTaskInfo{}, fmt.Errorf("getting volume id for task: %s", taskID)
+		return ConversionTaskInfo{}, fmt.Errorf("Error getting volume id for task: %s", taskID)
 	}
 
 	if reflect.TypeOf(info) != reflect.TypeOf(ConversionTaskInfo{}) {
-		return ConversionTaskInfo{}, fmt.Errorf("unexpected type returned waiting for import volume completion")
+		return ConversionTaskInfo{}, fmt.Errorf("Error unexpected type returned waiting for import volume completion")
 	}
 
 	return info.(ConversionTaskInfo), nil

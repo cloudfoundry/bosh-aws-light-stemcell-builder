@@ -24,7 +24,7 @@ func (e EC2Cli) DeleteDiskImage(taskID string) error {
 
 	err := deleteDiskImage.Run()
 	if err != nil {
-		return fmt.Errorf("deleting disk image with task id %s: %s, stderr: %s", taskID, err, errBuff.String())
+		return fmt.Errorf("Error deleting disk image with task id %s: %s, stderr: %s", taskID, err, errBuff.String())
 	}
 
 	return nil

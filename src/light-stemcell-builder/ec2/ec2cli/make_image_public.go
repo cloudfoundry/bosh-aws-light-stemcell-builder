@@ -19,7 +19,7 @@ func (e *EC2Cli) MakeImagePublic(amiConfig ec2ami.Config) error {
 
 	err := makePublicCommand.Run()
 	if err != nil {
-		return fmt.Errorf("making AMI: %s public: %s", amiConfig.AmiID, err)
+		return fmt.Errorf("Error making AMI: %s public: %s", amiConfig.AmiID, err)
 	}
 
 	return nil

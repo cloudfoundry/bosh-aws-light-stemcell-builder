@@ -29,7 +29,7 @@ func (e *EC2Cli) DescribeImage(amiResource ec2.StatusResource) (ec2.StatusInfo, 
 		if strings.Contains(stderr.String(), "Client.InvalidAMIID.NotFound") {
 			return ec2ami.Info{}, ec2ami.NonAvailableAmiError{AmiID: amiConfig.AmiID, AmiStatus: ec2ami.AmiUnknownStatus}
 		}
-		return ec2ami.Info{}, fmt.Errorf("getting image status for image: %s: %s, stderr: %s", amiConfig.AmiID, err, stderr.String())
+		return ec2ami.Info{}, fmt.Errorf("Error getting image status for image: %s: %s, stderr: %s", amiConfig.AmiID, err, stderr.String())
 	}
 
 	outputLines := []string{}

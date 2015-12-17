@@ -60,7 +60,6 @@ func WaitForStatus(status StatusFetcher, c WaiterConfig) (StatusInfo, error) {
 		case <-ticker:
 			info, err := status(c.Resource)
 			if err != nil {
-				fmt.Println(fmt.Sprintf("Describe encountered error %s", err))
 				return nil, err
 			}
 			if info.Status() == c.DesiredStatus {

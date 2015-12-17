@@ -23,7 +23,7 @@ func (e *EC2Cli) DescribeVolume(volumeResource ec2.StatusResource) (ec2.StatusIn
 
 	stdout, err := describeVolume.Output()
 	if err != nil {
-		return ec2.VolumeInfo{}, fmt.Errorf("getting volume status for volume: %s: %s, stderr: %s", volumeResource.ID(), err, stderr.String())
+		return ec2.VolumeInfo{}, fmt.Errorf("Error getting volume status for volume: %s: %s, stderr: %s", volumeResource.ID(), err, stderr.String())
 	}
 
 	outputLines := []string{}

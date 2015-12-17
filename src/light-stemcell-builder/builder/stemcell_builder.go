@@ -42,7 +42,7 @@ func New(c AwsConfig) (*Builder, error) {
 	return &Builder{awsConfig: c, workDir: tempDir}, nil
 }
 
-func (b *Builder) BuildLightStemcell(stemcellPath string, outputPath string, amiConfig ec2ami.Config, copyDests []string) error {
+func (b *Builder) BuildLightStemcell(logger *log.Logger, stemcellPath string, outputPath string, amiConfig ec2ami.Config, copyDests []string) error {
 	err := amiConfig.Validate()
 	if err != nil {
 		return err
@@ -53,12 +53,12 @@ func (b *Builder) BuildLightStemcell(stemcellPath string, outputPath string, ami
 		return fmt.Errorf("Error during preparing image: %s", err)
 	}
 
-	amis, err := b.BuildAmis(imagePath, amiConfig, copyDests)
+	amis, err := b.BuildAmis(logger, imagePath, amiConfig, copyDests)
 	if err != nil {
 		return fmt.Errorf("Error during creating AMIs: %s", err)
 	}
 
-	log.Printf("Created AMIs:")
+	logger.Printf("Created AMIs:")
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.Encode(amis)
 
@@ -154,7 +154,7 @@ func (b *Builder) PrepareHeavy(stemcellPath string) (string, error) {
 	return rootImgPath, nil
 }
 
-func (b *Builder) BuildAmis(imagePath string, amiConfig ec2ami.Config, copyDests []string) (map[string]ec2ami.Info, error) {
+func (b *Builder) BuildAmis(logger *log.Logger, imagePath string, amiConfig ec2ami.Config, copyDests []string) (map[string]ec2ami.Info, error) {
 	ec2Config := ec2.Config{
 		BucketName: b.awsConfig.BucketName,
 		Region:     b.awsConfig.Region,
@@ -174,7 +174,6 @@ func (b *Builder) BuildAmis(imagePath string, amiConfig ec2ami.Config, copyDests
 
 	copyAmiStage := ec2stage.NewCopyAmiStage(ec2.CopyAmis, ec2.DeleteCopiedAmis, ec2CLI, copyDests)
 
-	logger := log.New(os.Stdout, "", log.LstdFlags)
 	outputData, err := stage.RunStages(logger, []stage.Stage{ebsVolumeStage, createAmiStage, copyAmiStage}, imagePath)
 	if err != nil {
 		return nil, err
