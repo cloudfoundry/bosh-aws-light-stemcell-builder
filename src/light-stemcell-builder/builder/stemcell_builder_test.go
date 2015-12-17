@@ -2,6 +2,7 @@ package builder_test
 
 import (
 	"light-stemcell-builder/builder"
+	"light-stemcell-builder/ec2/ec2ami"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -23,6 +24,12 @@ var _ = Describe("StemcellBuilder", func() {
 			stemcellPath := os.Getenv("HEAVY_STEMCELL_TARBALL")
 			Expect(stemcellPath).ToNot(BeEmpty())
 
+			outputPath := os.Getenv("OUTPUT_STEMCELL_PATH")
+			Expect(outputPath).ToNot(BeEmpty())
+
+			_, err := os.Stat(outputPath)
+			Expect(err).To(HaveOccurred(), "Make sure the output stemcell file does not exist before running this test.")
+
 			b, err := builder.New(awsConfig)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -34,7 +41,13 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			copyDests := []string{"us-west-1", "us-west-2"}
-			amis, err := b.BuildLightStemcells(imagePath, awsConfig, copyDests)
+			amiConfig := ec2ami.Config{
+				Description: "BOSH Stemcell Builder Test AMI",
+				Public: false,
+				VirtualizationType: "hvm",
+				Region: awsConfig.Region,
+			}
+			amis, err := b.BuildAmis(imagePath, amiConfig, copyDests)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(amis).To(HaveKey(awsConfig.Region))
 			Expect(amis).To(HaveKey("us-west-1"))
@@ -42,6 +55,13 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(amis[awsConfig.Region].AmiID).To(MatchRegexp("ami-.*"))
 			Expect(amis["us-west-1"].AmiID).To(MatchRegexp("ami-.*"))
 			Expect(amis["us-west-2"].AmiID).To(MatchRegexp("ami-.*"))
+
+
+			err = b.BuildLightStemcellTarball(outputPath, amis)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = os.Stat(outputPath)
+			Expect(err).ToNot(HaveOccurred())
 
 			err = b.DeleteLightStemcells(awsConfig, amis)
 			Expect(err).ToNot(HaveOccurred())

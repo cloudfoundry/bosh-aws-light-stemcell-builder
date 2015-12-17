@@ -1,12 +1,16 @@
 package builder
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
 	"light-stemcell-builder/ec2/ec2cli"
 	"light-stemcell-builder/ec2/ec2stage"
 	"light-stemcell-builder/stage"
+	"light-stemcell-builder/util"
 	"log"
 	"os"
 	"os/exec"
@@ -28,19 +32,6 @@ type AwsConfig struct {
 	Region     string
 }
 
-var regionToEndpointMapping = map[string]string{
-	"us-east-1":      "https://ec2.us-east-1.amazonaws.com",
-	"us-west-2":      "https://ec2.us-west-2.amazonaws.com",
-	"us-west-1":      "https://ec2.us-west-1.amazonaws.com",
-	"eu-west-1":      "https://ec2.eu-west-1.amazonaws.com",
-	"eu-central-1":   "https://ec2.eu-central-1.amazonaws.com",
-	"ap-southeast-1": "https://ec2.ap-southeast-1.amazonaws.com",
-	"ap-southeast-2": "https://ec2.ap-southeast-2.amazonaws.com",
-	"ap-northeast-1": "https://ec2.ap-northeast-1.amazonaws.com",
-	"sa-east-1":      "https://ec2.sa-east-1.amazonaws.com",
-	"cn-north-1":     "https://ec2.cn-north-1.amazonaws.com.cn",
-}
-
 // New returns a new stemcell builder using the provided AWS configuration
 func New(c AwsConfig) (*Builder, error) {
 	tempDir, err := ioutil.TempDir("", "light-stemcell-builder")
@@ -49,6 +40,93 @@ func New(c AwsConfig) (*Builder, error) {
 	}
 
 	return &Builder{awsConfig: c, workDir: tempDir}, nil
+}
+
+func (b *Builder) BuildLightStemcell(stemcellPath string, outputPath string, amiConfig ec2ami.Config, copyDests []string) error {
+	err := amiConfig.Validate()
+	if err != nil {
+		return err
+	}
+
+	imagePath, err := b.PrepareHeavy(stemcellPath)
+	if err != nil {
+		return fmt.Errorf("Error during preparing image: %s", err)
+	}
+
+	amis, err := b.BuildAmis(imagePath, amiConfig, copyDests)
+	if err != nil {
+		return fmt.Errorf("Error during creating AMIs: %s", err)
+	}
+
+	log.Printf("Created AMIs:")
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.Encode(amis)
+
+	return b.BuildLightStemcellTarball(outputPath, amis)
+}
+
+func (b *Builder) BuildLightStemcellTarball(outputPath string, amis map[string]ec2ami.Info) error {
+	var regionToAmiMap = make(map[string]string)
+	for region, amiInfo := range amis {
+		regionToAmiMap[region] = amiInfo.AmiID
+	}
+
+	manifestPath := path.Join(b.workDir, "stemcell.MF")
+
+	manifest, err := b.ReadStemcellManifest(manifestPath)
+	if err != nil {
+		return fmt.Errorf("Error while reading stemcell manifest: %s", err)
+	}
+
+	err = b.ModifyAndWriteStemcellManifest(manifestPath, manifest, regionToAmiMap)
+	if err != nil {
+		return fmt.Errorf("Error while writing stemcell manifest: %s", err)
+	}
+
+	return b.PackageLightStemcell(outputPath)
+}
+
+func (b *Builder) ReadStemcellManifest(manifestPath string) (map[string]interface{}, error) {
+	jsonManifest, err := util.YamlToJson(manifestPath)
+
+	var manifest map[string]interface{}
+	err = json.Unmarshal(jsonManifest, &manifest)
+	if err != nil {
+		return nil, err
+	}
+	return manifest, nil
+}
+
+func (b *Builder) ModifyAndWriteStemcellManifest(manifestPath string, manifest map[string]interface{}, regionToAmiMap map[string]string) error {
+	cloudProperties := manifest["cloud_properties"].(map[string]interface{})
+	cloudProperties["ami"] = regionToAmiMap
+
+	outputManifest, err := json.Marshal(manifest)
+	if err != nil {
+		return err
+	}
+
+	return util.JsonToYamlFile(outputManifest, manifestPath)
+}
+
+func (b *Builder) PackageLightStemcell(outputPath string) error {
+	// Overwrite the image archive with an empty file for building the light stemcell
+	imagePath := path.Join(b.workDir, "image")
+	imageFile, err := os.Create(imagePath)
+	if err != nil {
+		return fmt.Errorf("Error while creating image file: %s", err)
+	}
+	imageFile.Close()
+
+	tarStemcellCmd := exec.Command("tar", "-C", b.workDir, "-czf", outputPath, "--", "image", "apply_spec.yml", "stemcell.MF", "stemcell_dpkg_l.txt")
+	stderr := &bytes.Buffer{}
+	tarStemcellCmd.Stderr = stderr
+
+	err = tarStemcellCmd.Run()
+	if err != nil {
+		return fmt.Errorf("Error packaging light stemcell: %s, stderr: %s", err.Error(), stderr.String())
+	}
+	return nil
 }
 
 // PrepareHeavy extracts the machine image from a heavy stemcell and return its path
@@ -76,19 +154,14 @@ func (b *Builder) PrepareHeavy(stemcellPath string) (string, error) {
 	return rootImgPath, nil
 }
 
-func (b *Builder) BuildLightStemcells(imagePath string, awsConfig AwsConfig, copyDests []string) (map[string]ec2ami.Info, error) {
+func (b *Builder) BuildAmis(imagePath string, amiConfig ec2ami.Config, copyDests []string) (map[string]ec2ami.Info, error) {
 	ec2Config := ec2.Config{
-		BucketName: awsConfig.BucketName,
-		Region:     awsConfig.Region,
+		BucketName: b.awsConfig.BucketName,
+		Region:     b.awsConfig.Region,
 		Credentials: &ec2.Credentials{
-			AccessKey: awsConfig.AccessKey,
-			SecretKey: awsConfig.SecretKey,
+			AccessKey: b.awsConfig.AccessKey,
+			SecretKey: b.awsConfig.SecretKey,
 		},
-	}
-	amiConfig := ec2ami.Config{
-		Region:             awsConfig.Region,
-		VirtualizationType: "hvm",
-		Description:        "BOSH CI test AMI",
 	}
 
 	ec2CLI := &ec2cli.EC2Cli{}
@@ -115,7 +188,7 @@ func (b *Builder) BuildLightStemcells(imagePath string, awsConfig AwsConfig, cop
 
 	copiedAmiCollection := outputData[2].(*ec2ami.Collection)
 	resultMap := copiedAmiCollection.GetAll()
-	resultMap[awsConfig.Region] = outputData[1].(ec2ami.Info)
+	resultMap[b.awsConfig.Region] = outputData[1].(ec2ami.Info)
 
 	return resultMap, nil
 }
