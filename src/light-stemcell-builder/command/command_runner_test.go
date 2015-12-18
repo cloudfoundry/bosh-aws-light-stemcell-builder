@@ -15,7 +15,7 @@ import (
 var _ = Describe("CommandRunner", func() {
 	Describe("NewSelectLine", func() {
 		It("retuns a command which selects a given line", func() {
-			secondLine, err := command.NewSelectLine(2)
+			secondLine, err := command.SelectLine(2)
 			Expect(err).ToNot(HaveOccurred())
 
 			f, err := ioutil.TempFile("", "3linefile")
@@ -38,17 +38,17 @@ var _ = Describe("CommandRunner", func() {
 		})
 
 		It("returns an error for non-positive line selections", func() {
-			_, err := command.NewSelectLine(0)
+			_, err := command.SelectLine(0)
 			Expect(err).To(MatchError("line selection 0 is not positive"))
 
-			_, err = command.NewSelectLine(-1)
+			_, err = command.SelectLine(-1)
 			Expect(err).To(MatchError("line selection -1 is not positive"))
 		})
 	})
 
 	Describe("NewSelectField", func() {
 		It("returns a command which selects a given field", func() {
-			secondField, err := command.NewSelectField(2)
+			secondField, err := command.SelectField(2)
 			Expect(err).ToNot(HaveOccurred())
 
 			f, err := ioutil.TempFile("", "3fieldfile")
@@ -71,10 +71,10 @@ var _ = Describe("CommandRunner", func() {
 		})
 
 		It("returns an error for non-positive field selections", func() {
-			_, err := command.NewSelectField(0)
+			_, err := command.SelectField(0)
 			Expect(err).To(MatchError("field selection 0 is not positive"))
 
-			_, err = command.NewSelectField(-1)
+			_, err = command.SelectField(-1)
 			Expect(err).To(MatchError("field selection -1 is not positive"))
 		})
 	})
@@ -100,7 +100,7 @@ var _ = Describe("CommandRunner", func() {
 
 			out, err := command.RunPipeline(cmds)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("running command 1 of 2"))
+			Expect(err.Error()).To(ContainSubstring("running command 2 of 2"))
 			Expect(out).To(BeEmpty())
 			Expect(err.Error()).To(ContainSubstring("usage: awk"))
 		})
@@ -124,7 +124,7 @@ var _ = Describe("CommandRunner", func() {
 
 			_, err = command.RunPipeline(cmds)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("running command 1 of 3"))
+			Expect(err.Error()).To(ContainSubstring("running command 2 of 3"))
 
 			tempFile, err = os.Open(tempFileName)
 			Expect(err).ToNot(HaveOccurred())
@@ -156,7 +156,7 @@ var _ = Describe("CommandRunner", func() {
 
 			out, err := command.RunPipelineWithTimeout(5*time.Second, cmds)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("running command 1 of 2"))
+			Expect(err.Error()).To(ContainSubstring("running command 2 of 2"))
 			Expect(out).To(BeEmpty())
 			Expect(err.Error()).To(ContainSubstring("usage: awk"))
 		})
