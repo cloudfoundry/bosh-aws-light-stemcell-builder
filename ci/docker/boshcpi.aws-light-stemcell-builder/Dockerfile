@@ -6,7 +6,7 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
-RUN apt-get install -y git tar curl wget make python unzip python-pip openjdk-7-jre jq; apt-get clean
+RUN apt-get install -y git tar curl wget make python unzip python-pip openjdk-7-jre jq uuid-runtime; apt-get clean
 RUN apt-get install -y libxslt-dev libxml2-dev zlib1g-dev; apt-get clean;
 RUN apt-get install -y vagrant; apt-get clean; vagrant plugin install vagrant-aws
 RUN pip install awscli pyyaml
@@ -16,3 +16,10 @@ RUN cd /tmp; curl -O http://s3.amazonaws.com/ec2-downloads/ec2-api-tools.zip; un
 
 # Utility python scripts for converting YAML <-> JSON
 COPY json2yaml yaml2json /usr/bin/
+
+RUN cd /tmp && \
+    curl -O -L https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go*.tar.gz && \
+    rm go*.tar.gz
+
+ENV PATH /usr/local/go/bin:$PATH
