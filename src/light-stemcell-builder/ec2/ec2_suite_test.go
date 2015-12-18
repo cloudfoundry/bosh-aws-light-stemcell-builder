@@ -19,7 +19,7 @@ var localDiskImagePath = os.Getenv("LOCAL_DISK_IMAGE_PATH")
 func getAWSImplmentation() ec2.AWS {
 	credentials := ec2.Credentials{
 		AccessKey: os.Getenv("AWS_ACCESS_KEY_ID"),
-		SecretKey: os.Getenv("AWS_ACCESS_SECRET_KEY"),
+		SecretKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	}
 	config := ec2.Config{
 		BucketName:  os.Getenv("AWS_BUCKET_NAME"),

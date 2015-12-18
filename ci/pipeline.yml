@@ -1,0 +1,124 @@
+---
+groups:
+  - name: builder-tests
+    jobs:
+      - run-integration
+      - promote
+
+  - name: publish-light-stemcell
+    jobs:
+      - publish-light-stemcell
+
+  - name: versioning
+    jobs:
+      - bump-minor
+      - bump-major
+      - promote
+
+jobs:
+  - name: bump-minor
+    public: true
+    plan:
+      - get: version-semver
+        params: {bump: minor}
+      - {put: version-semver, params: {file: version-semver/number}}
+
+  - name: bump-major
+    public: true
+    plan:
+      - get: version-semver
+        params: {bump: major}
+      - {put: version-semver, params: {file: version-semver/number}}
+
+  - name: run-integration
+    serial: true
+    plan:
+      - {trigger: true, get: builder-src, resource: builder-src-in}
+      - {trigger: false, get: heavy-stemcell-in, resource: heavy-ubuntu-stemcell-in}
+      - task: test
+        file: builder-src/ci/tasks/run-integration.yml
+        config:
+          params:
+            access_key: {{access_key__test}}
+            secret_key: {{secret_key__test}}
+            bucket_name: {{bucket_name__test}}
+            region: {{region__test}}
+            ami_fixture_id: {{ami_fixture_id__test}}
+
+  - name: promote
+    plan:
+      - aggregate:
+          - {trigger: true, get: builder-src, passed: [run-integration], resource: builder-src-in}
+          - get: version-semver
+            params: {bump: patch}
+
+      - {put: version-semver, params: {file: version-semver/number}}
+
+      - task: build
+        file: builder-src/ci/tasks/build.yml
+
+      - put: builder-src-out
+        resource: builder-src-out
+        params: {repository: builder-src}
+
+  - name: publish-light-stemcell
+    serial: true
+    plan:
+      - {trigger: false, get: builder-src, resource: builder-src-out}
+      - {trigger: false, get: heavy-stemcell-in, resource: heavy-ubuntu-stemcell-in}
+      - task: test
+        file: builder-src/ci/tasks/build.yml
+        config:
+          params:
+            access_key: {{access_key__publish-light-stemcell}}
+            secret_key: {{secret_key__publish-light-stemcell}}
+            bucket_name: {{bucket_name__publish-light-stemcell}}
+            region: {{region__publish-light-stemcell}}
+            copy_dests: {{copy_dests__publish-light-stemcell}}
+            ami_description: {{ami_description__publish-light-stemcell}}
+            ami_is_public: {{ami_is_public__publish-light-stemcell}}
+            ami_virtualization_type: {{ami_virtualization_type__publish-light-stemcell}}
+
+      - put: light-ubuntu-stemcell-out
+        params:
+          from: light-stemcell-out/light-bosh-stemcell-(.*).tgz
+
+
+resources:
+  - name: builder-src-in
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
+      branch: develop
+      private_key: {{github_deployment_key__aws_light_stemcell_builder}}
+
+  - name: builder-src-out
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
+      branch: master
+      private_key: {{github_deployment_key__aws_light_stemcell_builder}}
+
+  - name: version-semver
+    type: semver
+    source:
+      initial_version: 0.0.1
+      key: current-version
+      bucket: {{aws_light_stemcell_builder_release_bucket}}
+      access_key_id: {{aws_light_stemcell_builder_release_bucket_access_key}}
+      secret_access_key: {{aws_light_stemcell_builder_release_bucket_secret_key}}
+
+  - name: heavy-ubuntu-stemcell-in
+    type: s3
+    source:
+      bucket: {{bucket_name__download-heavy-stemcell}}
+      regexp: bosh-stemcell-(.*)-aws-xen-ubuntu-trusty-go_agent.tgz
+      access_key_id: {{access_key__download-heavy-stemcell}}
+      secret_access_key: {{secret_key__download-heavy-stemcell}}
+
+  - name: light-ubuntu-stemcell-out
+    type: s3
+    source:
+      bucket: {{light-stemcell-tarball-bucket}}
+      access_key_id: {{access_key__publish-light-stemcell}}
+      secret_access_key: {{secret_key__publish-light-stemcell}}

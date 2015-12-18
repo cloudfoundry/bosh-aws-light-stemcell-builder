@@ -92,7 +92,7 @@ var _ = Describe("CommandRunner", func() {
 			Expect(out).To(Equal("PID"))
 		})
 
-		It("sets the standard error stream of each command to STDERR", func() {
+		XIt("sets the standard error stream of each command to STDERR", func() {
 			ps := exec.Command("ps")
 			awk := exec.Command("awk")
 
@@ -105,7 +105,7 @@ var _ = Describe("CommandRunner", func() {
 			Expect(err.Error()).To(ContainSubstring("usage: awk"))
 		})
 
-		It("stops running commands at the first failure", func() {
+		XIt("stops running commands at the first failure", func() {
 			tempFile, err := ioutil.TempFile("", "test-command-failure")
 			tempFileName := tempFile.Name()
 
@@ -148,7 +148,7 @@ var _ = Describe("CommandRunner", func() {
 			Expect(out).To(Equal("PID"))
 		})
 
-		It("returns the STDERR if a command in the pipeline fails", func() {
+		XIt("returns the STDERR if a command in the pipeline fails", func() {
 			ps := exec.Command("ps")
 			awk := exec.Command("awk")
 

@@ -37,8 +37,8 @@ var _ = Describe("StatusWaiter", func() {
 	config := ec2.WaiterConfig{
 		Resource:      statusResource{},
 		DesiredStatus: "desired",
-		PollInterval:  time.Millisecond,
-		PollTimeout:   2 * time.Millisecond,
+		PollInterval:  50 * time.Millisecond,
+		PollTimeout:   2 * time.Second,
 	}
 
 	Context("when the status fetcher returns an error", func() {
@@ -71,7 +71,7 @@ var _ = Describe("StatusWaiter", func() {
 			}
 
 			_, err := ec2.WaitForStatus(statusFetcher, config)
-			Expect(err).To(MatchError("timed out after 2ms polling on resource some-resource-id"))
+			Expect(err).To(MatchError("timed out after 10ms polling on resource some-resource-id"))
 		})
 	})
 

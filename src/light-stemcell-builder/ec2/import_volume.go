@@ -34,7 +34,7 @@ func ImportVolume(aws AWS, imagePath string) (ConversionTaskInfo, error) {
 	waiterConfig := WaiterConfig{
 		Resource:      ConversionTaskResource{TaskID: taskID},
 		DesiredStatus: taskCompletedStatus,
-		PollTimeout:   10 * time.Minute,
+		PollTimeout:   30 * time.Minute,
 	}
 
 	info, err := WaitForStatus(aws.DescribeConversionTask, waiterConfig)
