@@ -12,7 +12,7 @@ import (
 
 var awsConfig = builder.AwsConfig{
 	AccessKey:  os.Getenv("AWS_ACCESS_KEY_ID"),
-	SecretKey:  os.Getenv("AWS_ACCESS_SECRET_KEY"),
+	SecretKey:  os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	BucketName: os.Getenv("AWS_BUCKET_NAME"),
 	Region:     os.Getenv("AWS_REGION"),
 }
