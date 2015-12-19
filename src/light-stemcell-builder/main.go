@@ -84,10 +84,10 @@ func main() {
 	}
 	stemcellBuilder.PrepareHeavy(config.StemcellPath)
 
-	err = stemcellBuilder.BuildLightStemcell(logger, config.StemcellPath, config.OutputPath, config.AmiConfig, config.CopyDests)
+	stemcellPath, err := stemcellBuilder.BuildLightStemcell(logger, config.StemcellPath, config.OutputPath, config.AmiConfig, config.CopyDests)
 
 	if err != nil {
 		logger.Fatalf("Error during stemcell builder: %s\n", err)
 	}
-	logger.Printf("Output saved to: %s\n", config.OutputPath)
+	logger.Printf("Output saved to: %s\n", stemcellPath)
 }

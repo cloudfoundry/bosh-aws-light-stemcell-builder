@@ -34,7 +34,7 @@ which ec2-describe-regions
 ec2-describe-regions -O $access_key -W $secret_key --region $region
 
 stemcell_path=$(echo $PWD/heavy-stemcell-in/*.tgz)
-output_path=$PWD/light-stemcell-out/light-stemcell-out.tgz
+output_path=$PWD/light-stemcell-out/
 
 echo "Building light stemcell"
 

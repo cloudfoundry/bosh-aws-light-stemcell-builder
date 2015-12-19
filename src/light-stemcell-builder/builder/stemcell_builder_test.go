@@ -30,9 +30,6 @@ var _ = Describe("StemcellBuilder", func() {
 			outputPath := os.Getenv("OUTPUT_STEMCELL_PATH")
 			Expect(outputPath).ToNot(BeEmpty())
 
-			_, err := os.Stat(outputPath)
-			Expect(err).To(HaveOccurred(), "Make sure the output stemcell file does not exist before running this test.")
-
 			b, err := builder.New(awsConfig)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -59,10 +56,14 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(amis["us-west-1"].AmiID).To(MatchRegexp("ami-.*"))
 			Expect(amis["us-west-2"].AmiID).To(MatchRegexp("ami-.*"))
 
-			err = b.BuildLightStemcellTarball(outputPath, amis)
+			outputFile := b.LightStemcellFilePath(stemcellPath, outputPath)
+			Expect(outputFile).To(ContainSubstring("hvm"))
+			Expect(outputFile).To(MatchRegexp(`light-.*\.tgz`))
+
+			stemcellPath, err = b.BuildLightStemcellTarball(outputFile, amis, amiConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = os.Stat(outputPath)
+			_, err = os.Stat(stemcellPath)
 			Expect(err).ToNot(HaveOccurred())
 
 			err = b.DeleteLightStemcells(awsConfig, amis)

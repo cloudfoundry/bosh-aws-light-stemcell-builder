@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 )
 
 // Builder is responsible for extracting the contents of a heavy stemcell
@@ -42,30 +43,36 @@ func New(c AwsConfig) (*Builder, error) {
 	return &Builder{awsConfig: c, workDir: tempDir}, nil
 }
 
-func (b *Builder) BuildLightStemcell(logger *log.Logger, stemcellPath string, outputPath string, amiConfig ec2ami.Config, copyDests []string) error {
+func (b *Builder) BuildLightStemcell(logger *log.Logger, stemcellPath string, outputPath string, amiConfig ec2ami.Config, copyDests []string) (string, error) {
 	err := amiConfig.Validate()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	imagePath, err := b.PrepareHeavy(stemcellPath)
 	if err != nil {
-		return fmt.Errorf("Error during preparing image: %s", err)
+		return "", fmt.Errorf("Error during preparing image: %s", err)
 	}
 
 	amis, err := b.BuildAmis(logger, imagePath, amiConfig, copyDests)
 	if err != nil {
-		return fmt.Errorf("Error during creating AMIs: %s", err)
+		return "", fmt.Errorf("Error during creating AMIs: %s", err)
 	}
 
 	logger.Printf("Created AMIs:")
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.Encode(amis)
 
-	return b.BuildLightStemcellTarball(outputPath, amis)
+	return b.BuildLightStemcellTarball(b.LightStemcellFilePath(stemcellPath, outputPath), amis, amiConfig)
 }
 
-func (b *Builder) BuildLightStemcellTarball(outputPath string, amis map[string]ec2ami.Info) error {
+func (b *Builder) LightStemcellFilePath(heavyStemcellPath string, outputPath string) string {
+	lightStemcellPath := path.Base(heavyStemcellPath)
+	lightStemcellPath = "light-" + strings.Replace(lightStemcellPath, "xen", "xen-hvm", 1)
+	return path.Join(outputPath, lightStemcellPath)
+}
+
+func (b *Builder) BuildLightStemcellTarball(outputFile string, amis map[string]ec2ami.Info, amiConfig ec2ami.Config) (string, error) {
 	var regionToAmiMap = make(map[string]string)
 	for region, amiInfo := range amis {
 		regionToAmiMap[region] = amiInfo.AmiID
@@ -75,15 +82,15 @@ func (b *Builder) BuildLightStemcellTarball(outputPath string, amis map[string]e
 
 	manifest, err := b.ReadStemcellManifest(manifestPath)
 	if err != nil {
-		return fmt.Errorf("Error while reading stemcell manifest: %s", err)
+		return "", fmt.Errorf("Error while reading stemcell manifest: %s", err)
 	}
 
-	err = b.ModifyAndWriteStemcellManifest(manifestPath, manifest, regionToAmiMap)
+	stemcellName, err := b.ModifyAndWriteStemcellManifest(manifestPath, manifest, regionToAmiMap, amiConfig)
 	if err != nil {
-		return fmt.Errorf("Error while writing stemcell manifest: %s", err)
+		return "", fmt.Errorf("Error while writing stemcell manifest: %s", err)
 	}
 
-	return b.PackageLightStemcell(outputPath)
+	return b.PackageLightStemcell(outputFile, stemcellName)
 }
 
 func (b *Builder) ReadStemcellManifest(manifestPath string) (map[string]interface{}, error) {
@@ -97,36 +104,47 @@ func (b *Builder) ReadStemcellManifest(manifestPath string) (map[string]interfac
 	return manifest, nil
 }
 
-func (b *Builder) ModifyAndWriteStemcellManifest(manifestPath string, manifest map[string]interface{}, regionToAmiMap map[string]string) error {
+func (b *Builder) ModifyAndWriteStemcellManifest(manifestPath string, manifest map[string]interface{}, regionToAmiMap map[string]string, amiConfig ec2ami.Config) (string, error) {
 	cloudProperties := manifest["cloud_properties"].(map[string]interface{})
 	cloudProperties["ami"] = regionToAmiMap
 
-	outputManifest, err := json.Marshal(manifest)
-	if err != nil {
-		return err
+	stemcellName := manifest["name"].(string)
+	if amiConfig.VirtualizationType == "hvm" {
+		stemcellName = strings.Replace(stemcellName, "xen", "xen-hvm", 1)
+		manifest["name"] = stemcellName
+		cloudProperties["name"] = stemcellName
 	}
 
-	return util.JsonToYamlFile(outputManifest, manifestPath)
+	outputManifest, err := json.Marshal(manifest)
+	if err != nil {
+		return "", err
+	}
+
+	err = util.JsonToYamlFile(outputManifest, manifestPath)
+	if err != nil {
+		return "", err
+	}
+	return stemcellName, nil
 }
 
-func (b *Builder) PackageLightStemcell(outputPath string) error {
+func (b *Builder) PackageLightStemcell(outputFile string, stemcellName string) (string, error) {
 	// Overwrite the image archive with an empty file for building the light stemcell
 	imagePath := path.Join(b.workDir, "image")
 	imageFile, err := os.Create(imagePath)
 	if err != nil {
-		return fmt.Errorf("Error while creating image file: %s", err)
+		return "", fmt.Errorf("Error while creating image file: %s", err)
 	}
 	imageFile.Close()
 
-	tarStemcellCmd := exec.Command("tar", "-C", b.workDir, "-czf", outputPath, "--", "image", "apply_spec.yml", "stemcell.MF", "stemcell_dpkg_l.txt")
+	tarStemcellCmd := exec.Command("tar", "-C", b.workDir, "-czf", outputFile, "--", "image", "apply_spec.yml", "stemcell.MF", "stemcell_dpkg_l.txt")
 	stderr := &bytes.Buffer{}
 	tarStemcellCmd.Stderr = stderr
 
 	err = tarStemcellCmd.Run()
 	if err != nil {
-		return fmt.Errorf("Error packaging light stemcell: %s, stderr: %s", err.Error(), stderr.String())
+		return "", fmt.Errorf("Error packaging light stemcell: %s, stderr: %s", err.Error(), stderr.String())
 	}
-	return nil
+	return outputFile, nil
 }
 
 // PrepareHeavy extracts the machine image from a heavy stemcell and return its path
