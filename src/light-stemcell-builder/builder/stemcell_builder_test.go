@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"light-stemcell-builder/builder"
 	"light-stemcell-builder/ec2/ec2ami"
+	"light-stemcell-builder/ec2/ec2cli"
 	"log"
 	"os"
 	"os/exec"
@@ -22,6 +23,7 @@ var awsConfig = builder.AwsConfig{
 }
 
 var _ = Describe("StemcellBuilder", func() {
+	aws := &ec2cli.EC2Cli{}
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	copyDests := []string{"us-west-1", "us-west-2"}
 	stemcellPath := os.Getenv("HEAVY_STEMCELL_TARBALL")
@@ -81,8 +83,8 @@ var _ = Describe("StemcellBuilder", func() {
 				VirtualizationType: "hvm",
 				Region:             awsConfig.Region,
 			}
-			b := builder.New(logger, awsConfig, amiConfig)
-			// TODO: remove this once we implement and use a fake EC2Cli
+			b := builder.New(logger, aws, awsConfig, amiConfig)
+			// TODO: remove this once we implement and use a fake aws
 			b.DryRun()
 
 			It("successfully builds a light stemcell, minus the actual AMI creation", func() {
@@ -103,7 +105,7 @@ var _ = Describe("StemcellBuilder", func() {
 
 	Describe("Prepare", func() {
 		It("prepares the work dir, with contents from the 'heavy' stemcell", func() {
-			b := builder.New(logger, awsConfig, ec2ami.Config{})
+			b := builder.New(logger, aws, awsConfig, ec2ami.Config{})
 
 			imagePath, err := b.Prepare(dummyStemcellPath)
 			Expect(err).ToNot(HaveOccurred())
@@ -115,7 +117,7 @@ var _ = Describe("StemcellBuilder", func() {
 
 	Describe("PackageLightStemcell", func() {
 		It("produces a light stemcell tarball", func() {
-			b := builder.New(logger, awsConfig, ec2ami.Config{})
+			b := builder.New(logger, aws, awsConfig, ec2ami.Config{})
 			packageDir, err := ioutil.TempDir("", "light-stemcell-builder-package-test")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -141,7 +143,7 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(imageInfo.Size()).To(Equal(int64(0)))
 		})
 		It("errors if the Prepare() has not yet been called", func() {
-			b := builder.New(logger, awsConfig, ec2ami.Config{})
+			b := builder.New(logger, aws, awsConfig, ec2ami.Config{})
 			packageDir, err := ioutil.TempDir("", "light-stemcell-builder-package-test")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -155,7 +157,7 @@ var _ = Describe("StemcellBuilder", func() {
 	Describe("UpdateManifestFile", func() {
 		amiConfig := ec2ami.Config{VirtualizationType: "hvm"}
 		It("correctly updates the manifest file", func() {
-			b := builder.New(logger, awsConfig, amiConfig)
+			b := builder.New(logger, aws, awsConfig, amiConfig)
 			manifestFile := bytes.NewBuffer(dummyManifest.Bytes())
 
 			regionToAmi := map[string]string{
@@ -177,7 +179,7 @@ var _ = Describe("StemcellBuilder", func() {
 		Context("given a HVM stemcell", func() {
 			amiConfig := ec2ami.Config{VirtualizationType: "hvm"}
 			It("outputs the correct manifest", func() {
-				b := builder.New(logger, awsConfig, amiConfig)
+				b := builder.New(logger, aws, awsConfig, amiConfig)
 
 				manifest := map[string]interface{}{
 					"name": "stemcell-xen-name",
@@ -209,7 +211,7 @@ var _ = Describe("StemcellBuilder", func() {
 		Context("given a non-HVM stemcell", func() {
 			amiConfig := ec2ami.Config{VirtualizationType: "non-hvm"}
 			It("outputs the correct manifest", func() {
-				b := builder.New(logger, awsConfig, amiConfig)
+				b := builder.New(logger, aws, awsConfig, amiConfig)
 
 				manifest := map[string]interface{}{
 					"name": "stemcell-xen-name",
@@ -240,7 +242,7 @@ var _ = Describe("StemcellBuilder", func() {
 		})
 		Context("given an invalid manifest", func() {
 			amiConfig := ec2ami.Config{}
-			b := builder.New(logger, awsConfig, amiConfig)
+			b := builder.New(logger, aws, awsConfig, amiConfig)
 			It("errors with missing 'name'", func() {
 				manifest := make(map[string]interface{})
 				err := b.UpdateManifestContent(manifest, map[string]string{})
@@ -278,7 +280,7 @@ var _ = Describe("StemcellBuilder", func() {
 				Region:             awsConfig.Region,
 			}
 			It("returns the expected file path", func() {
-				b := builder.New(logger, awsConfig, amiConfig)
+				b := builder.New(logger, aws, awsConfig, amiConfig)
 				lightStemcellPath := b.LightStemcellFilePath(heavyStemcellPath, outputPath)
 				Expect(lightStemcellPath).To(Equal("/path/to/stemcell/light-some-xen-hvm-stemcell.tgz"))
 			})
@@ -291,7 +293,7 @@ var _ = Describe("StemcellBuilder", func() {
 				Region:             awsConfig.Region,
 			}
 			It("returns the expected file path", func() {
-				b := builder.New(logger, awsConfig, amiConfig)
+				b := builder.New(logger, aws, awsConfig, amiConfig)
 				lightStemcellPath := b.LightStemcellFilePath(heavyStemcellPath, outputPath)
 				Expect(lightStemcellPath).To(Equal("/path/to/stemcell/light-some-xen-stemcell.tgz"))
 			})

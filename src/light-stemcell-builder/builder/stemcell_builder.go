@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
-	"light-stemcell-builder/ec2/ec2cli"
 	"light-stemcell-builder/ec2/ec2stage"
 	"light-stemcell-builder/stage"
 	"light-stemcell-builder/util"
@@ -21,10 +20,11 @@ import (
 // Builder is responsible for extracting the contents of a heavy stemcell
 // and for publishing an AWS light stemcell from a machine image
 type Builder struct {
-	awsConfig AwsConfig
-	workDir   string
 	logger    *log.Logger
+	aws       ec2.AWS
+	awsConfig AwsConfig
 	amiConfig ec2ami.Config
+	workDir   string
 	prepared  bool
 	dryRun    bool
 }
@@ -38,10 +38,11 @@ type AwsConfig struct {
 }
 
 // New returns a new stemcell builder using the provided AWS configuration
-func New(logger *log.Logger, awsConfig AwsConfig, amiConfig ec2ami.Config) *Builder {
+func New(logger *log.Logger, aws ec2.AWS, awsConfig AwsConfig, amiConfig ec2ami.Config) *Builder {
 	return &Builder{
-		awsConfig: awsConfig,
 		logger:    logger,
+		aws:       aws,
+		awsConfig: awsConfig,
 		amiConfig: amiConfig,
 	}
 }
@@ -227,15 +228,14 @@ func (b *Builder) BuildAmis(imagePath string, copyDests []string) (map[string]ec
 		},
 	}
 
-	ec2CLI := &ec2cli.EC2Cli{}
-	ec2CLI.Configure(ec2Config)
+	b.aws.Configure(ec2Config)
 
 	ebsVolumeStage := ec2stage.NewCreateEBSVolumeStage(ec2.ImportVolume,
-		ec2.CleanupImportVolume, ec2.DeleteVolume, ec2CLI)
+		ec2.CleanupImportVolume, ec2.DeleteVolume, b.aws)
 
-	createAmiStage := ec2stage.NewCreateAmiStage(ec2.CreateAmi, ec2.DeleteAmi, ec2CLI, b.amiConfig)
+	createAmiStage := ec2stage.NewCreateAmiStage(ec2.CreateAmi, ec2.DeleteAmi, b.aws, b.amiConfig)
 
-	copyAmiStage := ec2stage.NewCopyAmiStage(ec2.CopyAmis, ec2.DeleteCopiedAmis, ec2CLI, copyDests)
+	copyAmiStage := ec2stage.NewCopyAmiStage(ec2.CopyAmis, ec2.DeleteCopiedAmis, b.aws, copyDests)
 
 	outputData, err := stage.RunStages(b.logger, []stage.Stage{ebsVolumeStage, createAmiStage, copyAmiStage}, imagePath)
 	if err != nil {
@@ -243,7 +243,7 @@ func (b *Builder) BuildAmis(imagePath string, copyDests []string) (map[string]ec
 	}
 
 	// Delete the EBS Volume created for the AMI; We no longer need it at this point
-	err = ec2.DeleteVolume(ec2CLI, outputData[0].(string))
+	err = ec2.DeleteVolume(b.aws, outputData[0].(string))
 	if err != nil {
 		b.logger.Printf("Unable to clean up volume due to error: %s\n", err.Error())
 	}

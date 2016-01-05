@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"light-stemcell-builder/builder"
 	"light-stemcell-builder/ec2/ec2ami"
+	"light-stemcell-builder/ec2/ec2cli"
 	"log"
 	"os"
 )
@@ -83,7 +84,8 @@ func main() {
 		Region:     config.Region,
 	}
 
-	stemcellBuilder := builder.New(logger, awsConfig, config.AmiConfig)
+	aws := &ec2cli.EC2Cli{}
+	stemcellBuilder := builder.New(logger, aws, awsConfig, config.AmiConfig)
 
 	stemcellPath, amis, err := stemcellBuilder.BuildLightStemcell(config.StemcellPath, config.OutputPath, config.CopyDests)
 	if err != nil {
