@@ -54,9 +54,6 @@ jobs:
 
       - {put: version-semver, params: {file: version-semver/number}}
 
-      - task: build
-        file: builder-src/ci/tasks/build.yml
-
       - put: builder-src-out
         resource: builder-src-out
         params: {repository: builder-src}
@@ -120,5 +117,6 @@ resources:
     type: s3
     source:
       bucket: {{light-stemcell-tarball-bucket}}
+      regexp: light-bosh-stemcell-(.*)-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
       access_key_id: {{access_key__publish-light-stemcell}}
       secret_access_key: {{secret_key__publish-light-stemcell}}

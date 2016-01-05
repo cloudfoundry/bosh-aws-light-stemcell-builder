@@ -1,4 +1,5 @@
 ci/docker/.vagrant
-pkg
 bin
+pkg
+tmp
 *.iml
