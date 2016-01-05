@@ -2,20 +2,15 @@ package util
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"os/exec"
 )
 
-func YamlToJson(pathToFile string) ([]byte, error) {
-	yamlFile, err := os.Open(pathToFile)
-	if err != nil {
-		return nil, err
-	}
-	defer yamlFile.Close()
-
+func yamlToJson(reader io.Reader) ([]byte, error) {
 	yamlToJsonCmd := exec.Command("yaml2json")
-	yamlToJsonCmd.Stdin = yamlFile
+	yamlToJsonCmd.Stdin = reader
 
 	errBuff := &bytes.Buffer{}
 	yamlToJsonCmd.Stderr = errBuff
@@ -27,13 +22,21 @@ func YamlToJson(pathToFile string) ([]byte, error) {
 	return output, nil
 }
 
-func JsonToYamlFile(inputJson []byte, pathToOutputFile string) error {
-	outFile, err := os.Create(pathToOutputFile)
+func ReadYaml(manifestReader io.Reader) (map[string]interface{}, error) {
+	jsonManifest, err := yamlToJson(manifestReader)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer outFile.Close()
 
+	var manifest map[string]interface{}
+	err = json.Unmarshal(jsonManifest, &manifest)
+	if err != nil {
+		return nil, err
+	}
+	return manifest, nil
+}
+
+func jsonToYaml(inputJson []byte, yamlWriter io.Writer) error {
 	jsonToYamlCmd := exec.Command("json2yaml")
 	stdin, err := jsonToYamlCmd.StdinPipe()
 	if err != nil {
@@ -49,7 +52,7 @@ func JsonToYamlFile(inputJson []byte, pathToOutputFile string) error {
 		return err
 	}
 
-	jsonToYamlCmd.Stdout = outFile
+	jsonToYamlCmd.Stdout = yamlWriter
 	errBuff := &bytes.Buffer{}
 
 	jsonToYamlCmd.Stderr = errBuff
@@ -57,6 +60,19 @@ func JsonToYamlFile(inputJson []byte, pathToOutputFile string) error {
 	err = jsonToYamlCmd.Run()
 	if err != nil {
 		return fmt.Errorf("YamlToJson failed: %s, stderr: %s", err.Error(), errBuff.String())
+	}
+	return nil
+}
+
+func WriteYaml(manifestWriter io.Writer, manifest map[string]interface{}) error {
+	outputManifest, err := json.Marshal(manifest)
+	if err != nil {
+		return err
+	}
+
+	err = jsonToYaml(outputManifest, manifestWriter)
+	if err != nil {
+		return err
 	}
 	return nil
 }

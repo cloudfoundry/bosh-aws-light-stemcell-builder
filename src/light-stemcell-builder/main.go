@@ -78,16 +78,20 @@ func main() {
 		Region:     config.Region,
 	}
 
-	stemcellBuilder, err := builder.New(awsConfig)
+	stemcellBuilder, err := builder.New(logger, awsConfig, config.AmiConfig)
 	if err != nil {
 		logger.Fatalf("Error during creating stemcell builder: %s\n", err)
 	}
-	stemcellBuilder.PrepareHeavy(config.StemcellPath)
 
-	stemcellPath, err := stemcellBuilder.BuildLightStemcell(logger, config.StemcellPath, config.OutputPath, config.AmiConfig, config.CopyDests)
-
+	stemcellPath, amis, err := stemcellBuilder.BuildLightStemcell(config.StemcellPath, config.OutputPath, config.CopyDests)
 	if err != nil {
 		logger.Fatalf("Error during stemcell builder: %s\n", err)
 	}
+	amiJson, err := json.Marshal(amis)
+	if err != nil {
+		logger.Printf("Error output encoding: %s\n", err)
+	}
+	logger.Printf("Created AMIs:\n%s", amiJson)
+
 	logger.Printf("Output saved to: %s\n", stemcellPath)
 }

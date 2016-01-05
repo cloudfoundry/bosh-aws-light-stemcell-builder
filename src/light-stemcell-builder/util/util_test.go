@@ -1,49 +1,51 @@
 package util_test
 
 import (
-	"io/ioutil"
 	"light-stemcell-builder/util"
-	"os"
-	"path"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"bytes"
 )
 
 var _ = Describe("Util", func() {
-	Describe("YamlToJson", func() {
-		It("should return the json converted output of the yaml file", func() {
-			tempDir, err := ioutil.TempDir("", "light-stemcell-builder-util-test")
+	Describe("ReadYaml", func() {
+		It("reads the yaml into a map", func() {
+			reader := bytes.NewReader([]byte("hi: hello\nhello: there"))
+			expected := map[string]interface{}{
+				"hi": "hello",
+				"hello": "there",
+			}
+			content, err := util.ReadYaml(reader)
 			Expect(err).ToNot(HaveOccurred())
-			testYamlPath := path.Join(tempDir, "test.yml")
-			yamlFile, err := os.Create(testYamlPath)
-			Expect(err).ToNot(HaveOccurred())
-			yamlFile.Write([]byte("hi: hello\nhello: there"))
-			err = yamlFile.Close()
-			Expect(err).ToNot(HaveOccurred())
-
-			output, err := util.YamlToJson(testYamlPath)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(output).To(MatchJSON(`{"hi": "hello","hello": "there"}`))
+			Expect(content).To(Equal(expected))
+		})
+		Context("given invalid yaml", func() {
+			It("returns an error", func() {
+				reader := bytes.NewReader([]byte("key: key: value"))
+				_, err := util.ReadYaml(reader)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("YamlToJson failed"))
+			})
 		})
 	})
-	Describe("JsonToYamlFile", func() {
-		It("should write the yaml version of the json input", func() {
-			tempDir, err := ioutil.TempDir("", "light-stemcell-builder-util-test")
+	Describe("WriteYaml", func() {
+		It("writes the contents as yaml", func() {
+			writer := &bytes.Buffer{}
+			content := map[string]interface{}{
+				"key": "value",
+				"another": "value",
+			}
+			err := util.WriteYaml(writer, content)
 			Expect(err).ToNot(HaveOccurred())
-			testYamlPath := path.Join(tempDir, "test.yml")
-
-			jsonInput := []byte(`{"hi": "hello","hello": "there"}`)
-
-			err = util.JsonToYamlFile(jsonInput, testYamlPath)
+			Expect(writer.String()).To(ContainSubstring("key: value"))
+			Expect(writer.String()).To(ContainSubstring("another: value"))
+		})
+		It("writes empty contents as yaml", func() {
+			writer := &bytes.Buffer{}
+			content := make(map[string]interface{})
+			err := util.WriteYaml(writer, content)
 			Expect(err).ToNot(HaveOccurred())
-
-			_, err = os.Stat(testYamlPath)
-			Expect(err).ToNot(HaveOccurred())
-
-			yamlContents, err := ioutil.ReadFile(testYamlPath)
-			Expect(string(yamlContents)).To(ContainSubstring("hi: hello"))
-			Expect(string(yamlContents)).To(ContainSubstring("hello: there"))
+			Expect(writer.String()).To(Equal("{}\n\n"))
 		})
 	})
 })
