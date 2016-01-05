@@ -47,7 +47,7 @@ func jsonToYaml(inputJson []byte, yamlWriter io.Writer) error {
 	if err != nil {
 		return err
 	}
-	stdin.Close()
+	err = stdin.Close()
 	if err != nil {
 		return err
 	}

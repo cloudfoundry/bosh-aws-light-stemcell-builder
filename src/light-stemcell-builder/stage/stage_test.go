@@ -57,7 +57,8 @@ var _ = Describe("Stage", func() {
 			}
 			mockStage := &mockStage{run: dummyRunner, undo: noopUndoer}
 			stages := []stage.Stage{mockStage}
-			stage.RunStages(nullLogger, stages, 42)
+			_, err := stage.RunStages(nullLogger, stages, 42)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(runInput).To(Equal(42))
 		})
 

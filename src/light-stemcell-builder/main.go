@@ -56,7 +56,12 @@ func main() {
 	pathToConfig := os.Args[1]
 
 	configFile, err := os.Open(pathToConfig)
-	defer configFile.Close()
+	defer func() {
+		err = configFile.Close()
+		if err != nil {
+			logger.Fatalf("Error closing config file: %s\n", err.Error())
+		}
+	}()
 
 	if err != nil {
 		logger.Fatalf("Error opening config file: %s\n", err.Error())

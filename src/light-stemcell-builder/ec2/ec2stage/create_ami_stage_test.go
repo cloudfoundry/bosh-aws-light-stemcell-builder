@@ -31,7 +31,8 @@ var _ = Describe("CreateAmi", func() {
 			}
 
 			s := ec2stage.NewCreateAmiStage(dummyRunner, noopUndoer, dummyAWS{}, ec2ami.Config{})
-			s.Run(logger, "dummy-ebs-volume-id")
+			_, err := s.Run(logger, "dummy-ebs-volume-id")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
 			Expect(volID).To(Equal("dummy-ebs-volume-id"))
 		})
@@ -88,8 +89,10 @@ var _ = Describe("CreateAmi", func() {
 				return nil
 			}
 			s := ec2stage.NewCreateAmiStage(dummyRunner, dummyUndoer, dummyAWS{}, ec2ami.Config{})
-			s.Run(logger, "dummy-ebs-volume-id")
-			s.Rollback(logger)
+			_, err := s.Run(logger, "dummy-ebs-volume-id")
+			Expect(err).ToNot(HaveOccurred())
+			err = s.Rollback(logger)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
 			Expect(info).To(Equal(dummyAmiInfo))
 		})

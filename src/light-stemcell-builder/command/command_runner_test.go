@@ -21,7 +21,10 @@ var _ = Describe("CommandRunner", func() {
 			f, err := ioutil.TempFile("", "3linefile")
 			Expect(err).ToNot(HaveOccurred())
 			fileName := f.Name()
-			defer os.Remove(fileName)
+			defer func() {
+				err = os.Remove(fileName)
+				Expect(err).ToNot(HaveOccurred())
+			}()
 
 			cat := exec.Command("cat", fileName)
 
@@ -54,7 +57,10 @@ var _ = Describe("CommandRunner", func() {
 			f, err := ioutil.TempFile("", "3fieldfile")
 			Expect(err).ToNot(HaveOccurred())
 			fileName := f.Name()
-			defer os.Remove(fileName)
+			defer func() {
+				err = os.Remove(fileName)
+				Expect(err).ToNot(HaveOccurred())
+			}()
 
 			cat := exec.Command("cat", fileName)
 
@@ -112,7 +118,10 @@ var _ = Describe("CommandRunner", func() {
 			Expect(err).ToNot(HaveOccurred())
 			err = tempFile.Close()
 			Expect(err).ToNot(HaveOccurred())
-			defer os.Remove(tempFileName)
+			defer func() {
+				err = os.Remove(tempFileName)
+				Expect(err).ToNot(HaveOccurred())
+			}()
 
 			ps := exec.Command("ps")
 			awk := exec.Command("awk")
@@ -128,7 +137,10 @@ var _ = Describe("CommandRunner", func() {
 
 			tempFile, err = os.Open(tempFileName)
 			Expect(err).ToNot(HaveOccurred())
-			defer tempFile.Close()
+			defer func() {
+				err = tempFile.Close()
+				Expect(err).ToNot(HaveOccurred())
+			}()
 
 			tempFileBytes, err := ioutil.ReadAll(tempFile)
 			Expect(tempFileBytes).To(BeEmpty())

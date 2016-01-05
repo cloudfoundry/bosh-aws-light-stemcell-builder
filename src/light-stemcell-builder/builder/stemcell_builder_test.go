@@ -29,10 +29,10 @@ var _ = Describe("StemcellBuilder", func() {
 	var dummyStemcellPath string
 
 	dummyManifest := &bytes.Buffer{}
-	dummyManifest.WriteString("---\n")
-	dummyManifest.WriteString("name: bosh-aws-xen-ubuntu-trusty-go_agent\n")
-	dummyManifest.WriteString("cloud_properties:\n")
-	dummyManifest.WriteString("  name: bosh-aws-xen-ubuntu-trusty-go_agent")
+	_, _ = dummyManifest.WriteString("---\n")
+	_, _ = dummyManifest.WriteString("name: bosh-aws-xen-ubuntu-trusty-go_agent\n")
+	_, _ = dummyManifest.WriteString("cloud_properties:\n")
+	_, _ = dummyManifest.WriteString("  name: bosh-aws-xen-ubuntu-trusty-go_agent")
 
 	BeforeSuite(func() {
 		// TODO: Test light stemcell building in AWS China
@@ -56,7 +56,8 @@ var _ = Describe("StemcellBuilder", func() {
 
 		dummyManifestPath := path.Join(dummyStemcellFolder, "stemcell.MF")
 		dummyManifestFile, err := os.Create(dummyManifestPath)
-		dummyManifestFile.Write(dummyManifest.Bytes())
+		_, err = dummyManifestFile.Write(dummyManifest.Bytes())
+		Expect(err).ToNot(HaveOccurred())
 		err = dummyManifestFile.Close()
 		Expect(err).ToNot(HaveOccurred())
 

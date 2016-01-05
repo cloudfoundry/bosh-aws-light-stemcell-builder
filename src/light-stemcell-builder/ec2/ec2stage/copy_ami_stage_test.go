@@ -33,7 +33,8 @@ var _ = Describe("CopyAmi", func() {
 
 			amiInfo := ec2ami.Info{AmiID: "some-unique-id"}
 			s := ec2stage.NewCopyAmiStage(dummyRunner, noopUndoer, dummyAWS{}, []string{})
-			s.Run(logger, amiInfo)
+			_, err := s.Run(logger, amiInfo)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
 			Expect(info).To(Equal(amiInfo))
 		})
@@ -111,8 +112,10 @@ var _ = Describe("CopyAmi", func() {
 			}
 
 			s := ec2stage.NewCopyAmiStage(dummyRunner, dummyUndoer, dummyAWS{}, []string{})
-			s.Run(logger, ec2ami.Info{})
-			s.Rollback(logger)
+			_, err := s.Run(logger, ec2ami.Info{})
+			Expect(err).ToNot(HaveOccurred())
+			err = s.Rollback(logger)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
 			Expect(collection).To(Equal(dummyCollection))
 		})

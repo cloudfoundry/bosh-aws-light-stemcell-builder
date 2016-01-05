@@ -34,7 +34,8 @@ var _ = Describe("CreateEbsVolume", func() {
 			}
 
 			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, noopUndoer, dummyAWS{})
-			s.Run(logger, "/tmp/some-image-path")
+			_, err := s.Run(logger, "/tmp/some-image-path")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
 			Expect(path).To(Equal("/tmp/some-image-path"))
 		})
@@ -85,7 +86,8 @@ var _ = Describe("CreateEbsVolume", func() {
 			}
 
 			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, dummyCleaner, noopUndoer, dummyAWS{})
-			s.Run(logger, "/tmp/some-image-path")
+			_, err := s.Run(logger, "/tmp/some-image-path")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
 		})
 	})
@@ -104,8 +106,10 @@ var _ = Describe("CreateEbsVolume", func() {
 				return nil
 			}
 			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, dummyUndoer, dummyAWS{})
-			s.Run(logger, "/tmp/some-image-path")
-			s.Rollback(logger)
+			_, err := s.Run(logger, "/tmp/some-image-path")
+			Expect(err).ToNot(HaveOccurred())
+			err = s.Rollback(logger)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
 			Expect(volID).To(Equal("dummy-ebs-volume-id"))
 		})

@@ -66,7 +66,9 @@ func (b *Builder) BuildLightStemcell(stemcellPath string, outputPath string, cop
 	if err != nil {
 		return "", nil, err
 	}
-	defer manifestFile.Close()
+	defer func() {
+		err = manifestFile.Close()
+	}()
 
 	var amis map[string]ec2ami.Info
 	if b.dryRun {
@@ -98,7 +100,7 @@ func (b *Builder) BuildLightStemcell(stemcellPath string, outputPath string, cop
 		return "", nil, err
 	}
 
-	return outputStemcellPath, amis, nil
+	return outputStemcellPath, amis, err
 }
 
 func (b *Builder) LightStemcellFilePath(heavyStemcellPath string, outputPath string) string {
@@ -166,7 +168,10 @@ func (b *Builder) PackageLightStemcell(outputFile string) error {
 	if err != nil {
 		return fmt.Errorf("Error while creating image file: %s", err)
 	}
-	imageFile.Close()
+	err = imageFile.Close()
+	if err != nil {
+		return fmt.Errorf("Error while closing image file: %s", err)
+	}
 
 	tarStemcellCmd := exec.Command("tar", "-C", b.workDir, "-czf", outputFile, "--", "image", "apply_spec.yml", "stemcell.MF", "stemcell_dpkg_l.txt")
 	stderr := &bytes.Buffer{}
