@@ -5,8 +5,8 @@ import (
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
 	"light-stemcell-builder/stage"
-	"reflect"
 	"log"
+	"reflect"
 )
 
 type CopyAmiRunner func(aws ec2.AWS, amiInfo ec2ami.Info, destinations []string) (*ec2ami.Collection, error)

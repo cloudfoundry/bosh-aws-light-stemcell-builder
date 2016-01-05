@@ -6,6 +6,7 @@ import (
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
 	"light-stemcell-builder/ec2/ec2stage"
+	"light-stemcell-builder/ec2/fakes"
 	"log"
 
 	. "github.com/onsi/ginkgo"
@@ -30,7 +31,7 @@ var _ = Describe("CreateAmi", func() {
 				return ec2ami.Info{AmiID: "dummy-ami-id"}, nil
 			}
 
-			s := ec2stage.NewCreateAmiStage(dummyRunner, noopUndoer, dummyAWS{}, ec2ami.Config{})
+			s := ec2stage.NewCreateAmiStage(dummyRunner, noopUndoer, &fakes.FakeAWS{}, ec2ami.Config{})
 			_, err := s.Run(logger, "dummy-ebs-volume-id")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
@@ -42,7 +43,7 @@ var _ = Describe("CreateAmi", func() {
 				return ec2ami.Info{}, errors.New("this is an error")
 			}
 
-			s := ec2stage.NewCreateAmiStage(errorRunner, noopUndoer, dummyAWS{}, ec2ami.Config{})
+			s := ec2stage.NewCreateAmiStage(errorRunner, noopUndoer, &fakes.FakeAWS{}, ec2ami.Config{})
 			_, err := s.Run(logger, "dummy-ebs-volume-id")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("this is an error"))
@@ -53,7 +54,7 @@ var _ = Describe("CreateAmi", func() {
 				return ec2ami.Info{AmiID: "dummy-ami-id"}, nil
 			}
 
-			s := ec2stage.NewCreateAmiStage(dummyRunner, noopUndoer, dummyAWS{}, ec2ami.Config{})
+			s := ec2stage.NewCreateAmiStage(dummyRunner, noopUndoer, &fakes.FakeAWS{}, ec2ami.Config{})
 			_, err := s.Run(logger, 42)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("expected type string, got: int"))
@@ -65,7 +66,7 @@ var _ = Describe("CreateAmi", func() {
 				return dummyAmi, nil
 			}
 
-			s := ec2stage.NewCreateAmiStage(dummyRunner, noopUndoer, dummyAWS{}, ec2ami.Config{})
+			s := ec2stage.NewCreateAmiStage(dummyRunner, noopUndoer, &fakes.FakeAWS{}, ec2ami.Config{})
 			rawData, err := s.Run(logger, "dummy-ebs-volume-id")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(rawData).To(BeAssignableToTypeOf(dummyAmi))
@@ -88,7 +89,7 @@ var _ = Describe("CreateAmi", func() {
 				info = amiInfo
 				return nil
 			}
-			s := ec2stage.NewCreateAmiStage(dummyRunner, dummyUndoer, dummyAWS{}, ec2ami.Config{})
+			s := ec2stage.NewCreateAmiStage(dummyRunner, dummyUndoer, &fakes.FakeAWS{}, ec2ami.Config{})
 			_, err := s.Run(logger, "dummy-ebs-volume-id")
 			Expect(err).ToNot(HaveOccurred())
 			err = s.Rollback(logger)

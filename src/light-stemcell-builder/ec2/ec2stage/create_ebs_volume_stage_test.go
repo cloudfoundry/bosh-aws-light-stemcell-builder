@@ -4,11 +4,13 @@ import (
 	"errors"
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2stage"
+	"light-stemcell-builder/ec2/fakes"
+
+	"io/ioutil"
+	"log"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"log"
-	"io/ioutil"
 )
 
 var _ = Describe("CreateEbsVolume", func() {
@@ -33,7 +35,7 @@ var _ = Describe("CreateEbsVolume", func() {
 				return ec2.ConversionTaskInfo{}, nil
 			}
 
-			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, noopUndoer, dummyAWS{})
+			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, noopUndoer, &fakes.FakeAWS{})
 			_, err := s.Run(logger, "/tmp/some-image-path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
@@ -45,7 +47,7 @@ var _ = Describe("CreateEbsVolume", func() {
 				return ec2.ConversionTaskInfo{}, errors.New("this is an error")
 			}
 
-			s := ec2stage.NewCreateEBSVolumeStage(errorRunner, noopCleaner, noopUndoer, dummyAWS{})
+			s := ec2stage.NewCreateEBSVolumeStage(errorRunner, noopCleaner, noopUndoer, &fakes.FakeAWS{})
 			_, err := s.Run(logger, "/tmp/some-image-path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("this is an error"))
@@ -56,7 +58,7 @@ var _ = Describe("CreateEbsVolume", func() {
 				return ec2.ConversionTaskInfo{}, nil
 			}
 
-			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, noopUndoer, dummyAWS{})
+			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, noopUndoer, &fakes.FakeAWS{})
 			_, err := s.Run(logger, 42)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("expected type string, got: int"))
@@ -68,7 +70,7 @@ var _ = Describe("CreateEbsVolume", func() {
 			}
 
 			var dummyString string
-			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, noopUndoer, dummyAWS{})
+			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, noopUndoer, &fakes.FakeAWS{})
 			rawData, err := s.Run(logger, "/tmp/some-image-path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(rawData).To(BeAssignableToTypeOf(dummyString))
@@ -85,7 +87,7 @@ var _ = Describe("CreateEbsVolume", func() {
 				return nil
 			}
 
-			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, dummyCleaner, noopUndoer, dummyAWS{})
+			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, dummyCleaner, noopUndoer, &fakes.FakeAWS{})
 			_, err := s.Run(logger, "/tmp/some-image-path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
@@ -105,7 +107,7 @@ var _ = Describe("CreateEbsVolume", func() {
 				volID = volumeID
 				return nil
 			}
-			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, dummyUndoer, dummyAWS{})
+			s := ec2stage.NewCreateEBSVolumeStage(dummyRunner, noopCleaner, dummyUndoer, &fakes.FakeAWS{})
 			_, err := s.Run(logger, "/tmp/some-image-path")
 			Expect(err).ToNot(HaveOccurred())
 			err = s.Rollback(logger)

@@ -9,6 +9,8 @@ import (
 	"light-stemcell-builder/ec2/ec2stage"
 	"log"
 
+	"light-stemcell-builder/ec2/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -32,7 +34,7 @@ var _ = Describe("CopyAmi", func() {
 			}
 
 			amiInfo := ec2ami.Info{AmiID: "some-unique-id"}
-			s := ec2stage.NewCopyAmiStage(dummyRunner, noopUndoer, dummyAWS{}, []string{})
+			s := ec2stage.NewCopyAmiStage(dummyRunner, noopUndoer, &fakes.FakeAWS{}, []string{})
 			_, err := s.Run(logger, amiInfo)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(called).To(BeTrue())
@@ -55,7 +57,7 @@ var _ = Describe("CopyAmi", func() {
 			}
 
 			regions := []string{"dummy-region-1", "dummy-region-2", "dummy-region-3"}
-			s := ec2stage.NewCopyAmiStage(dummyRunner, noopUndoer, dummyAWS{}, regions)
+			s := ec2stage.NewCopyAmiStage(dummyRunner, noopUndoer, &fakes.FakeAWS{}, regions)
 
 			res, err := s.Run(logger, ec2ami.Info{})
 			Expect(called).To(BeTrue())
@@ -75,7 +77,7 @@ var _ = Describe("CopyAmi", func() {
 				return &ec2ami.Collection{}, errors.New("this is an error")
 			}
 
-			s := ec2stage.NewCopyAmiStage(errorRunner, noopUndoer, dummyAWS{}, []string{})
+			s := ec2stage.NewCopyAmiStage(errorRunner, noopUndoer, &fakes.FakeAWS{}, []string{})
 			_, err := s.Run(logger, ec2ami.Info{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("this is an error"))
@@ -86,7 +88,7 @@ var _ = Describe("CopyAmi", func() {
 				return &ec2ami.Collection{}, nil
 			}
 
-			s := ec2stage.NewCopyAmiStage(dummyRunner, noopUndoer, dummyAWS{}, []string{})
+			s := ec2stage.NewCopyAmiStage(dummyRunner, noopUndoer, &fakes.FakeAWS{}, []string{})
 			_, err := s.Run(logger, 42)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("expected type ec2ami.Info, got: int"))
@@ -111,7 +113,7 @@ var _ = Describe("CopyAmi", func() {
 				return nil
 			}
 
-			s := ec2stage.NewCopyAmiStage(dummyRunner, dummyUndoer, dummyAWS{}, []string{})
+			s := ec2stage.NewCopyAmiStage(dummyRunner, dummyUndoer, &fakes.FakeAWS{}, []string{})
 			_, err := s.Run(logger, ec2ami.Info{})
 			Expect(err).ToNot(HaveOccurred())
 			err = s.Rollback(logger)
