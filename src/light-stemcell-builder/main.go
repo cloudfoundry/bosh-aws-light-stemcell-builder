@@ -78,10 +78,7 @@ func main() {
 		Region:     config.Region,
 	}
 
-	stemcellBuilder, err := builder.New(logger, awsConfig, config.AmiConfig)
-	if err != nil {
-		logger.Fatalf("Error during creating stemcell builder: %s\n", err)
-	}
+	stemcellBuilder := builder.New(logger, awsConfig, config.AmiConfig)
 
 	stemcellPath, amis, err := stemcellBuilder.BuildLightStemcell(config.StemcellPath, config.OutputPath, config.CopyDests)
 	if err != nil {
