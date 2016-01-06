@@ -42,7 +42,7 @@ func (e *EC2Cli) DescribeConversionTask(taskResource ec2.StatusResource) (ec2.St
 	}
 
 	// the ec2 api cli changes the output format if the task is completed :(
-	if info.ConversionStatus == ec2.SnapshotCompletedStatus {
+	if info.ConversionStatus == ec2.ConversionTaskCompletedStatus {
 		info.EBSVolumeID = secondLineFields[6]
 		info.ManifestUrl = secondLineFields[12] // ManifestUrl is used for cleaning later
 	}

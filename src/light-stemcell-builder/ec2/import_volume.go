@@ -9,7 +9,6 @@ import (
 
 const (
 	importVolumeRetryAttempts = 4
-	taskCompletedStatus       = "completed"
 )
 
 // ImportVolume creates an EBS volume in AWS from the supplied machine imagePath
@@ -33,7 +32,7 @@ func ImportVolume(aws AWS, imagePath string) (ConversionTaskInfo, error) {
 
 	waiterConfig := WaiterConfig{
 		Resource:      ConversionTaskResource{TaskID: taskID},
-		DesiredStatus: taskCompletedStatus,
+		DesiredStatus: ConversionTaskCompletedStatus,
 		PollTimeout:   30 * time.Minute,
 	}
 

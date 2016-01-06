@@ -26,7 +26,6 @@ type Builder struct {
 	amiConfig ec2ami.Config
 	workDir   string
 	prepared  bool
-	dryRun    bool
 }
 
 // AwsConfig specifies credentials to connect to AWS
@@ -45,10 +44,6 @@ func New(logger *log.Logger, aws ec2.AWS, awsConfig AwsConfig, amiConfig ec2ami.
 		awsConfig: awsConfig,
 		amiConfig: amiConfig,
 	}
-}
-
-func (b *Builder) DryRun() {
-	b.dryRun = true
 }
 
 func (b *Builder) BuildLightStemcell(stemcellPath string, outputPath string, copyDests []string) (string, map[string]ec2ami.Info, error) {
@@ -72,17 +67,9 @@ func (b *Builder) BuildLightStemcell(stemcellPath string, outputPath string, cop
 	}()
 
 	var amis map[string]ec2ami.Info
-	if b.dryRun {
-		amis = make(map[string]ec2ami.Info)
-		amis[b.amiConfig.Region] = ec2ami.Info{AmiID: "ami-" + b.amiConfig.Region}
-		for _, destRegion := range copyDests {
-			amis[destRegion] = ec2ami.Info{AmiID: "ami-" + destRegion}
-		}
-	} else {
-		amis, err = b.BuildAmis(imagePath, copyDests)
-		if err != nil {
-			return "", nil, fmt.Errorf("Error during creating AMIs: %s", err)
-		}
+	amis, err = b.BuildAmis(imagePath, copyDests)
+	if err != nil {
+		return "", nil, fmt.Errorf("Error during creating AMIs: %s", err)
 	}
 
 	var regionToAmi = make(map[string]string)
@@ -250,7 +237,7 @@ func (b *Builder) BuildAmis(imagePath string, copyDests []string) (map[string]ec
 
 	copiedAmiCollection := outputData[2].(*ec2ami.Collection)
 	resultMap := copiedAmiCollection.GetAll()
-	resultMap[b.awsConfig.Region] = outputData[1].(ec2ami.Info)
+	resultMap[b.amiConfig.Region] = outputData[1].(ec2ami.Info)
 
 	return resultMap, nil
 }

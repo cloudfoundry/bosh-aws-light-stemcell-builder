@@ -5,11 +5,14 @@ import (
 	"io/ioutil"
 	"light-stemcell-builder/builder"
 	"light-stemcell-builder/ec2/ec2ami"
-	"light-stemcell-builder/ec2/ec2cli"
 	"log"
 	"os"
 	"os/exec"
 	"path"
+
+	"light-stemcell-builder/ec2/fakes"
+
+	"light-stemcell-builder/ec2"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,9 +26,53 @@ var awsConfig = builder.AwsConfig{
 }
 
 var _ = Describe("StemcellBuilder", func() {
-	aws := &ec2cli.EC2Cli{}
+	dummyAWS := &fakes.FakeAWS{}
+
+	makeStubbedAWS := func() *fakes.FakeAWS {
+		aws := &fakes.FakeAWS{}
+		conversionTaskInfo := ec2.ConversionTaskInfo{
+			ConversionStatus: ec2.ConversionTaskCompletedStatus,
+			EBSVolumeID:      "volume-id",
+			TaskID:           "task-id",
+		}
+		describeSnapshotInfo := ec2.SnapshotInfo{
+			SnapshotStatus: ec2.SnapshotCompletedStatus,
+		}
+
+		// setup for ImportVolume
+		aws.ImportVolumeReturns("task-id", nil)
+		aws.DescribeConversionTaskReturns(conversionTaskInfo, nil)
+
+		// setup for DeleteVolume
+		aws.DescribeVolumeReturns(ec2.VolumeInfo{}, ec2.NonAvailableVolumeError{})
+
+		// setup for CreateAmi
+		aws.CreateSnapshotReturns("snapshot-id", nil)
+		aws.DescribeSnapshotReturns(describeSnapshotInfo, nil)
+		aws.RegisterImageReturns("ami-id", nil)
+		aws.RegisterImageStub = func(inputConfig ec2ami.Config, snapshotID string) (string, error) {
+			return "ami-" + inputConfig.Region, nil
+		}
+		aws.DescribeImageStub = func(amiResource ec2.StatusResource) (ec2.StatusInfo, error) {
+			amiConfig := amiResource.(*ec2ami.Config)
+			describeImageInfo := ec2ami.Info{
+				AmiID:       amiConfig.AmiID,
+				Region:      amiConfig.Region,
+				InputConfig: *amiConfig,
+				ImageStatus: ec2ami.AmiAvailableStatus,
+			}
+			return describeImageInfo, nil
+		}
+
+		// setup for CopyAmi
+		aws.CopyImageStub = func(inputConfig ec2ami.Config, dest string) (string, error) {
+			return "ami-" + dest, nil
+		}
+
+		return aws
+	}
+
 	logger := log.New(os.Stdout, "", log.LstdFlags)
-	copyDests := []string{"us-west-1", "us-west-2"}
 	stemcellPath := os.Getenv("HEAVY_STEMCELL_TARBALL")
 	outputPath := os.Getenv("OUTPUT_STEMCELL_PATH")
 	var dummyStemcellPath string
@@ -75,37 +122,9 @@ var _ = Describe("StemcellBuilder", func() {
 		Expect(outputPath).To(BeADirectory())
 	})
 
-	Describe("Importing a machine image into AWS", func() {
-		Context("when executed as a 'dry run'", func() {
-			amiConfig := ec2ami.Config{
-				Description:        "BOSH Stemcell Builder Test AMI",
-				Public:             false,
-				VirtualizationType: "hvm",
-				Region:             awsConfig.Region,
-			}
-			b := builder.New(logger, aws, awsConfig, amiConfig)
-			// TODO: remove this once we implement and use a fake aws
-			b.DryRun()
-
-			It("successfully builds a light stemcell, minus the actual AMI creation", func() {
-				outputFile, amis, err := b.BuildLightStemcell(dummyStemcellPath, outputPath, copyDests)
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(amis).To(HaveKey(amiConfig.Region))
-				Expect(amis).To(HaveKey("us-west-1"))
-				Expect(amis).To(HaveKey("us-west-2"))
-				Expect(amis[amiConfig.Region].AmiID).To(MatchRegexp("ami-.*"))
-				Expect(amis["us-west-1"].AmiID).To(MatchRegexp("ami-.*"))
-				Expect(amis["us-west-2"].AmiID).To(MatchRegexp("ami-.*"))
-
-				Expect(outputFile).To(BeAnExistingFile())
-			})
-		})
-	})
-
 	Describe("Prepare", func() {
 		It("prepares the work dir, with contents from the 'heavy' stemcell", func() {
-			b := builder.New(logger, aws, awsConfig, ec2ami.Config{})
+			b := builder.New(logger, dummyAWS, awsConfig, ec2ami.Config{})
 
 			imagePath, err := b.Prepare(dummyStemcellPath)
 			Expect(err).ToNot(HaveOccurred())
@@ -117,7 +136,7 @@ var _ = Describe("StemcellBuilder", func() {
 
 	Describe("PackageLightStemcell", func() {
 		It("produces a light stemcell tarball", func() {
-			b := builder.New(logger, aws, awsConfig, ec2ami.Config{})
+			b := builder.New(logger, dummyAWS, awsConfig, ec2ami.Config{})
 			packageDir, err := ioutil.TempDir("", "light-stemcell-builder-package-test")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -143,7 +162,7 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(imageInfo.Size()).To(Equal(int64(0)))
 		})
 		It("errors if the Prepare() has not yet been called", func() {
-			b := builder.New(logger, aws, awsConfig, ec2ami.Config{})
+			b := builder.New(logger, dummyAWS, awsConfig, ec2ami.Config{})
 			packageDir, err := ioutil.TempDir("", "light-stemcell-builder-package-test")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -157,7 +176,7 @@ var _ = Describe("StemcellBuilder", func() {
 	Describe("UpdateManifestFile", func() {
 		amiConfig := ec2ami.Config{VirtualizationType: "hvm"}
 		It("correctly updates the manifest file", func() {
-			b := builder.New(logger, aws, awsConfig, amiConfig)
+			b := builder.New(logger, dummyAWS, awsConfig, amiConfig)
 			manifestFile := bytes.NewBuffer(dummyManifest.Bytes())
 
 			regionToAmi := map[string]string{
@@ -179,7 +198,7 @@ var _ = Describe("StemcellBuilder", func() {
 		Context("given a HVM stemcell", func() {
 			amiConfig := ec2ami.Config{VirtualizationType: "hvm"}
 			It("outputs the correct manifest", func() {
-				b := builder.New(logger, aws, awsConfig, amiConfig)
+				b := builder.New(logger, dummyAWS, awsConfig, amiConfig)
 
 				manifest := map[string]interface{}{
 					"name": "stemcell-xen-name",
@@ -211,7 +230,7 @@ var _ = Describe("StemcellBuilder", func() {
 		Context("given a non-HVM stemcell", func() {
 			amiConfig := ec2ami.Config{VirtualizationType: "non-hvm"}
 			It("outputs the correct manifest", func() {
-				b := builder.New(logger, aws, awsConfig, amiConfig)
+				b := builder.New(logger, dummyAWS, awsConfig, amiConfig)
 
 				manifest := map[string]interface{}{
 					"name": "stemcell-xen-name",
@@ -242,7 +261,7 @@ var _ = Describe("StemcellBuilder", func() {
 		})
 		Context("given an invalid manifest", func() {
 			amiConfig := ec2ami.Config{}
-			b := builder.New(logger, aws, awsConfig, amiConfig)
+			b := builder.New(logger, dummyAWS, awsConfig, amiConfig)
 			It("errors with missing 'name'", func() {
 				manifest := make(map[string]interface{})
 				err := b.UpdateManifestContent(manifest, map[string]string{})
@@ -268,6 +287,7 @@ var _ = Describe("StemcellBuilder", func() {
 			})
 		})
 	})
+
 	Describe("LightStemcellFilePath", func() {
 		heavyStemcellPath := "some-xen-stemcell.tgz"
 		outputPath := "/path/to/stemcell/"
@@ -280,7 +300,7 @@ var _ = Describe("StemcellBuilder", func() {
 				Region:             awsConfig.Region,
 			}
 			It("returns the expected file path", func() {
-				b := builder.New(logger, aws, awsConfig, amiConfig)
+				b := builder.New(logger, dummyAWS, awsConfig, amiConfig)
 				lightStemcellPath := b.LightStemcellFilePath(heavyStemcellPath, outputPath)
 				Expect(lightStemcellPath).To(Equal("/path/to/stemcell/light-some-xen-hvm-stemcell.tgz"))
 			})
@@ -293,10 +313,101 @@ var _ = Describe("StemcellBuilder", func() {
 				Region:             awsConfig.Region,
 			}
 			It("returns the expected file path", func() {
-				b := builder.New(logger, aws, awsConfig, amiConfig)
+				b := builder.New(logger, dummyAWS, awsConfig, amiConfig)
 				lightStemcellPath := b.LightStemcellFilePath(heavyStemcellPath, outputPath)
 				Expect(lightStemcellPath).To(Equal("/path/to/stemcell/light-some-xen-stemcell.tgz"))
 			})
+		})
+	})
+
+	Describe("BuildAmis", func() {
+		It("does something", func() {
+			origAmiConfig := ec2ami.Config{
+				Region:             "dest-0",
+				Description:        "Dummy AMI",
+				VirtualizationType: "hvm",
+			}
+			err := origAmiConfig.Validate()
+			Expect(err).ToNot(HaveOccurred())
+
+			copyAmiConfig := ec2ami.Config{
+				Region:             "dest-0",
+				Description:        "Dummy AMI",
+				VirtualizationType: "hvm",
+				AmiID:              "ami-dest-0",
+			}
+			err = copyAmiConfig.Validate()
+			Expect(err).ToNot(HaveOccurred())
+
+			aws := makeStubbedAWS()
+			b := builder.New(logger, aws, awsConfig, origAmiConfig)
+			imagePath := "path/to/image"
+			copyDests := []string{"dest-1", "dest-2"}
+
+			regionToAmi, err := b.BuildAmis(imagePath, copyDests)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(aws.ImportVolumeCallCount()).To(Equal(1))
+			importImagePath := aws.ImportVolumeArgsForCall(0)
+			Expect(importImagePath).To(Equal(imagePath))
+
+			Expect(aws.DeleteDiskImageCallCount()).To(Equal(1))
+			cleanupTaskID := aws.DeleteDiskImageArgsForCall(0)
+			Expect(cleanupTaskID).To(Equal("task-id"))
+
+			Expect(aws.CreateSnapshotCallCount()).To(Equal(1))
+			volume := aws.CreateSnapshotArgsForCall(0)
+			Expect(volume).To(Equal("volume-id"))
+
+			Expect(aws.RegisterImageCallCount()).To(Equal(1))
+			registerConfig, registerSnapshot := aws.RegisterImageArgsForCall(0)
+			Expect(registerConfig).To(Equal(origAmiConfig))
+			Expect(registerSnapshot).To(Equal("snapshot-id"))
+
+			Expect(aws.CopyImageCallCount()).To(Equal(2))
+			copy1Config, copy1Dest := aws.CopyImageArgsForCall(0)
+			copy2Config, copy2Dest := aws.CopyImageArgsForCall(1)
+			copyImageDestinations := []string{copy1Dest, copy2Dest}
+			Expect(copy1Config).To(Equal(copyAmiConfig))
+			Expect(copy2Config).To(Equal(copyAmiConfig))
+			Expect(copyImageDestinations).To(ConsistOf(copyDests))
+
+			Expect(aws.DeleteVolumeCallCount()).To(Equal(1))
+			deleteVolumeID := aws.DeleteVolumeArgsForCall(0)
+			Expect(deleteVolumeID).To(Equal("volume-id"))
+
+			Expect(regionToAmi).To(HaveKey("dest-0"))
+			Expect(regionToAmi).To(HaveKey("dest-1"))
+			Expect(regionToAmi).To(HaveKey("dest-2"))
+			Expect(regionToAmi["dest-0"].AmiID).To(Equal("ami-dest-0"))
+			Expect(regionToAmi["dest-1"].AmiID).To(Equal("ami-dest-1"))
+			Expect(regionToAmi["dest-2"].AmiID).To(Equal("ami-dest-2"))
+		})
+	})
+
+	Describe("Importing a machine image into AWS", func() {
+		amiConfig := ec2ami.Config{
+			Description:        "BOSH Stemcell Builder Test AMI",
+			Public:             false,
+			VirtualizationType: "hvm",
+			Region:             awsConfig.Region,
+		}
+		copyDests := []string{"us-west-1", "us-west-2"}
+		aws := makeStubbedAWS()
+		b := builder.New(logger, aws, awsConfig, amiConfig)
+
+		It("publishes AMIs and builds a light stemcell", func() {
+			outputFile, amis, err := b.BuildLightStemcell(dummyStemcellPath, outputPath, copyDests)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(amis).To(HaveKey(amiConfig.Region))
+			Expect(amis).To(HaveKey("us-west-1"))
+			Expect(amis).To(HaveKey("us-west-2"))
+			Expect(amis[amiConfig.Region].AmiID).To(MatchRegexp("ami-.*"))
+			Expect(amis["us-west-1"].AmiID).To(MatchRegexp("ami-.*"))
+			Expect(amis["us-west-2"].AmiID).To(MatchRegexp("ami-.*"))
+
+			Expect(outputFile).To(BeAnExistingFile())
 		})
 	})
 })

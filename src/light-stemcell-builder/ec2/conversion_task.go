@@ -1,5 +1,9 @@
 package ec2
 
+const (
+	ConversionTaskCompletedStatus = "completed"
+)
+
 type ConversionTaskInfo struct {
 	ConversionStatus string
 	EBSVolumeID      string
