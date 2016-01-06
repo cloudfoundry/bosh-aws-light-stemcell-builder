@@ -33,8 +33,8 @@ echo "Checking EC2 CLI has been properly installed"
 which ec2-describe-regions
 ec2-describe-regions -O $access_key -W $secret_key --region $region
 
-stemcell_path=$(echo $PWD/heavy-stemcell-in/*.tgz)
-output_path=$PWD/light-stemcell-out/
+stemcell_path=$(echo $PWD/input-stemcell/*.tgz)
+output_path=$PWD/light-stemcell/
 
 echo "Building light stemcell"
 

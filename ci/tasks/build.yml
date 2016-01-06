@@ -3,9 +3,9 @@ platform: linux
 image: docker:///boshcpi/aws-light-stemcell-builder
 inputs:
 - name: builder-src
-- name: heavy-stemcell-in
+- name: input-stemcell
 outputs:
-- name: light-stemcell-out
+- name: light-stemcell
 run:
   path: builder-src/ci/tasks/build.sh
 params:

@@ -3,9 +3,8 @@ platform: linux
 image: docker:///boshcpi/aws-light-stemcell-builder
 inputs:
 - name: builder-src
-- name: heavy-stemcell-in
 run:
-  path: builder-src/ci/tasks/run-integration.sh
+  path: builder-src/ci/tasks/test.sh
 params:
   access_key: replace-me
   secret_key: replace-me
