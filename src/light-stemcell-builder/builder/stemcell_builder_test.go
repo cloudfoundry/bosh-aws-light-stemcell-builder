@@ -318,32 +318,24 @@ var _ = Describe("StemcellBuilder", func() {
 	})
 
 	Describe("BuildAmis", func() {
-		It("integrates with AWS", func() {
-			origAmiConfig := ec2ami.Config{
-				Region:             "dest-0",
-				Description:        "Dummy AMI",
-				VirtualizationType: "hvm",
-			}
-			err := origAmiConfig.Validate()
-			Expect(err).ToNot(HaveOccurred())
+		var err error
 
-			copyAmiConfig := ec2ami.Config{
-				Region:             "dest-0",
-				Description:        "Dummy AMI",
-				VirtualizationType: "hvm",
-				AmiID:              "ami-dest-0",
-			}
-			err = copyAmiConfig.Validate()
-			Expect(err).ToNot(HaveOccurred())
+		origAmiConfig := ec2ami.Config{
+			Region:             "dest-0",
+			Description:        "Dummy AMI",
+			VirtualizationType: "hvm",
+		}
 
-			aws := makeStubbedAWS()
-			b := builder.New(logger, aws, awsConfig, origAmiConfig)
-			imagePath := "path/to/image"
-			copyDests := []string{"dest-1", "dest-2"}
+		copyAmiConfig := ec2ami.Config{
+			Region:             "dest-0",
+			Description:        "Dummy AMI",
+			VirtualizationType: "hvm",
+			AmiID:              "ami-dest-0",
+		}
 
-			regionToAmi, err := b.BuildAmis(imagePath, copyDests)
-			Expect(err).ToNot(HaveOccurred())
+		imagePath := "path/to/image"
 
+		expectAWSIntegration := func(aws *fakes.FakeAWS, callback func()) {
 			Expect(aws.ImportVolumeCallCount()).To(Equal(1))
 			importImagePath := aws.ImportVolumeArgsForCall(0)
 			Expect(importImagePath).To(Equal(imagePath))
@@ -361,24 +353,63 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(registerConfig).To(Equal(origAmiConfig))
 			Expect(registerSnapshot).To(Equal("snapshot-id"))
 
-			Expect(aws.CopyImageCallCount()).To(Equal(2))
-			copy1Config, copy1Dest := aws.CopyImageArgsForCall(0)
-			copy2Config, copy2Dest := aws.CopyImageArgsForCall(1)
-			copyImageDestinations := []string{copy1Dest, copy2Dest}
-			Expect(copy1Config).To(Equal(copyAmiConfig))
-			Expect(copy2Config).To(Equal(copyAmiConfig))
-			Expect(copyImageDestinations).To(ConsistOf(copyDests))
-
 			Expect(aws.DeleteVolumeCallCount()).To(Equal(1))
 			deleteVolumeID := aws.DeleteVolumeArgsForCall(0)
 			Expect(deleteVolumeID).To(Equal("volume-id"))
 
-			Expect(regionToAmi).To(HaveKey("dest-0"))
-			Expect(regionToAmi).To(HaveKey("dest-1"))
-			Expect(regionToAmi).To(HaveKey("dest-2"))
-			Expect(regionToAmi["dest-0"].AmiID).To(Equal("ami-dest-0"))
-			Expect(regionToAmi["dest-1"].AmiID).To(Equal("ami-dest-1"))
-			Expect(regionToAmi["dest-2"].AmiID).To(Equal("ami-dest-2"))
+			callback()
+		}
+
+		BeforeEach(func() {
+			err = origAmiConfig.Validate()
+			Expect(err).ToNot(HaveOccurred())
+
+			err = copyAmiConfig.Validate()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("integrates with AWS", func() {
+			aws := makeStubbedAWS()
+			b := builder.New(logger, aws, awsConfig, origAmiConfig)
+			copyDests := []string{"dest-1", "dest-2"}
+
+			regionToAmi, err := b.BuildAmis(imagePath, copyDests)
+			Expect(err).ToNot(HaveOccurred())
+
+			expectAWSIntegration(aws, func() {
+				Expect(aws.CopyImageCallCount()).To(Equal(2))
+				copy1Config, copy1Dest := aws.CopyImageArgsForCall(0)
+				copy2Config, copy2Dest := aws.CopyImageArgsForCall(1)
+				copyImageDestinations := []string{copy1Dest, copy2Dest}
+				Expect(copy1Config).To(Equal(copyAmiConfig))
+				Expect(copy2Config).To(Equal(copyAmiConfig))
+				Expect(copyImageDestinations).To(ConsistOf(copyDests))
+
+				Expect(regionToAmi).To(HaveKey("dest-0"))
+				Expect(regionToAmi).To(HaveKey("dest-1"))
+				Expect(regionToAmi).To(HaveKey("dest-2"))
+				Expect(regionToAmi["dest-0"].AmiID).To(Equal("ami-dest-0"))
+				Expect(regionToAmi["dest-1"].AmiID).To(Equal("ami-dest-1"))
+				Expect(regionToAmi["dest-2"].AmiID).To(Equal("ami-dest-2"))
+			})
+		})
+
+		Context("when no target copy destinations are provided", func() {
+			It("works as expected", func() {
+				aws := makeStubbedAWS()
+				b := builder.New(logger, aws, awsConfig, origAmiConfig)
+				copyDests := []string{}
+
+				regionToAmi, err := b.BuildAmis(imagePath, copyDests)
+				Expect(err).ToNot(HaveOccurred())
+
+				expectAWSIntegration(aws, func() {
+					Expect(aws.CopyImageCallCount()).To(Equal(0))
+
+					Expect(regionToAmi).To(HaveKey("dest-0"))
+					Expect(regionToAmi["dest-0"].AmiID).To(Equal("ami-dest-0"))
+				})
+			})
 		})
 	})
 
