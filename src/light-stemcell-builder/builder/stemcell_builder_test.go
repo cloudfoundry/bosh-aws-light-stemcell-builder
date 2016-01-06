@@ -19,10 +19,10 @@ import (
 )
 
 var awsConfig = builder.AwsConfig{
-	AccessKey:  os.Getenv("AWS_ACCESS_KEY_ID"),
-	SecretKey:  os.Getenv("AWS_SECRET_ACCESS_KEY"),
-	BucketName: os.Getenv("AWS_BUCKET_NAME"),
-	Region:     os.Getenv("AWS_REGION"),
+	AccessKey:  "DUMMY",
+	SecretKey:  "DUMMY",
+	BucketName: "DUMMY",
+	Region:     "DUMMY",
 }
 
 var _ = Describe("StemcellBuilder", func() {
@@ -73,7 +73,6 @@ var _ = Describe("StemcellBuilder", func() {
 	}
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
-	stemcellPath := os.Getenv("HEAVY_STEMCELL_TARBALL")
 	outputPath := os.Getenv("OUTPUT_STEMCELL_PATH")
 	var dummyStemcellPath string
 
@@ -116,8 +115,6 @@ var _ = Describe("StemcellBuilder", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(dummyStemcellPath).To(BeAnExistingFile())
 
-		Expect(stemcellPath).ToNot(BeEmpty())
-		Expect(stemcellPath).To(BeAnExistingFile())
 		Expect(outputPath).ToNot(BeEmpty())
 		Expect(outputPath).To(BeADirectory())
 	})
@@ -321,7 +318,7 @@ var _ = Describe("StemcellBuilder", func() {
 	})
 
 	Describe("BuildAmis", func() {
-		It("does something", func() {
+		It("integrates with AWS", func() {
 			origAmiConfig := ec2ami.Config{
 				Region:             "dest-0",
 				Description:        "Dummy AMI",

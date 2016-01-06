@@ -25,7 +25,6 @@ export PATH=$PATH:$EC2_HOME/bin
 
 export AWS_BUCKET_NAME=$bucket_name
 export AWS_REGION=$region
-export HEAVY_STEMCELL_TARBALL=$(echo $PWD/heavy-stemcell-in/*.tgz)
 export AMI_FIXTURE_ID=$ami_fixture_id
 export OUTPUT_STEMCELL_PATH=$PWD
 
