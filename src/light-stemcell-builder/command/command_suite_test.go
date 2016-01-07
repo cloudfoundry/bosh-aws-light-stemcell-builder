@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestPipeline(t *testing.T) {
+func TestCommand(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Command Suite")
 }
