@@ -53,7 +53,7 @@ jobs:
   - name: publish
     serial: true
     plan:
-      aggregate:
+      - aggregate:
         - get: builder-src-out
           trigger: false
         - get: centos-input-stemcell
