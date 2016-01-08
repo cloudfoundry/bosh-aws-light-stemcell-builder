@@ -8,9 +8,9 @@ groups:
   - name: publishing
     jobs:
       - publish-centos-hvm
-      - publish-centos-para
+      - publish-centos-pv
       - publish-ubuntu-hvm
-      - publish-ubuntu-para
+      - publish-ubuntu-pv
 
   - name: versioning
     jobs:
@@ -44,10 +44,10 @@ jobs:
           trigger: true
         - get: version-semver
           params: { bump: patch }
-      # - put: version-semver
-      #   params: { file: version-semver/number }
-      # - put: builder-src-out
-      #   params: { repository: builder-src }
+      - put: version-semver
+        params: { file: version-semver/number }
+      - put: builder-src-out
+        params: { repository: builder-src }
 
   - name: publish-centos-hvm
     serial: true
@@ -74,7 +74,7 @@ jobs:
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
 
-  - name: publish-centos-para
+  - name: publish-centos-pv
     serial: true
     plan:
       - get: builder-src
@@ -124,7 +124,7 @@ jobs:
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
 
-  - name: publish-ubuntu-para
+  - name: publish-ubuntu-pv
     serial: true
     plan:
       - get: builder-src
@@ -170,14 +170,14 @@ resources:
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
-      branch: cti/107775580
+      branch: develop
       private_key: {{builder__github_deployment_key}}
 
   - name: builder-src-out
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
-      branch: cti/107775580
+      branch: master
       private_key: {{builder__github_deployment_key}}
 
   - name: version-semver
