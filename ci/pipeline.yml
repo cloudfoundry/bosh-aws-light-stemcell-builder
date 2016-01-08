@@ -7,7 +7,6 @@ groups:
 
   - name: publishing
     jobs:
-      - publish
       - publish-centos-hvm
       - publish-centos-para
       - publish-ubuntu-hvm
