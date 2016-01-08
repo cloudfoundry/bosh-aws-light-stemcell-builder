@@ -2,100 +2,93 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"light-stemcell-builder/builder"
-	"light-stemcell-builder/ec2/ec2ami"
+	"light-stemcell-builder/config"
 	"light-stemcell-builder/ec2/ec2cli"
 	"log"
 	"os"
 )
 
-type Config struct {
-	AccessKey    string        `json:"access_key"`
-	SecretKey    string        `json:"secret_key"`
-	BucketName   string        `json:"bucket_name"`
-	Region       string        `json:"region"`
-	StemcellPath string        `json:"stemcell_path"`
-	OutputPath   string        `json:"output_path"`
-	CopyDests    []string      `json:"copy_dests"`
-	AmiConfig    ec2ami.Config `json:"ami_configuration"`
-}
-
-func validateConfig(config *Config) error {
-	if config.AccessKey == "" {
-		return fmt.Errorf("access_key can't be empty")
-	}
-	if config.SecretKey == "" {
-		return fmt.Errorf("secret_key can't be empty")
-	}
-	if config.BucketName == "" {
-		return fmt.Errorf("bucket_name can't be empty")
-	}
-	if config.Region == "" {
-		return fmt.Errorf("region can't be empty")
-	}
-	if config.StemcellPath == "" {
-		return fmt.Errorf("stemcell_path can't be empty")
-	}
-	if config.OutputPath == "" {
-		return fmt.Errorf("output_path can't be empty")
-	}
-
-	err := config.AmiConfig.Validate()
-	if err != nil {
-		return fmt.Errorf("Error validating ami_configuration: %s", err.Error())
-	}
-	return nil
+func usage(message string) {
+	fmt.Fprintln(os.Stderr, message)
+	fmt.Fprintln(os.Stderr, "Usage of light-stemcell-builder/main.go")
+	flag.PrintDefaults()
+	os.Exit(1)
 }
 
 func main() {
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 
-	if len(os.Args) != 2 {
-		logger.Fatalln("Usage: light-stemcell-builder path_to_config.json")
-	}
-	pathToConfig := os.Args[1]
+	// if len(os.Args) != 2 {
+	// 	logger.Fatalln("Usage: light-stemcell-builder path_to_config.json")
+	// }
+	//
+	// configPath := os.Args[1]
 
-	configFile, err := os.Open(pathToConfig)
+	// using flags...
+	configPath := flag.String("c", "", "Path to the JSON configuration file")
+	inputPath := flag.String("i", "", "Path to the input stemcell")
+	outputPath := flag.String("o", "", "Path to the output folder for the light stemcell")
+
+	flag.Parse()
+
+	if *configPath == "" {
+		usage("-c flag is required")
+	}
+	if *inputPath == "" {
+		usage("-i flag is required")
+	}
+	if *outputPath == "" {
+		usage("-o flag is required")
+	}
+
+	if _, err := os.Stat(*configPath); err != nil {
+		usage(fmt.Sprintf("config file was not found: %s", *configPath))
+	}
+	if _, err := os.Stat(*inputPath); err != nil {
+		usage(fmt.Sprintf("input stemcell was not found: %s", *inputPath))
+	}
+	fileInfo, err := os.Stat(*outputPath)
+	if err != nil {
+		usage(fmt.Sprintf("output folder was not found: %s", *outputPath))
+	}
+	if !fileInfo.IsDir() {
+		usage(fmt.Sprintf("output folder is not a directory: %s", *outputPath))
+	}
+
+	configFile, err := os.Open(*configPath)
+
 	defer func() {
 		err = configFile.Close()
 		if err != nil {
-			logger.Fatalf("Error closing config file: %s\n", err.Error())
+			logger.Fatalf("Error closing config file: %s", err.Error())
 		}
 	}()
 
 	if err != nil {
-		logger.Fatalf("Error opening config file: %s\n", err.Error())
-	}
-
-	config := &Config{}
-	jsonParser := json.NewDecoder(configFile)
-	if err = jsonParser.Decode(config); err != nil {
-		logger.Fatalf("Can't parse %s config file. Error is : %s\n", pathToConfig, err.Error())
-	}
-
-	config.AmiConfig.Region = config.Region
-	err = validateConfig(config)
-
-	var awsConfig = builder.AwsConfig{
-		AccessKey:  config.AccessKey,
-		SecretKey:  config.SecretKey,
-		BucketName: config.BucketName,
-		Region:     config.Region,
+		logger.Fatalf("Error opening config file: %s", err.Error())
 	}
 
 	aws := &ec2cli.EC2Cli{}
-	stemcellBuilder := builder.New(logger, aws, awsConfig, config.AmiConfig)
 
-	stemcellPath, amis, err := stemcellBuilder.BuildLightStemcell(config.StemcellPath, config.OutputPath, config.CopyDests)
+	c, err := config.NewFromReader(configFile)
+	if err != nil {
+		logger.Fatalf("Error parsing config file: %s. Message: %s", *configPath, err.Error())
+	}
+
+	b := builder.New(aws, c, logger)
+	stemcell, amis, err := b.Build(*inputPath, *outputPath)
 	if err != nil {
 		logger.Fatalf("Error during stemcell builder: %s\n", err)
 	}
-	amiJson, err := json.Marshal(amis)
+
+	amiJSON, err := json.Marshal(amis)
 	if err != nil {
 		logger.Printf("Error output encoding: %s\n", err)
 	}
-	logger.Printf("Created AMIs:\n%s", amiJson)
 
-	logger.Printf("Output saved to: %s\n", stemcellPath)
+	logger.Printf("Created AMIs:\n%s", amiJSON)
+	logger.Printf("Output saved to: %s\n", stemcell)
 }
