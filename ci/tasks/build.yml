@@ -9,11 +9,11 @@ outputs:
 run:
   path: builder-src/ci/tasks/build.sh
 params:
+  region: replace-me
   access_key: replace-me
   secret_key: replace-me
   bucket_name: replace-me
-  region: replace-me
   copy_dests: replace-me
   ami_description: replace-me
-  ami_is_public: replace-me
   ami_virtualization_type: replace-me
+  ami_visibility: replace-me

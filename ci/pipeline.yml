@@ -50,40 +50,27 @@ jobs:
       # - put: builder-src-out
       #   params: { repository: builder-src }
 
-  - name: publish
-    serial: true
-    plan:
-      - aggregate:
-        - get: builder-src-out
-          trigger: false
-        - get: centos-input-stemcell
-          trigger: false
-        - get: ubuntu-input-stemcell
-          trigger: false
-
   - name: publish-centos-hvm
     serial: true
     plan:
       - get: builder-src
-        passed: [publish]
         resource: builder-src-out
-        trigger: true
+        trigger: false
       - get: input-stemcell
-        passed: [publish]
         resource: centos-input-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__access_key}}
-            secret_key: {{publish__secret_key}}
-            bucket_name: {{publish__bucket_name}}
-            region: {{publish__region}}
-            copy_dests: {{publish__copy_dests}}
-            ami_description: {{publish__ami_description}}
-            ami_is_public: {{publish__ami_is_public}}
+            access_key: {{publish__us_access_key}}
+            secret_key: {{publish__us_secret_key}}
+            bucket_name: {{publish__us_bucket}}
+            region: {{publish__us_region}}
+            copy_dests: {{publish__us_copy_dests}}
+            ami_description: {{publish__us_ami_description}}
             ami_virtualization_type: hvm
+            ami_visibility: {{publish__us_ami_visibility}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -92,25 +79,23 @@ jobs:
     serial: true
     plan:
       - get: builder-src
-        passed: [publish]
         resource: builder-src-out
-        trigger: true
+        trigger: false
       - get: input-stemcell
-        passed: [publish]
         resource: centos-input-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__access_key}}
-            secret_key: {{publish__secret_key}}
-            bucket_name: {{publish__bucket_name}}
-            region: {{publish__region}}
-            copy_dests: {{publish__copy_dests}}
-            ami_description: {{publish__ami_description}}
-            ami_is_public: {{publish__ami_is_public}}
-            ami_virtualization_type: paravirtual
+            access_key: {{publish__us_access_key}}
+            secret_key: {{publish__us_secret_key}}
+            bucket_name: {{publish__us_bucket}}
+            region: {{publish__us_region}}
+            copy_dests: {{publish__us_copy_dests}}
+            ami_description: {{publish__us_ami_description}}
+            ami_virtualization_type: pvm
+            ami_visibility: {{publish__us_ami_visibility}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -119,25 +104,23 @@ jobs:
     serial: true
     plan:
       - get: builder-src
-        passed: [publish]
         resource: builder-src-out
-        trigger: true
+        trigger: false
       - get: input-stemcell
-        passed: [publish]
         resource: ubuntu-input-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__access_key}}
-            secret_key: {{publish__secret_key}}
-            bucket_name: {{publish__bucket_name}}
-            region: {{publish__region}}
-            copy_dests: {{publish__copy_dests}}
-            ami_description: {{publish__ami_description}}
-            ami_is_public: {{publish__ami_is_public}}
+            access_key: {{publish__us_access_key}}
+            secret_key: {{publish__us_secret_key}}
+            bucket_name: {{publish__us_bucket}}
+            region: {{publish__us_region}}
+            copy_dests: {{publish__us_copy_dests}}
+            ami_description: {{publish__us_ami_description}}
             ami_virtualization_type: hvm
+            ami_visibility: {{publish__us_ami_visibility}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -146,25 +129,23 @@ jobs:
     serial: true
     plan:
       - get: builder-src
-        passed: [publish]
         resource: builder-src-out
-        trigger: true
+        trigger: false
       - get: input-stemcell
-        passed: [publish]
         resource: ubuntu-input-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__access_key}}
-            secret_key: {{publish__secret_key}}
-            bucket_name: {{publish__bucket_name}}
-            region: {{publish__region}}
-            copy_dests: {{publish__copy_dests}}
-            ami_description: {{publish__ami_description}}
-            ami_is_public: {{publish__ami_is_public}}
-            ami_virtualization_type: paravirtual
+            access_key: {{publish__us_access_key}}
+            secret_key: {{publish__us_secret_key}}
+            bucket_name: {{publish__us_bucket}}
+            region: {{publish__us_region}}
+            copy_dests: {{publish__us_copy_dests}}
+            ami_description: {{publish__us_ami_description}}
+            ami_virtualization_type: pvm
+            ami_visibility: {{publish__us_ami_visibility}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -197,7 +178,7 @@ resources:
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
-      branch: master
+      branch: cti/107775580
       private_key: {{builder__github_deployment_key}}
 
   - name: version-semver
@@ -231,6 +212,6 @@ resources:
     type: s3
     source:
       regexp: light-bosh-stemcell-(.*).tgz
-      access_key_id: {{publish__access_key}}
-      secret_access_key: {{publish__secret_key}}
+      access_key_id: {{publish__us_access_key}}
+      secret_access_key: {{publish__us_secret_key}}
       bucket: {{light__bucket}}

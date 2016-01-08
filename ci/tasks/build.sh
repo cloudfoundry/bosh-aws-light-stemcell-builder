@@ -42,18 +42,22 @@ export CONFIG_PATH=$PWD/config.json
 
 cat > $CONFIG_PATH << EOF
 {
-  "access_key": "$access_key",
-  "secret_key": "$secret_key",
-  "bucket_name": "$bucket_name",
-  "region": "$region",
-  "stemcell_path": "$stemcell_path",
-  "copy_dests": $copy_dests,
-  "output_path": "$output_path",
   "ami_configuration": {
-    "description": "$ami_description",
-    "public": $ami_is_public,
-    "virtualization_type": "$ami_virtualization_type"
-  }
+    "description":          "$ami_description",
+    "virtualization_type":  "$ami_virtualization_type",
+    "visibility":           "$ami_visibility"
+  },
+  "regions": [
+    {
+      "name":               "$region",
+      "credentials": {
+        "access_key":       "$access_key",
+        "secret_key":       "$secret_key"
+      },
+      "bucket_name":        "$bucket_name",
+      "destinations":       $copy_dests
+    }
+  ]
 }
 EOF
 
@@ -62,5 +66,5 @@ cat $CONFIG_PATH
 
 pushd builder-src > /dev/null
   . .envrc
-  go run src/light-stemcell-builder/main.go $CONFIG_PATH
+  go run src/light-stemcell-builder/main.go -c $CONFIG_PATH -i $stemcell_path -o $output_path
 popd
