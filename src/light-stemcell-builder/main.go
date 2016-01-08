@@ -21,13 +21,6 @@ func usage(message string) {
 func main() {
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 
-	// if len(os.Args) != 2 {
-	// 	logger.Fatalln("Usage: light-stemcell-builder path_to_config.json")
-	// }
-	//
-	// configPath := os.Args[1]
-
-	// using flags...
 	configPath := flag.String("c", "", "Path to the JSON configuration file")
 	inputPath := flag.String("i", "", "Path to the input stemcell")
 	outputPath := flag.String("o", "", "Path to the output folder for the light stemcell")

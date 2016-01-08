@@ -85,7 +85,7 @@ var _ = Describe("Config", func() {
 		Context("with an empty 'regions' specified", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions = []config.RegionConfig{}
+					c.Regions = []config.RegionConfiguration{}
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("regions cannot be empty"))
