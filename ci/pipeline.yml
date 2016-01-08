@@ -94,7 +94,7 @@ jobs:
             region: {{publish__us_region}}
             copy_dests: {{publish__us_copy_dests}}
             ami_description: {{publish__us_ami_description}}
-            ami_virtualization_type: pvm
+            ami_virtualization_type: pv
             ami_visibility: {{publish__us_ami_visibility}}
       - put: light-stemcell
         params:
@@ -144,7 +144,7 @@ jobs:
             region: {{publish__us_region}}
             copy_dests: {{publish__us_copy_dests}}
             ami_description: {{publish__us_ami_description}}
-            ami_virtualization_type: pvm
+            ami_virtualization_type: pv
             ami_visibility: {{publish__us_ami_visibility}}
       - put: light-stemcell
         params:
