@@ -19,11 +19,11 @@ import (
 // Builder is responsible for extracting the contents of a heavy stemcell
 // and for publishing an AWS light stemcell from a machine image
 type Builder struct {
-	aws      ec2.AWS
-	config   config.Config
-	logger   *log.Logger
-	workDir  string
-	prepared bool
+	aws        ec2.AWS
+	config     config.Config
+	logger     *log.Logger
+	packageDir string
+	prepared   bool
 }
 
 // AwsConfig specifies credentials to connect to AWS
@@ -48,7 +48,7 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		return "", nil, fmt.Errorf("Error during image preparation: %s", err)
 	}
 
-	manifestPath := path.Join(b.workDir, "stemcell.MF")
+	manifestPath := path.Join(b.packageDir, "stemcell.MF")
 	manifestFile, err := os.Open(manifestPath)
 	if err != nil {
 		return "", nil, err
@@ -101,24 +101,29 @@ func (b *Builder) Prepare(stemcellPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	b.workDir = tempDir
+	b.packageDir = tempDir
 
-	cmd := exec.Command("tar", "-C", b.workDir, "-xf", stemcellPath)
+	imageDir, err := ioutil.TempDir("", "input-stemcell-image")
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command("tar", "-C", b.packageDir, "-xf", stemcellPath)
 	err = cmd.Run()
 	if err != nil {
 		return "", err
 	}
-	imagePath := path.Join(b.workDir, "image")
+	imagePath := path.Join(b.packageDir, "image")
 	if _, err := os.Stat(imagePath); os.IsNotExist(err) {
 		return "", err
 	}
 
-	cmd = exec.Command("tar", "-C", b.workDir, "-xf", imagePath)
+	cmd = exec.Command("tar", "-C", imageDir, "-xf", imagePath)
 	err = cmd.Run()
 	if err != nil {
 		return "", err
 	}
-	rootImgPath := path.Join(b.workDir, "root.img")
+	rootImgPath := path.Join(imageDir, "root.img")
 	if _, err := os.Stat(rootImgPath); os.IsNotExist(err) {
 		return "", err
 	}
@@ -188,7 +193,7 @@ func (b *Builder) Package(outputFile string) error {
 		return fmt.Errorf("Please call Prepare() before Package")
 	}
 	// Overwrite the image archive with an empty file for building the light stemcell
-	imagePath := path.Join(b.workDir, "image")
+	imagePath := path.Join(b.packageDir, "image")
 	imageFile, err := os.Create(imagePath)
 	if err != nil {
 		return fmt.Errorf("Error while creating image file: %s", err)
@@ -198,7 +203,18 @@ func (b *Builder) Package(outputFile string) error {
 		return fmt.Errorf("Error while closing image file: %s", err)
 	}
 
-	tarStemcellCmd := exec.Command("tar", "-C", b.workDir, "-czf", outputFile, "--", "image", "apply_spec.yml", "stemcell.MF", "stemcell_dpkg_l.txt")
+	files, err := ioutil.ReadDir(b.packageDir)
+	if err != nil {
+		return fmt.Errorf("Error while listing stemcell package files: %s", err)
+	}
+	var packageFiles []string
+	for _, f := range files {
+		packageFiles = append(packageFiles, f.Name())
+	}
+	tarArgs := []string{"-C", b.packageDir, "-czf", outputFile, "--"}
+	tarArgs = append(tarArgs, packageFiles...)
+	tarStemcellCmd := exec.Command("tar", tarArgs...)
+
 	stderr := &bytes.Buffer{}
 	tarStemcellCmd.Stderr = stderr
 

@@ -78,17 +78,20 @@ var _ = Describe("StemcellBuilder", func() {
 	_, _ = dummyManifest.WriteString("cloud_properties:\n")
 	_, _ = dummyManifest.WriteString("  name: bosh-aws-xen-ubuntu-trusty-go_agent")
 
+	additionalStemcellFiles := []string{"arbitrary.txt", "arbitrary.whatever"}
+
 	BeforeSuite(func() {
 		dummyStemcellFolder, err := ioutil.TempDir("", "light-stemcell-builder-test")
 		Expect(err).ToNot(HaveOccurred())
 
-		for _, filename := range []string{"root.img", "apply_spec.yml", "stemcell_dpkg_l.txt"} {
+		for _, filename := range append([]string{"root.img"}, additionalStemcellFiles...) {
 			filePath := path.Join(dummyStemcellFolder, filename)
 			touchFile, err := os.Create(filePath)
 			Expect(err).ToNot(HaveOccurred())
 			err = touchFile.Close()
 			Expect(err).ToNot(HaveOccurred())
 		}
+
 		imagePath := path.Join(dummyStemcellFolder, "image")
 		tarCmd := exec.Command("tar", "-C", dummyStemcellFolder, "-czf", imagePath, "--", "root.img")
 		err = tarCmd.Run()
@@ -103,7 +106,9 @@ var _ = Describe("StemcellBuilder", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dummyStemcellPath = path.Join(dummyStemcellFolder, "dummy-xen-stemcell.tgz")
-		tarCmd = exec.Command("tar", "-C", dummyStemcellFolder, "-czf", dummyStemcellPath, "--", "image", "apply_spec.yml", "stemcell.MF", "stemcell_dpkg_l.txt")
+		tarArgs := []string{"-C", dummyStemcellFolder, "-czf", dummyStemcellPath, "--", "image", "stemcell.MF"}
+		tarArgs = append(tarArgs, additionalStemcellFiles...)
+		tarCmd = exec.Command("tar", tarArgs...)
 		err = tarCmd.Run()
 		Expect(err).ToNot(HaveOccurred())
 		Expect(dummyStemcellPath).To(BeAnExistingFile())
@@ -145,7 +150,10 @@ var _ = Describe("StemcellBuilder", func() {
 			manifestPath := path.Join(packageDir, "stemcell.MF")
 			Expect(imagePath).To(BeAnExistingFile())
 			Expect(manifestPath).To(BeAnExistingFile())
-
+			for _, additionalFile := range additionalStemcellFiles {
+				filePath := path.Join(packageDir, additionalFile)
+				Expect(filePath).To(BeAnExistingFile())
+			}
 			imageInfo, err := os.Stat(imagePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(imageInfo.Size()).To(Equal(int64(0)))
