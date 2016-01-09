@@ -15,7 +15,7 @@ const (
 
 const (
 	HardwareAssistedVirtualization = "hvm"
-	Paravirtualization             = "pv"
+	Paravirtualization             = "paravirtual"
 )
 
 const (
@@ -90,7 +90,7 @@ func (config *Config) validate() error {
 		Paravirtualization:             true,
 	}
 	if !validVirtualization[config.AmiConfiguration.VirtualizationType] {
-		return errors.New("virtualization_type must be one of: ['hvm', 'pv']")
+		return errors.New("virtualization_type must be one of: ['hvm', 'paravirtual']")
 	}
 
 	validVisibility := map[string]bool{

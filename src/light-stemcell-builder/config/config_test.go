@@ -65,12 +65,12 @@ var _ = Describe("Config", func() {
 				Expect(err).To(MatchError("ami_configuration requires a description"))
 			})
 
-			It("returns an error when 'virtualization_type' is not 'hvm' or 'pv'", func() {
+			It("returns an error when 'virtualization_type' is not 'hvm' or 'paravirtual'", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiConfiguration.VirtualizationType = "bogus"
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("virtualization_type must be one of: ['hvm', 'pv']"))
+				Expect(err).To(MatchError("virtualization_type must be one of: ['hvm', 'paravirtual']"))
 			})
 
 			It("returns an error when 'visibility' is not valid", func() {
