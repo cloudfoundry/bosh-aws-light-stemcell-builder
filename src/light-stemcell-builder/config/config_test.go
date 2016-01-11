@@ -35,7 +35,7 @@ var _ = Describe("Config", func() {
       "ami_configuration": {
         "description": "Example AMI"
       },
-      "regions": [
+      "ami_regions": [
         {
           "name": "us-region",
           "bucket_name": "test-bucket",
@@ -85,7 +85,7 @@ var _ = Describe("Config", func() {
 		Context("with an empty 'regions' specified", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions = []config.RegionConfiguration{}
+					c.AmiRegions = []config.AmiRegion{}
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("regions cannot be empty"))
@@ -95,7 +95,7 @@ var _ = Describe("Config", func() {
 		Context("given a 'region' config without 'name'", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions[0].Name = ""
+					c.AmiRegions[0].Name = ""
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("region must specify name"))
@@ -105,13 +105,13 @@ var _ = Describe("Config", func() {
 		Context("given a 'region' config with invalid 'credentials'", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions[0].Credentials.AccessKey = ""
+					c.AmiRegions[0].Credentials.AccessKey = ""
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("credentials must specify access_key"))
 
 				_, err = parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions[0].Credentials.SecretKey = ""
+					c.AmiRegions[0].Credentials.SecretKey = ""
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("credentials must specify secret_key"))
@@ -121,7 +121,7 @@ var _ = Describe("Config", func() {
 		Context("given a 'region' config without 'bucket_name'", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions[0].BucketName = ""
+					c.AmiRegions[0].BucketName = ""
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("region must specify bucket_name"))
@@ -131,7 +131,7 @@ var _ = Describe("Config", func() {
 		Context("when China is involved", func() {
 			It("returns an error if a China region is specified in copy destinations", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions[0].Destinations = append(c.Regions[0].Destinations, "cn-north-1")
+					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "cn-north-1")
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("cn-north-1 is an isolated region and cannot be specified as a copy destination"))
@@ -139,8 +139,8 @@ var _ = Describe("Config", func() {
 
 			It("returns an error if copy destinations are specified for a China region", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.Regions[0].Name = "cn-north-1"
-					c.Regions[0].Destinations = append(c.Regions[0].Destinations, "anything")
+					c.AmiRegions[0].Name = "cn-north-1"
+					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "anything")
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("cn-north-1 is an isolated region and cannot specify copy destinations"))

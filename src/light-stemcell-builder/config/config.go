@@ -34,21 +34,22 @@ type AmiConfiguration struct {
 	Visibility         string `json:"visibility"`
 }
 
-type AwsCredentials struct {
+type AmiRegion struct {
+	Name         string      `json:"name"`
+	Credentials  Credentials `json:"credentials"`
+	BucketName   string      `json:"bucket_name"`
+	Destinations []string    `json:"destinations"`
+}
+
+type Credentials struct {
 	AccessKey string `json:"access_key"`
 	SecretKey string `json:"secret_key"`
 }
 
-type RegionConfiguration struct {
-	Name         string         `json:"name"`
-	Credentials  AwsCredentials `json:"credentials"`
-	BucketName   string         `json:"bucket_name"`
-	Destinations []string       `json:"destinations"`
-}
-
 type Config struct {
-	AmiConfiguration AmiConfiguration      `json:"ami_configuration"`
-	Regions          []RegionConfiguration `json:"regions"`
+	AmiConfiguration AmiConfiguration `json:"ami_configuration"`
+	AmiRegions       []AmiRegion      `json:"ami_regions"`
+	// Credentials...
 }
 
 func NewFromReader(r io.Reader) (Config, error) {
@@ -101,13 +102,13 @@ func (config *Config) validate() error {
 		return errors.New("visibility must be one of: ['public', 'private']")
 	}
 
-	regions := config.Regions
+	regions := config.AmiRegions
 	if len(regions) == 0 {
 		return errors.New("regions cannot be empty")
 	}
 
-	for i := range config.Regions {
-		err := config.Regions[i].validate()
+	for i := range regions {
+		err := regions[i].validate()
 		if err != nil {
 			return err
 		}
@@ -116,7 +117,7 @@ func (config *Config) validate() error {
 	return nil
 }
 
-func (r *RegionConfiguration) validate() error {
+func (r *AmiRegion) validate() error {
 	if r.Name == "" {
 		return errors.New("region must specify name")
 	}

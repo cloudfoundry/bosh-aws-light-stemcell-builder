@@ -26,14 +26,6 @@ type Builder struct {
 	prepared   bool
 }
 
-// AwsConfig specifies credentials to connect to AWS
-type AwsConfig struct {
-	AccessKey  string
-	SecretKey  string
-	BucketName string
-	Region     string
-}
-
 func New(aws ec2.AWS, c config.Config, logger *log.Logger) *Builder {
 	return &Builder{
 		aws:    aws,
