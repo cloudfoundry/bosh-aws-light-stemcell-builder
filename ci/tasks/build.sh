@@ -4,17 +4,21 @@ set -e
 
 source builder-src/ci/tasks/utils.sh
 
-check_param access_key
-check_param secret_key
-check_param bucket_name
-check_param region
-check_param copy_dests
 check_param ami_description
-check_param ami_is_public
 check_param ami_virtualization_type
+check_param ami_visibility
+check_param us_ami_region
+check_param us_ami_access_key
+check_param us_ami_secret_key
+check_param us_ami_bucket_name
+check_param us_ami_destinations
+check_param cn_ami_region
+check_param cn_ami_access_key
+check_param cn_ami_secret_key
+check_param cn_ami_bucket_name
 
-export AWS_ACCESS_KEY_ID=$access_key
-export AWS_SECRET_ACCESS_KEY=$secret_key
+# export AWS_ACCESS_KEY_ID=$access_key
+# export AWS_SECRET_ACCESS_KEY=$secret_key
 
 echo "Setting environment variables"
 
@@ -31,7 +35,8 @@ $JAVA_HOME/bin/java -version
 
 echo "Checking EC2 CLI has been properly installed"
 which ec2-describe-regions
-ec2-describe-regions -O $access_key -W $secret_key --region $region
+ec2-describe-regions -O $us_ami_access_key -W $us_ami_secret_key --region $us_ami_region
+# ec2-describe-regions -O $cn_ami_access_key -W $cn_ami_secret_key --region $cn_ami_region
 
 stemcell_path=$(echo $PWD/input-stemcell/*.tgz)
 output_path=$PWD/light-stemcell/
@@ -47,15 +52,15 @@ cat > $CONFIG_PATH << EOF
     "virtualization_type":  "$ami_virtualization_type",
     "visibility":           "$ami_visibility"
   },
-  "regions": [
+  "ami_regions": [
     {
-      "name":               "$region",
+      "name":               "$us_ami_region",
       "credentials": {
-        "access_key":       "$access_key",
-        "secret_key":       "$secret_key"
+        "access_key":       "$us_ami_access_key",
+        "secret_key":       "$us_ami_secret_key"
       },
-      "bucket_name":        "$bucket_name",
-      "destinations":       $copy_dests
+      "bucket_name":        "$us_ami_bucket_name",
+      "destinations":       $us_ami_destinations
     }
   ]
 }

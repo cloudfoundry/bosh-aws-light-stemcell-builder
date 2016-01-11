@@ -56,7 +56,7 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		Logger:    b.logger,
 	}
 
-	for _, region := range b.config.Regions {
+	for _, region := range b.config.AmiRegions {
 		result, err := amiPublisher.Publish(imagePath, region)
 
 		if err != nil {

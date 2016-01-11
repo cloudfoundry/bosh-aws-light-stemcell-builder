@@ -37,8 +37,8 @@ var _ = Describe("Config", func() {
       },
       "ami_regions": [
         {
-          "name": "us-region",
-          "bucket_name": "test-bucket",
+          "name": "ami-region",
+          "bucket_name": "ami-bucket",
           "credentials": {
             "access_key": "access-key",
             "secret_key": "secret-key"
@@ -62,7 +62,7 @@ var _ = Describe("Config", func() {
 					c.AmiConfiguration.Description = ""
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("ami_configuration requires a description"))
+				Expect(err).To(MatchError("description must be specified for ami_configuration"))
 			})
 
 			It("returns an error when 'virtualization_type' is not 'hvm' or 'paravirtual'", func() {
@@ -88,7 +88,7 @@ var _ = Describe("Config", func() {
 					c.AmiRegions = []config.AmiRegion{}
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("regions cannot be empty"))
+				Expect(err).To(MatchError("ami_regions must be specified"))
 			})
 		})
 
@@ -98,7 +98,7 @@ var _ = Describe("Config", func() {
 					c.AmiRegions[0].Name = ""
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("region must specify name"))
+				Expect(err).To(MatchError("name must be specified for ami_regions entries"))
 			})
 		})
 
@@ -108,13 +108,13 @@ var _ = Describe("Config", func() {
 					c.AmiRegions[0].Credentials.AccessKey = ""
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("credentials must specify access_key"))
+				Expect(err).To(MatchError("access_key must be specified for credentials"))
 
 				_, err = parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].Credentials.SecretKey = ""
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("credentials must specify secret_key"))
+				Expect(err).To(MatchError("secret_key must be specified for credentials"))
 			})
 		})
 
@@ -124,7 +124,7 @@ var _ = Describe("Config", func() {
 					c.AmiRegions[0].BucketName = ""
 				})
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("region must specify bucket_name"))
+				Expect(err).To(MatchError("bucket_name must be specified for ami_regions entries"))
 			})
 		})
 

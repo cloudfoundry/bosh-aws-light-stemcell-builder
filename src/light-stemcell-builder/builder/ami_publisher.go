@@ -15,7 +15,7 @@ type AMIPublisher struct {
 	Logger    *log.Logger
 }
 
-func (p *AMIPublisher) Publish(imagePath string, region config.RegionConfiguration) (map[string]ec2ami.Info, error) {
+func (p *AMIPublisher) Publish(imagePath string, region config.AmiRegion) (map[string]ec2ami.Info, error) {
 	ec2Config := ec2.Config{
 		Region:     region.Name,
 		BucketName: region.BucketName,

@@ -49,7 +49,6 @@ type Credentials struct {
 type Config struct {
 	AmiConfiguration AmiConfiguration `json:"ami_configuration"`
 	AmiRegions       []AmiRegion      `json:"ami_regions"`
-	// Credentials...
 }
 
 func NewFromReader(r io.Reader) (Config, error) {
@@ -83,7 +82,7 @@ func NewFromReader(r io.Reader) (Config, error) {
 
 func (config *Config) validate() error {
 	if config.AmiConfiguration.Description == "" {
-		return errors.New("ami_configuration requires a description")
+		return errors.New("description must be specified for ami_configuration")
 	}
 
 	validVirtualization := map[string]bool{
@@ -104,7 +103,7 @@ func (config *Config) validate() error {
 
 	regions := config.AmiRegions
 	if len(regions) == 0 {
-		return errors.New("regions cannot be empty")
+		return errors.New("ami_regions must be specified")
 	}
 
 	for i := range regions {
@@ -119,19 +118,19 @@ func (config *Config) validate() error {
 
 func (r *AmiRegion) validate() error {
 	if r.Name == "" {
-		return errors.New("region must specify name")
+		return errors.New("name must be specified for ami_regions entries")
 	}
 
 	if r.BucketName == "" {
-		return errors.New("region must specify bucket_name")
+		return errors.New("bucket_name must be specified for ami_regions entries")
 	}
 
 	if r.Credentials.AccessKey == "" {
-		return errors.New("credentials must specify access_key")
+		return errors.New("access_key must be specified for credentials")
 	}
 
 	if r.Credentials.SecretKey == "" {
-		return errors.New("credentials must specify secret_key")
+		return errors.New("secret_key must be specified for credentials")
 	}
 
 	for _, region := range r.Destinations {

@@ -106,10 +106,10 @@ var _ = Describe("AMIPublisher", func() {
 
 		It("integrates with AWS", func() {
 			aws := stubbedAWS()
-			regionConfig := config.RegionConfiguration{
+			regionConfig := config.AmiRegion{
 				Name:       "example-region",
 				BucketName: "example-bucket",
-				Credentials: config.AwsCredentials{
+				Credentials: config.Credentials{
 					AccessKey: "access-key",
 					SecretKey: "secret-key",
 				},
@@ -147,10 +147,10 @@ var _ = Describe("AMIPublisher", func() {
 		Context("when no destinations are provided", func() {
 			It("works as expected", func() {
 				aws := stubbedAWS()
-				regionConfig := config.RegionConfiguration{
+				regionConfig := config.AmiRegion{
 					Name:       "example-region",
 					BucketName: "example-bucket",
-					Credentials: config.AwsCredentials{
+					Credentials: config.Credentials{
 						AccessKey: "access-key",
 						SecretKey: "secret-key",
 					},

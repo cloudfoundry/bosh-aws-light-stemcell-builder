@@ -62,14 +62,18 @@ jobs:
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__us_access_key}}
-            secret_key: {{publish__us_secret_key}}
-            bucket_name: {{publish__us_bucket}}
-            region: {{publish__us_region}}
-            copy_dests: {{publish__us_copy_dests}}
-            ami_description: {{publish__us_ami_description}}
+            ami_description: {{publish__ami_description}}
             ami_virtualization_type: hvm
-            ami_visibility: {{publish__us_ami_visibility}}
+            ami_visibility: {{publish__ami_visibility}}
+            us_ami_region: {{publish__us_region}}
+            us_ami_access_key: {{publish__us_access_key}}
+            us_ami_secret_key: {{publish__us_secret_key}}
+            us_ami_bucket_name: {{publish__us_bucket}}
+            us_ami_destinations: {{publish__us_destinations}}
+            cn_ami_region: {{publish__cn_region}}
+            cn_ami_access_key: {{publish__cn_access_key}}
+            cn_ami_secret_key: {{publish__cn_secret_key}}
+            cn_ami_bucket_name: {{publish__cn_bucket}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -87,14 +91,18 @@ jobs:
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__us_access_key}}
-            secret_key: {{publish__us_secret_key}}
-            bucket_name: {{publish__us_bucket}}
-            region: {{publish__us_region}}
-            copy_dests: {{publish__us_copy_dests}}
-            ami_description: {{publish__us_ami_description}}
+            ami_description: {{publish__ami_description}}
             ami_virtualization_type: paravirtual
-            ami_visibility: {{publish__us_ami_visibility}}
+            ami_visibility: {{publish__ami_visibility}}
+            us_ami_region: {{publish__us_region}}
+            us_ami_access_key: {{publish__us_access_key}}
+            us_ami_secret_key: {{publish__us_secret_key}}
+            us_ami_bucket_name: {{publish__us_bucket}}
+            us_ami_destinations: {{publish__us_destinations}}
+            cn_ami_region: {{publish__cn_region}}
+            cn_ami_access_key: {{publish__cn_access_key}}
+            cn_ami_secret_key: {{publish__cn_secret_key}}
+            cn_ami_bucket_name: {{publish__cn_bucket}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -112,14 +120,18 @@ jobs:
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__us_access_key}}
-            secret_key: {{publish__us_secret_key}}
-            bucket_name: {{publish__us_bucket}}
-            region: {{publish__us_region}}
-            copy_dests: {{publish__us_copy_dests}}
-            ami_description: {{publish__us_ami_description}}
+            ami_description: {{publish__ami_description}}
             ami_virtualization_type: hvm
-            ami_visibility: {{publish__us_ami_visibility}}
+            ami_visibility: {{publish__ami_visibility}}
+            us_ami_region: {{publish__us_region}}
+            us_ami_access_key: {{publish__us_access_key}}
+            us_ami_secret_key: {{publish__us_secret_key}}
+            us_ami_bucket_name: {{publish__us_bucket}}
+            us_ami_destinations: {{publish__us_destinations}}
+            cn_ami_region: {{publish__cn_region}}
+            cn_ami_access_key: {{publish__cn_access_key}}
+            cn_ami_secret_key: {{publish__cn_secret_key}}
+            cn_ami_bucket_name: {{publish__cn_bucket}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -137,14 +149,18 @@ jobs:
         file: builder-src/ci/tasks/build.yml
         config:
           params:
-            access_key: {{publish__us_access_key}}
-            secret_key: {{publish__us_secret_key}}
-            bucket_name: {{publish__us_bucket}}
-            region: {{publish__us_region}}
-            copy_dests: {{publish__us_copy_dests}}
-            ami_description: {{publish__us_ami_description}}
+            ami_description: {{publish__ami_description}}
             ami_virtualization_type: paravirtual
-            ami_visibility: {{publish__us_ami_visibility}}
+            ami_visibility: {{publish__ami_visibility}}
+            us_ami_region: {{publish__us_region}}
+            us_ami_access_key: {{publish__us_access_key}}
+            us_ami_secret_key: {{publish__us_secret_key}}
+            us_ami_bucket_name: {{publish__us_bucket}}
+            us_ami_destinations: {{publish__us_destinations}}
+            cn_ami_region: {{publish__cn_region}}
+            cn_ami_access_key: {{publish__cn_access_key}}
+            cn_ami_secret_key: {{publish__cn_secret_key}}
+            cn_ami_bucket_name: {{publish__cn_bucket}}
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz

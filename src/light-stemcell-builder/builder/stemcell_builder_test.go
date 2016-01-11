@@ -341,7 +341,7 @@ var _ = Describe("StemcellBuilder", func() {
 		        "description": "Example AMI",
 						"visibility": "private"
 		      },
-		      "regions": [
+		      "ami_regions": [
 		        {
 		          "name": "region-1",
 		          "bucket_name": "bucket-name",
@@ -382,7 +382,7 @@ var _ = Describe("StemcellBuilder", func() {
 		        "description": "Example AMI",
 						"visibility": "private"
 		      },
-		      "regions": [
+		      "ami_regions": [
 		        {
 		          "name": "region-1",
 		          "bucket_name": "bucket-name",
