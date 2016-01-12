@@ -34,7 +34,7 @@ func (p *AMIPublisher) Publish(imagePath string, region config.AmiRegion) (map[s
 	p.AWS.Configure(ec2Config)
 
 	ebsVolumeStage := ec2stage.NewCreateEBSVolumeStage(ec2.ImportVolume,
-		ec2.CleanupImportVolume, ec2.DeleteVolume, p.AWS)
+		ec2stage.NullCleaner, ec2stage.NullCleaner, p.AWS)
 
 	createAmiStage := ec2stage.NewCreateAmiStage(ec2.CreateAmi, ec2.DeleteAmi, p.AWS, amiConfig)
 
