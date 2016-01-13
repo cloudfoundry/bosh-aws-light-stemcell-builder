@@ -98,6 +98,17 @@ var _ = Describe("Config", func() {
 			})
 		})
 
+		Context("when a 'region' config specifies itself as one of the copy destinations", func() {
+			It("returns an error", func() {
+				_, err := parseConfig(baseJSON, func(c *config.Config) {
+					c.AmiRegions[0].Name = "us-east-1"
+					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "us-east-1")
+				})
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("us-east-1 specified as both a source and a copy destination"))
+			})
+		})
+
 		Context("given a 'region' config with invalid 'credentials'", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {

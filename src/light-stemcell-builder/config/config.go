@@ -133,9 +133,13 @@ func (r *AmiRegion) validate() error {
 		return errors.New("secret_key must be specified for credentials")
 	}
 
-	for _, region := range r.Destinations {
-		if isolated[region] {
-			return fmt.Errorf("%s is an isolated region and cannot be specified as a copy destination", region)
+	for _, destinationRegion := range r.Destinations {
+		if isolated[destinationRegion] {
+			return fmt.Errorf("%s is an isolated region and cannot be specified as a copy destination", destinationRegion)
+		}
+
+		if r.Name == destinationRegion {
+			return fmt.Errorf("%s specified as both a source and a copy destination", destinationRegion)
 		}
 	}
 
