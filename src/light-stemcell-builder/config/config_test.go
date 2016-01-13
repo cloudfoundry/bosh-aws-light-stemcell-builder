@@ -61,7 +61,6 @@ var _ = Describe("Config", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiConfiguration.Description = ""
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("description must be specified for ami_configuration"))
 			})
 
@@ -69,7 +68,6 @@ var _ = Describe("Config", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiConfiguration.VirtualizationType = "bogus"
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("virtualization_type must be one of: ['hvm', 'paravirtual']"))
 			})
 
@@ -87,7 +85,6 @@ var _ = Describe("Config", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions = []config.AmiRegion{}
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("ami_regions must be specified"))
 			})
 		})
@@ -97,7 +94,6 @@ var _ = Describe("Config", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].Name = ""
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("name must be specified for ami_regions entries"))
 			})
 		})
@@ -107,13 +103,11 @@ var _ = Describe("Config", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].Credentials.AccessKey = ""
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("access_key must be specified for credentials"))
 
 				_, err = parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].Credentials.SecretKey = ""
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("secret_key must be specified for credentials"))
 			})
 		})
@@ -123,7 +117,6 @@ var _ = Describe("Config", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].BucketName = ""
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("bucket_name must be specified for ami_regions entries"))
 			})
 		})
@@ -133,7 +126,6 @@ var _ = Describe("Config", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "cn-north-1")
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("cn-north-1 is an isolated region and cannot be specified as a copy destination"))
 			})
 
@@ -142,7 +134,6 @@ var _ = Describe("Config", func() {
 					c.AmiRegions[0].Name = "cn-north-1"
 					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "anything")
 				})
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("cn-north-1 is an isolated region and cannot specify copy destinations"))
 			})
 		})
