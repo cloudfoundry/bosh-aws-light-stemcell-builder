@@ -40,10 +40,6 @@ var _ = Describe("AMIPublisher", func() {
 			importImagePath := aws.ImportVolumeArgsForCall(0)
 			Expect(importImagePath).To(Equal(imagePath))
 
-			Expect(aws.DeleteDiskImageCallCount()).To(Equal(1))
-			cleanupTaskID := aws.DeleteDiskImageArgsForCall(0)
-			Expect(cleanupTaskID).To(Equal("task-id"))
-
 			Expect(aws.CreateSnapshotCallCount()).To(Equal(1))
 			volume := aws.CreateSnapshotArgsForCall(0)
 			Expect(volume).To(Equal("volume-id"))
@@ -52,10 +48,6 @@ var _ = Describe("AMIPublisher", func() {
 			registerConfig, registerSnapshot := aws.RegisterImageArgsForCall(0)
 			Expect(registerConfig).To(Equal(inputAMIConfig))
 			Expect(registerSnapshot).To(Equal("snapshot-id"))
-
-			Expect(aws.DeleteVolumeCallCount()).To(Equal(1))
-			deleteVolumeID := aws.DeleteVolumeArgsForCall(0)
-			Expect(deleteVolumeID).To(Equal("volume-id"))
 
 			additionalAssertions()
 		}
@@ -145,7 +137,7 @@ var _ = Describe("AMIPublisher", func() {
 		})
 
 		Context("when no destinations are provided", func() {
-			It("works as expected", func() {
+			FIt("works as expected", func() {
 				aws := stubbedAWS()
 				regionConfig := config.AmiRegion{
 					Name:       "example-region",
