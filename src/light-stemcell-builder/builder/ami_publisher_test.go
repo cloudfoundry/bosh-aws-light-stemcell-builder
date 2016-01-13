@@ -137,7 +137,7 @@ var _ = Describe("AMIPublisher", func() {
 		})
 
 		Context("when no destinations are provided", func() {
-			FIt("works as expected", func() {
+			It("works as expected", func() {
 				aws := stubbedAWS()
 				regionConfig := config.AmiRegion{
 					Name:       "example-region",
