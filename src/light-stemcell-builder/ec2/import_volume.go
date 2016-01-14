@@ -38,7 +38,7 @@ func ImportVolume(aws AWS, imagePath string) (ConversionTaskInfo, error) {
 
 	info, err := WaitForStatus(aws.DescribeConversionTask, waiterConfig)
 	if err != nil {
-		return ConversionTaskInfo{}, fmt.Errorf("Error getting volume id for task: %s", taskID)
+		return ConversionTaskInfo{}, fmt.Errorf("Error getting volume id for task: %s: %s", taskID, err)
 	}
 
 	if reflect.TypeOf(info) != reflect.TypeOf(ConversionTaskInfo{}) {
