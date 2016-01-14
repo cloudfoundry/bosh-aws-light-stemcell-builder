@@ -223,6 +223,6 @@ resources:
     type: s3
     source:
       regexp: light-bosh-stemcell.*\.tgz
-      access_key_id: {{publish__us_access_key}}
-      secret_access_key: {{publish__us_secret_key}}
-      bucket: {{light__bucket}}
+      access_key_id: {{output__bucket_access_key}}
+      secret_access_key: {{output__bucket_secret_key}}
+      bucket: {{output__bucket}}
