@@ -46,7 +46,10 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		return "", nil, err
 	}
 	defer func() {
-		err = manifestFile.Close()
+		closeErr := manifestFile.Close()
+		if closeErr != nil {
+			panic(closeErr)
+		}
 	}()
 
 	amis := make(map[string]ec2ami.Info)
