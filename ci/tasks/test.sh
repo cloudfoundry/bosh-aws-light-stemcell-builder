@@ -13,16 +13,6 @@ check_param ami_fixture_id
 export AWS_ACCESS_KEY_ID=$access_key
 export AWS_SECRET_ACCESS_KEY=$secret_key
 
-echo "Setting environment variables"
-
-export JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64/jre"
-echo "JAVA_HOME set to $JAVA_HOME"
-
-export EC2_HOME="/usr/local/ec2/ec2-api-tools-1.7.5.1"
-echo "EC2_HOME set to $EC2_HOME"
-
-export PATH=$PATH:$EC2_HOME/bin
-
 export AWS_BUCKET_NAME=$bucket_name
 export AWS_REGION=$region
 export AMI_FIXTURE_ID=$ami_fixture_id

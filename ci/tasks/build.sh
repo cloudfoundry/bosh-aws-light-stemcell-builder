@@ -20,16 +20,6 @@ check_param cn_ami_bucket_name
 # export AWS_ACCESS_KEY_ID=$access_key
 # export AWS_SECRET_ACCESS_KEY=$secret_key
 
-echo "Setting environment variables"
-
-export JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64/jre"
-echo "JAVA_HOME set to $JAVA_HOME"
-
-export EC2_HOME="/usr/local/ec2/ec2-api-tools-1.7.5.1"
-echo "EC2_HOME set to $EC2_HOME"
-
-export PATH=$PATH:$EC2_HOME/bin
-
 echo "Checking Java configuration"
 $JAVA_HOME/bin/java -version
 
