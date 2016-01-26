@@ -34,16 +34,33 @@ func (i statusResource) ID() string {
 }
 
 var _ = Describe("StatusWaiter", func() {
+	statusRetries := 2
+
 	config := ec2.WaiterConfig{
 		Resource:      statusResource{},
 		DesiredStatus: "desired",
 		PollInterval:  50 * time.Millisecond,
 		PollTimeout:   2 * time.Second,
+		PollRetries:   statusRetries,
 	}
 
 	Context("when the status fetcher returns an error", func() {
-		It("returns the error", func() {
+		It("retries a configurable amount of times", func() {
+			count := 0
+			errorFetcher := func(resource ec2.StatusResource) (ec2.StatusInfo, error) {
+				if count < statusRetries {
+					count++
+					return emptyInfo{}, errors.New("this returns an error")
+				}
 
+				return desiredInfo{}, nil
+			}
+
+			_, err := ec2.WaitForStatus(errorFetcher, config)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns the underlying error when the retry count is exceeded", func() {
 			errorFetcher := func(resource ec2.StatusResource) (ec2.StatusInfo, error) {
 				return emptyInfo{}, errors.New("this returns an error")
 			}

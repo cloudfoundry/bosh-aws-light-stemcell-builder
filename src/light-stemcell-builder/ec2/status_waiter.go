@@ -20,11 +20,13 @@ type WaiterConfig struct {
 	DesiredStatus string
 	PollInterval  time.Duration
 	PollTimeout   time.Duration
+	PollRetries   int
 }
 
 const (
 	defaultPollTimeout  = 5 * time.Minute
 	defaultPollInterval = 5 * time.Second
+	defaultPollRetries  = 10
 )
 
 // TimeoutError is thrown when long polling times out
@@ -48,9 +50,16 @@ func WaitForStatus(status StatusFetcher, c WaiterConfig) (StatusInfo, error) {
 		pollInterval = defaultPollInterval
 	}
 
+	pollRetries := c.PollRetries
+	if pollRetries == 0 {
+		pollRetries = defaultPollRetries
+	}
+
 	fmt.Println(fmt.Sprintf("Waiting on %s to be desired status %s", c.Resource.ID(), c.DesiredStatus))
 	timeout := time.After(pollTimeout)
 	ticker := time.Tick(pollInterval)
+	retryCount := 0
+
 	for {
 		select {
 		case <-timeout:
@@ -59,9 +68,12 @@ func WaitForStatus(status StatusFetcher, c WaiterConfig) (StatusInfo, error) {
 
 		case <-ticker:
 			info, err := status(c.Resource)
-			if err != nil {
+			if err != nil && retryCount > pollRetries {
 				return nil, err
+			} else if err != nil {
+				retryCount++
 			}
+
 			if info.Status() == c.DesiredStatus {
 				fmt.Println(fmt.Sprintf("%s matches desired status %s", c.Resource.ID(), c.DesiredStatus))
 				return info, nil
