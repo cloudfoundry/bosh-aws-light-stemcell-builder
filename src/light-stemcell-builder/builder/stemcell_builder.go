@@ -41,16 +41,6 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 	}
 
 	manifestPath := path.Join(b.packageDir, "stemcell.MF")
-	manifestFile, err := os.Open(manifestPath)
-	if err != nil {
-		return "", nil, err
-	}
-	defer func() {
-		closeErr := manifestFile.Close()
-		if closeErr != nil {
-			panic(closeErr)
-		}
-	}()
 
 	amis := make(map[string]ec2ami.Info)
 	amiPublisher := AMIPublisher{
@@ -76,8 +66,24 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		regionToAmi[region] = amiInfo.AmiID
 	}
 
+	manifestFile, err := os.Open(manifestPath)
+	if err != nil {
+		return "", nil, err
+	}
+
 	stemcellPath := b.OutputPath(inputPath, outputPath)
 	err = b.UpdateManifestFile(manifestFile, regionToAmi)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// be extra parinoid about flushing changes back to disk
+	err = manifestFile.Sync()
+	if err != nil {
+		return "", nil, err
+	}
+
+	err = manifestFile.Close()
 	if err != nil {
 		return "", nil, err
 	}
