@@ -372,6 +372,24 @@ var _ = Describe("StemcellBuilder", func() {
 				Expect(amis["destination-2"].AmiID).To(MatchRegexp("ami-.*"))
 
 				Expect(stemcell).To(BeAnExistingFile())
+
+				buildDir, err := ioutil.TempDir("", "light-stemcell-builder-build-test")
+				Expect(err).ToNot(HaveOccurred())
+
+				untar := exec.Command("tar", "-C", buildDir, "-xf", stemcell)
+				err = untar.Run()
+				Expect(err).ToNot(HaveOccurred())
+
+				manifestPath := path.Join(buildDir, "stemcell.MF")
+				manifestBytes, err := ioutil.ReadFile(manifestPath)
+
+				Expect(manifestBytes).To(MatchRegexp("(?m)^name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent$"))
+				Expect(manifestBytes).To(MatchRegexp("(?m)^cloud_properties:$"))
+				Expect(manifestBytes).To(MatchRegexp("(?m)^  name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent$"))
+				Expect(manifestBytes).To(MatchRegexp("(?m)^  ami:$"))
+				Expect(manifestBytes).To(MatchRegexp("(?m)^    region-1: ami-.*$"))
+				Expect(manifestBytes).To(MatchRegexp("(?m)^    destination-1: ami-.*$"))
+				Expect(manifestBytes).To(MatchRegexp("(?m)^    destination-2: ami-.*$"))
 			})
 		})
 

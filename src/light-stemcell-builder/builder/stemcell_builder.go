@@ -66,24 +66,21 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		regionToAmi[region] = amiInfo.AmiID
 	}
 
-	manifestFile, err := os.Open(manifestPath)
+	manifestFileBytes, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
 		return "", nil, err
 	}
+
+	manifestFileBuf := bytes.NewBuffer(manifestFileBytes)
 
 	stemcellPath := b.OutputPath(inputPath, outputPath)
-	err = b.UpdateManifestFile(manifestFile, regionToAmi)
+
+	err = b.UpdateManifestFile(manifestFileBuf, regionToAmi)
 	if err != nil {
 		return "", nil, err
 	}
 
-	// be extra parinoid about flushing changes back to disk
-	err = manifestFile.Sync()
-	if err != nil {
-		return "", nil, err
-	}
-
-	err = manifestFile.Close()
+	err = ioutil.WriteFile(manifestPath, manifestFileBuf.Bytes(), os.ModePerm)
 	if err != nil {
 		return "", nil, err
 	}
