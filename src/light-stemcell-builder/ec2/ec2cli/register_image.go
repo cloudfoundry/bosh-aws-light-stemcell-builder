@@ -21,6 +21,7 @@ var regionToAKI = map[string]string{
 	"us-gov-west":    "aki-1de98d3e",
 	"us-west-1":      "aki-880531cd",
 	"us-west-2":      "aki-fc8f11cc",
+	"cn-north-1":     "aki-9e8f1da7",
 }
 
 func (e *EC2Cli) RegisterImage(amiConfig ec2ami.Config, snapshotID string) (string, error) {
