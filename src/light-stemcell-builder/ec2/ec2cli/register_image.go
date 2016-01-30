@@ -36,13 +36,13 @@ func (e *EC2Cli) RegisterImage(amiConfig ec2ami.Config, snapshotID string) (stri
 		"-O", e.config.AccessKey,
 		"-W", e.config.SecretKey,
 		"--region", amiConfig.Region,
-		"-s", snapshotID,
 		"-n", amiName,
 		"-d", amiConfig.Description,
 		"--virtualization-type", amiConfig.VirtualizationType,
 	)
 
-	if amiConfig.VirtualizationType == config.Paravirtualization {
+	switch amiConfig.VirtualizationType {
+	case config.Paravirtualization:
 		akiID, found := regionToAKI[amiConfig.Region]
 		if !found {
 			return "", fmt.Errorf("No AKI known for region: %s", amiConfig.Region)
@@ -55,6 +55,11 @@ func (e *EC2Cli) RegisterImage(amiConfig ec2ami.Config, snapshotID string) (stri
 
 		registerSnapshot.Args = append(registerSnapshot.Args, "--block-device-mapping")
 		registerSnapshot.Args = append(registerSnapshot.Args, rootDeviceMapping)
+	case config.HardwareAssistedVirtualization:
+		registerSnapshot.Args = append(registerSnapshot.Args, "-s")
+		registerSnapshot.Args = append(registerSnapshot.Args, snapshotID)
+	default:
+		return "", fmt.Errorf("unknown virtualization type: %s", amiConfig.VirtualizationType)
 	}
 
 	secondField, err := command.SelectField(2)
