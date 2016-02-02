@@ -56,7 +56,7 @@ jobs:
         resource: builder-src-out
         trigger: false
       - get: input-stemcell
-        resource: centos-input-stemcell
+        resource: centos-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
@@ -85,7 +85,7 @@ jobs:
         resource: builder-src-out
         trigger: false
       - get: input-stemcell
-        resource: centos-input-stemcell
+        resource: centos-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
@@ -114,7 +114,7 @@ jobs:
         resource: builder-src-out
         trigger: false
       - get: input-stemcell
-        resource: ubuntu-input-stemcell
+        resource: ubuntu-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
@@ -143,7 +143,7 @@ jobs:
         resource: builder-src-out
         trigger: false
       - get: input-stemcell
-        resource: ubuntu-input-stemcell
+        resource: ubuntu-stemcell
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
@@ -205,19 +205,17 @@ resources:
       secret_access_key: {{builder__secret_key}}
       bucket: {{builder__bucket}}
 
-  - name: centos-input-stemcell
+  - name: centos-stemcell
     type: s3
     source:
-      # regexp: ([0-9]+).+\/bosh-stemcell-[0-9]+-aws-xen-centos-7-trusty-go_agent\.tgz
-      regexp: ([0-9]+).+/bosh-stemcell/aws/bosh-stemcell-([0-9]+)-aws-xen-centos-7-go_agent\.tgz
-      bucket: {{input__bucket}}
+      regexp: bosh-stemcell/aws/bosh-stemcell-([0-9.]+)-aws-xen-centos-7-go_agent\.tgz
+      bucket: bosh-jenkins-artifacts
 
-  - name: ubuntu-input-stemcell
+  - name: ubuntu-stemcell
     type: s3
     source:
-      # regexp: ([0-9]+).+\/bosh-stemcell-[0-9]+-aws-xen-ubuntu-trusty-go_agent\.tgz
-      regexp: ([0-9]+).+/bosh-stemcell/aws/bosh-stemcell-([0-9]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
-      bucket: {{input__bucket}}
+      regexp: bosh-stemcell/aws/bosh-stemcell-([0-9.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
+      bucket: bosh-jenkins-artifacts
 
   - name: light-stemcell
     type: s3
