@@ -6,8 +6,8 @@ inputs:
 run:
   path: builder-src/ci/tasks/test.sh
 params:
-  access_key: replace-me
-  secret_key: replace-me
-  bucket_name: replace-me
-  region: replace-me
-  ami_fixture_id: replace-me
+  access_key:     ""
+  secret_key:     ""
+  bucket_name:    ""
+  region:         ""
+  ami_fixture_id: ""
