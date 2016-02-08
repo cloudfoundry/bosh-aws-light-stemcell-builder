@@ -1,14 +1,12 @@
 package ec2_test
 
 import (
-	"bytes"
+	"fmt"
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
-	"strings"
+	"light-stemcell-builder/ec2/ec2instance"
+	"net"
 	"time"
-
-	"fmt"
-	"os/exec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,51 +15,32 @@ import (
 var _ = Describe("CreateAmi lifecycle", func() {
 	Describe("creating and deleting an ami", func() {
 		aws := getAWSImplmentation()
+		var volumeID string
 
-		createEBSVolume := func(c ec2.Config) (string, error) {
-			createVolCmd := exec.Command(
-				"ec2-create-volume",
-				"-O", c.Credentials.AccessKey,
-				"-W", c.Credentials.SecretKey,
-				"--region", c.Region,
-				"-s", "1",
-				"-z", "us-east-1a",
-			)
+		BeforeEach(func() {
+			Expect(localDiskImagePath).ToNot(BeEmpty(), "Expected LOCAL_DISK_IMAGE_PATH to be set")
 
-			stderr := &bytes.Buffer{}
-			createVolCmd.Stderr = stderr
+			taskInfo, err := ec2.ImportVolume(aws, localDiskImagePath)
+			Expect(err).ToNot(HaveOccurred())
+			volumeID = taskInfo.EBSVolumeID
+			Expect(volumeID).ToNot(BeEmpty())
 
-			rawOut, err := createVolCmd.Output()
-			if err != nil {
-				return "", fmt.Errorf("Error creating test volume: %s, stderr %s", err, stderr)
-			}
+			err = ec2.CleanupImportVolume(aws, taskInfo.TaskID)
+			Expect(err).ToNot(HaveOccurred())
+		})
 
-			out := string(rawOut)
-			fields := strings.Fields(out)
-			volumeID := fields[1]
-
-			waiterConfig := ec2.WaiterConfig{
-				Resource:      ec2.VolumeResource{VolumeID: volumeID},
-				DesiredStatus: ec2.VolumeAvailableStatus,
-				PollTimeout:   1 * time.Minute,
-			}
-
-			fmt.Printf("waiting for volume %s to be created\n", volumeID)
-			_, err = ec2.WaitForStatus(aws.DescribeVolume, waiterConfig)
-
-			return volumeID, nil
-		}
+		AfterEach(func() {
+			err := ec2.DeleteVolume(aws, volumeID)
+			Expect(err).ToNot(HaveOccurred())
+		})
 
 		It("allows an AMI to be created from an EBS volume then deleted", func() {
-			fmt.Println(fmt.Sprintf("%s", aws))
 			amiConfig := ec2ami.Config{
 				Region:             aws.GetConfig().Region,
 				VirtualizationType: "hvm",
 				Description:        "BOSH CI test AMI",
 			}
 
-			volumeID, err := createEBSVolume(aws.GetConfig())
-			Expect(err).ToNot(HaveOccurred())
 			amiInfo, err := ec2.CreateAmi(aws, volumeID, amiConfig)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(amiInfo.AmiID).ToNot(BeEmpty())
@@ -73,7 +52,6 @@ var _ = Describe("CreateAmi lifecycle", func() {
 
 			err = ec2.DeleteAmi(aws, amiInfo)
 			Expect(err).ToNot(HaveOccurred())
-			err = ec2.DeleteVolume(aws, volumeID)
 		})
 
 		It("makes the AMI public if desired", func() {
@@ -84,8 +62,6 @@ var _ = Describe("CreateAmi lifecycle", func() {
 				Description:        "BOSH CI test AMI",
 			}
 
-			volumeID, err := createEBSVolume(aws.GetConfig())
-			Expect(err).ToNot(HaveOccurred())
 			amiInfo, err := ec2.CreateAmi(aws, volumeID, amiConfig)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(amiInfo.AmiID).ToNot(BeEmpty())
@@ -100,8 +76,84 @@ var _ = Describe("CreateAmi lifecycle", func() {
 
 			err = ec2.DeleteAmi(aws, newAmiInfo)
 			Expect(err).ToNot(HaveOccurred())
-			err = ec2.DeleteVolume(aws, volumeID)
+		})
+
+		Describe("a published HVM AMI", func() {
+			It("is bootable", func() {
+				amiConfig := ec2ami.Config{
+					Region:             aws.GetConfig().Region,
+					VirtualizationType: "hvm",
+					Description:        "BOSH CI test AMI",
+				}
+
+				amiInfo, err := ec2.CreateAmi(aws, volumeID, amiConfig)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(amiInfo.AmiID).ToNot(BeEmpty())
+
+				amiID := amiInfo.AmiID
+				instanceConfig := ec2instance.Config{
+					AmiID:             amiID,
+					InstanceType:      "t2.micro",
+					AssociatePublicIP: true,
+					Region:            aws.GetConfig().Region,
+				}
+				instance, err := ec2.RunInstance(aws, instanceConfig)
+				Expect(err).ToNot(HaveOccurred())
+
+				conn, err := net.DialTimeout(
+					"tcp",
+					fmt.Sprintf("%s:22", instance.PublicIP),
+					10*time.Second,
+				)
+				Expect(err).ToNot(HaveOccurred())
+				err = conn.Close()
+				Expect(err).ToNot(HaveOccurred())
+
+				err = ec2.TerminateInstance(aws, instance)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = ec2.DeleteAmi(aws, amiInfo)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Describe("a published Paravirtual AMI", func() {
+			It("is bootable", func() {
+				amiConfig := ec2ami.Config{
+					Region:             aws.GetConfig().Region,
+					VirtualizationType: "paravirtual",
+					Description:        "BOSH CI test AMI",
+				}
+
+				amiInfo, err := ec2.CreateAmi(aws, volumeID, amiConfig)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(amiInfo.AmiID).ToNot(BeEmpty())
+
+				amiID := amiInfo.AmiID
+				instanceConfig := ec2instance.Config{
+					AmiID:             amiID,
+					InstanceType:      "t1.micro", // pv stemcells do not support t2.*
+					AssociatePublicIP: true,
+					Region:            aws.GetConfig().Region,
+				}
+				instance, err := ec2.RunInstance(aws, instanceConfig)
+				Expect(err).ToNot(HaveOccurred())
+
+				conn, err := net.DialTimeout(
+					"tcp",
+					fmt.Sprintf("%s:22", instance.PublicIP),
+					10*time.Second,
+				)
+				Expect(err).ToNot(HaveOccurred())
+				err = conn.Close()
+				Expect(err).ToNot(HaveOccurred())
+
+				err = ec2.TerminateInstance(aws, instance)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = ec2.DeleteAmi(aws, amiInfo)
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 	})
-
 })

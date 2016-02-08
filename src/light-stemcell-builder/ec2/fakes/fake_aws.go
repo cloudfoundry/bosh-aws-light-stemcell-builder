@@ -4,6 +4,7 @@ package fakes
 import (
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
+	"light-stemcell-builder/ec2/ec2instance"
 	"sync"
 )
 
@@ -141,6 +142,32 @@ type FakeAWS struct {
 		region     string
 	}
 	deleteSnapshotReturns struct {
+		result1 error
+	}
+	RunInstanceStub        func(config ec2instance.Config) (ec2instance.Info, error)
+	runInstanceMutex       sync.RWMutex
+	runInstanceArgsForCall []struct {
+		config ec2instance.Config
+	}
+	runInstanceReturns struct {
+		result1 ec2instance.Info
+		result2 error
+	}
+	DescribeInstanceStub        func(instance ec2.StatusResource) (ec2.StatusInfo, error)
+	describeInstanceMutex       sync.RWMutex
+	describeInstanceArgsForCall []struct {
+		instance ec2.StatusResource
+	}
+	describeInstanceReturns struct {
+		result1 ec2.StatusInfo
+		result2 error
+	}
+	TerminateInstanceStub        func(instance ec2instance.Info) error
+	terminateInstanceMutex       sync.RWMutex
+	terminateInstanceArgsForCall []struct {
+		instance ec2instance.Info
+	}
+	terminateInstanceReturns struct {
 		result1 error
 	}
 }
@@ -648,6 +675,104 @@ func (fake *FakeAWS) DeleteSnapshotArgsForCall(i int) (string, string) {
 func (fake *FakeAWS) DeleteSnapshotReturns(result1 error) {
 	fake.DeleteSnapshotStub = nil
 	fake.deleteSnapshotReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAWS) RunInstance(config ec2instance.Config) (ec2instance.Info, error) {
+	fake.runInstanceMutex.Lock()
+	fake.runInstanceArgsForCall = append(fake.runInstanceArgsForCall, struct {
+		config ec2instance.Config
+	}{config})
+	fake.runInstanceMutex.Unlock()
+	if fake.RunInstanceStub != nil {
+		return fake.RunInstanceStub(config)
+	} else {
+		return fake.runInstanceReturns.result1, fake.runInstanceReturns.result2
+	}
+}
+
+func (fake *FakeAWS) RunInstanceCallCount() int {
+	fake.runInstanceMutex.RLock()
+	defer fake.runInstanceMutex.RUnlock()
+	return len(fake.runInstanceArgsForCall)
+}
+
+func (fake *FakeAWS) RunInstanceArgsForCall(i int) ec2instance.Config {
+	fake.runInstanceMutex.RLock()
+	defer fake.runInstanceMutex.RUnlock()
+	return fake.runInstanceArgsForCall[i].config
+}
+
+func (fake *FakeAWS) RunInstanceReturns(result1 ec2instance.Info, result2 error) {
+	fake.RunInstanceStub = nil
+	fake.runInstanceReturns = struct {
+		result1 ec2instance.Info
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAWS) DescribeInstance(instance ec2.StatusResource) (ec2.StatusInfo, error) {
+	fake.describeInstanceMutex.Lock()
+	fake.describeInstanceArgsForCall = append(fake.describeInstanceArgsForCall, struct {
+		instance ec2.StatusResource
+	}{instance})
+	fake.describeInstanceMutex.Unlock()
+	if fake.DescribeInstanceStub != nil {
+		return fake.DescribeInstanceStub(instance)
+	} else {
+		return fake.describeInstanceReturns.result1, fake.describeInstanceReturns.result2
+	}
+}
+
+func (fake *FakeAWS) DescribeInstanceCallCount() int {
+	fake.describeInstanceMutex.RLock()
+	defer fake.describeInstanceMutex.RUnlock()
+	return len(fake.describeInstanceArgsForCall)
+}
+
+func (fake *FakeAWS) DescribeInstanceArgsForCall(i int) ec2.StatusResource {
+	fake.describeInstanceMutex.RLock()
+	defer fake.describeInstanceMutex.RUnlock()
+	return fake.describeInstanceArgsForCall[i].instance
+}
+
+func (fake *FakeAWS) DescribeInstanceReturns(result1 ec2.StatusInfo, result2 error) {
+	fake.DescribeInstanceStub = nil
+	fake.describeInstanceReturns = struct {
+		result1 ec2.StatusInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAWS) TerminateInstance(instance ec2instance.Info) error {
+	fake.terminateInstanceMutex.Lock()
+	fake.terminateInstanceArgsForCall = append(fake.terminateInstanceArgsForCall, struct {
+		instance ec2instance.Info
+	}{instance})
+	fake.terminateInstanceMutex.Unlock()
+	if fake.TerminateInstanceStub != nil {
+		return fake.TerminateInstanceStub(instance)
+	} else {
+		return fake.terminateInstanceReturns.result1
+	}
+}
+
+func (fake *FakeAWS) TerminateInstanceCallCount() int {
+	fake.terminateInstanceMutex.RLock()
+	defer fake.terminateInstanceMutex.RUnlock()
+	return len(fake.terminateInstanceArgsForCall)
+}
+
+func (fake *FakeAWS) TerminateInstanceArgsForCall(i int) ec2instance.Info {
+	fake.terminateInstanceMutex.RLock()
+	defer fake.terminateInstanceMutex.RUnlock()
+	return fake.terminateInstanceArgsForCall[i].instance
+}
+
+func (fake *FakeAWS) TerminateInstanceReturns(result1 error) {
+	fake.TerminateInstanceStub = nil
+	fake.terminateInstanceReturns = struct {
 		result1 error
 	}{result1}
 }
