@@ -1,10 +1,10 @@
 package util_test
 
 import (
-	"light-stemcell-builder/util"
+	"bytes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"bytes"
+	"light-stemcell-builder/util"
 )
 
 var _ = Describe("Util", func() {
@@ -12,7 +12,7 @@ var _ = Describe("Util", func() {
 		It("reads the yaml into a map", func() {
 			reader := bytes.NewReader([]byte("hi: hello\nhello: there"))
 			expected := map[string]interface{}{
-				"hi": "hello",
+				"hi":    "hello",
 				"hello": "there",
 			}
 			content, err := util.ReadYaml(reader)
@@ -32,7 +32,7 @@ var _ = Describe("Util", func() {
 		It("writes the contents as yaml", func() {
 			writer := &bytes.Buffer{}
 			content := map[string]interface{}{
-				"key": "value",
+				"key":     "value",
 				"another": "value",
 			}
 			err := util.WriteYaml(writer, content)

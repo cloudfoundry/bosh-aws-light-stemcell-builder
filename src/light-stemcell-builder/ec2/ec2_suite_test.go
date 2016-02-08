@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"light-stemcell-builder/ec2/ec2cli"
-	"testing"
 	"os"
+	"testing"
 )
 
 // this needs to be in a standard (non-china AWS region)

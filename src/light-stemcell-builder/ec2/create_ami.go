@@ -18,8 +18,8 @@ func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, 
 	}
 
 	waiterConfig := WaiterConfig{
-		Resource:      SnapshotResource{
-			SnapshotID: snapshotID,
+		Resource: SnapshotResource{
+			SnapshotID:     snapshotID,
 			SnapshotRegion: aws.GetConfig().Region,
 		},
 		DesiredStatus: SnapshotCompletedStatus,

@@ -70,7 +70,7 @@ var _ = Describe("Stage", func() {
 			mockStage := &mockStage{run: dummyRunner, undo: noopUndoer}
 			stages := []stage.Stage{mockStage}
 			stagesOutput, err := stage.RunStages(nullLogger, stages, 500)
-			lastOutput := stagesOutput[len(stagesOutput) - 1]
+			lastOutput := stagesOutput[len(stagesOutput)-1]
 			Expect(err).ToNot(HaveOccurred())
 			Expect(lastOutput).To(BeAssignableToTypeOf(dummyInt))
 			Expect(lastOutput.(int)).To(Equal(42))
