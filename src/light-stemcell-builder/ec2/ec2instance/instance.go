@@ -14,9 +14,9 @@ type Config struct {
 }
 
 type Info struct {
-	InstanceID string `key:"INSTANCE" position:"0"`
-	State      string `key:"INSTANCE" position:"4"`
-	PublicIP   string `key:"INSTANCE" position:"15"`
+	InstanceID string
+	State      string
+	PublicIP   string
 }
 
 func (i Info) ID() string {

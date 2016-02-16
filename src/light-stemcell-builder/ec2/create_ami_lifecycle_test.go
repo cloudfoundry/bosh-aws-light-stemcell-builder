@@ -5,8 +5,16 @@ import (
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
 	"light-stemcell-builder/ec2/ec2instance"
+	"light-stemcell-builder/ec2/support/awscli"
 	"net"
 	"time"
+
+	// "github.com/aws/aws-sdk-go/aws"
+	// "github.com/aws/aws-sdk-go/aws/session"
+	// "github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -54,6 +62,7 @@ var _ = Describe("CreateAmi lifecycle", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		//TODO: remove test that the AMI is public inside the create test
 		It("makes the AMI public if desired", func() {
 			amiConfig := ec2ami.Config{
 				Region:             aws.GetConfig().Region,
@@ -78,8 +87,9 @@ var _ = Describe("CreateAmi lifecycle", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		// TODO: Implement TerminateInstance, regenerate fakes
 		Describe("a published HVM AMI", func() {
-			It("is bootable", func() {
+			FIt("is bootable", func() {
 				amiConfig := ec2ami.Config{
 					Region:             aws.GetConfig().Region,
 					VirtualizationType: "hvm",
@@ -97,19 +107,45 @@ var _ = Describe("CreateAmi lifecycle", func() {
 					AssociatePublicIP: true,
 					Region:            aws.GetConfig().Region,
 				}
-				instance, err := ec2.RunInstance(aws, instanceConfig)
+
+				ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String("us-west-2")})
+
+				reqInput := &ec2.RunInstancesInput{
+					ImageId:      amiID,
+					InstanceType: ec2.InstanceTypeT1Micro,
+					MinCount:     1,
+					MaxCount:     1,
+					NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{
+						ec2.InstanceNetworkInterfaceSpecification{
+							AssociatePublicIpAddress: true,
+						},
+					},
+				}
+
+				instanceReservation, err := ec2client.RunInstances(reqInput)
+				Expect(err).ToNot(HaveOccurred())
+
+				publicIP := instanceReservation.Instances[0].PublicIpAddress
+				Expect(publicIP).ToNot(BeEmpty())
+
+				instanceFilter := &c2.DescribeInstancesInput{
+					InstanceIds: []string{instanceReservation.Instances[0].InstanceId},
+				}
+
+				err := ec2.WaitUntilInstanceRunning(instanceFilter)
 				Expect(err).ToNot(HaveOccurred())
 
 				conn, err := net.DialTimeout(
 					"tcp",
-					fmt.Sprintf("%s:22", instance.PublicIP),
+					fmt.Sprintf("%s:22", publicIP),
 					10*time.Second,
 				)
+
 				Expect(err).ToNot(HaveOccurred())
 				err = conn.Close()
 				Expect(err).ToNot(HaveOccurred())
 
-				err = ec2.TerminateInstance(aws, instance)
+				err = awscli.TerminateInstance(instance)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = ec2.DeleteAmi(aws, amiInfo)
@@ -136,7 +172,7 @@ var _ = Describe("CreateAmi lifecycle", func() {
 					AssociatePublicIP: true,
 					Region:            aws.GetConfig().Region,
 				}
-				instance, err := ec2.RunInstance(aws, instanceConfig)
+				instance, err := awscli.RunInstance(instanceConfig)
 				Expect(err).ToNot(HaveOccurred())
 
 				conn, err := net.DialTimeout(
@@ -148,7 +184,7 @@ var _ = Describe("CreateAmi lifecycle", func() {
 				err = conn.Close()
 				Expect(err).ToNot(HaveOccurred())
 
-				err = ec2.TerminateInstance(aws, instance)
+				err = awscli.TerminateInstance(instance)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = ec2.DeleteAmi(aws, amiInfo)
