@@ -40,8 +40,8 @@ fi
 ec2-describe-regions -O $access_key -W $secret_key --region $region
 
 echo "Downloading machine image"
-wget -O ${tmp_dir}/disk.iso http://tinycorelinux.net/6.x/x86_64/release/TinyCorePure64-6.4.1.iso
-export LOCAL_DISK_IMAGE_PATH=${tmp_dir}/disk.iso
+wget -O ${tmp_dir}/root.img https://s3.amazonaws.com/bosh-aws-light-stemcell-ci/root.img
+export LOCAL_DISK_IMAGE_PATH=${tmp_dir}/root.img
 
 echo "Running integration tests"
 
