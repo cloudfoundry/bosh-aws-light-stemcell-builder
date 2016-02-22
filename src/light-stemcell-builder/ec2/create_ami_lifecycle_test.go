@@ -119,6 +119,9 @@ var _ = Describe("CreateAmi lifecycle", func() {
 				})
 				Expect(err).ToNot(HaveOccurred())
 
+				err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+				Expect(err).ToNot(HaveOccurred())
+
 				err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
 				Expect(err).ToNot(HaveOccurred())
 
@@ -169,6 +172,9 @@ var _ = Describe("CreateAmi lifecycle", func() {
 						},
 					},
 				})
+				Expect(err).ToNot(HaveOccurred())
+
+				err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
 				Expect(err).ToNot(HaveOccurred())
 
 				err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
