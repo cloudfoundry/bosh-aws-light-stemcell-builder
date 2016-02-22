@@ -3,6 +3,7 @@ package ec2_test
 import (
 	"os"
 
+	ourEC2 "light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
