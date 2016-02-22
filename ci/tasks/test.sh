@@ -9,11 +9,11 @@ source ${release_dir}/ci/tasks/utils.sh
 tmp_dir="$(mktemp -d /tmp/stemcell_builder.XXXXXXX)"
 trap '{ rm -rf ${tmpdir}; }' EXIT
 
-: ${access_key:?}
-: ${secret_key:?}
-: ${bucket_name:?}
-: ${region:?}
-: ${ami_fixture_id:?}
+: ${access_key:?must be set}
+: ${secret_key:?must be set}
+: ${bucket_name:?must be set}
+: ${region:?must be set}
+: ${ami_fixture_id:?must be set}
 
 export AWS_ACCESS_KEY_ID=$access_key
 export AWS_SECRET_ACCESS_KEY=$secret_key
