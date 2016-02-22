@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"sync"
 )
 
 // Builder is responsible for extracting the contents of a heavy stemcell
@@ -42,27 +43,40 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 
 	manifestPath := path.Join(b.packageDir, "stemcell.MF")
 
-	amis := make(map[string]ec2ami.Info)
+	amiCollection := ec2ami.NewCollection()
 	amiPublisher := AMIPublisher{
 		AWS:       b.aws,
 		AMIConfig: b.config.AmiConfiguration,
 		Logger:    b.logger,
 	}
 
+	wg := &sync.WaitGroup{}
+	errs := &sync.Pool{}
 	for _, region := range b.config.AmiRegions {
-		result, err := amiPublisher.Publish(imagePath, region)
+		wg.Add(1)
+		go func(region config.AmiRegion) {
+			defer wg.Done()
 
-		if err != nil {
-			return "", nil, fmt.Errorf("Error during creating AMIs: %s", err)
-		}
+			result, err := amiPublisher.Publish(imagePath, region)
+			if err != nil {
+				errs.Put(fmt.Errorf("Error during creating AMIs: %s", err))
+				return
+			}
 
-		for regionName, amiInfo := range result {
-			amis[regionName] = amiInfo
-		}
+			for regionName, amiInfo := range result {
+				amiCollection.Add(regionName, amiInfo)
+			}
+		}(region)
+	}
+	wg.Wait()
+
+	firstErr := errs.Get()
+	if firstErr != nil {
+		return "", nil, firstErr.(error)
 	}
 
 	var regionToAmi = make(map[string]string)
-	for region, amiInfo := range amis {
+	for region, amiInfo := range amiCollection.GetAll() {
 		regionToAmi[region] = amiInfo.AmiID
 	}
 
@@ -90,7 +104,7 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		return "", nil, err
 	}
 
-	return stemcellPath, amis, nil
+	return stemcellPath, amiCollection.GetAll(), nil
 }
 
 // Prepare extracts the machine image from a heavy stemcell and return its path
