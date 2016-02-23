@@ -98,7 +98,7 @@ func copyAmi(aws AWS, amiInfo ec2ami.Info, dest string) (ec2ami.Info, error) {
 	waiterConfig := WaiterConfig{
 		Resource:      &copiedAmiConfig,
 		DesiredStatus: ec2ami.AmiAvailableStatus,
-		PollTimeout:   15 * time.Minute,
+		PollTimeout:   120 * time.Minute,
 	}
 
 	fmt.Printf("waiting for status %s to %s\n", amiInfo.AmiID, copiedAmiID)

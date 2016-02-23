@@ -23,7 +23,7 @@ func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, 
 			SnapshotRegion: aws.GetConfig().Region,
 		},
 		DesiredStatus: SnapshotCompletedStatus,
-		PollTimeout:   10 * time.Minute,
+		PollTimeout:   120 * time.Minute,
 	}
 
 	_, err = WaitForStatus(aws.DescribeSnapshot, waiterConfig)

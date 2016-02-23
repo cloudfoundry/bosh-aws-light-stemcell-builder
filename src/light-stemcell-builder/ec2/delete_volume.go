@@ -16,7 +16,7 @@ func DeleteVolume(aws AWS, volumeID string) error {
 	waiterConfig := WaiterConfig{
 		Resource:      VolumeResource{VolumeID: volumeID},
 		DesiredStatus: "", // we're abusing the waiter functionality here as a cheap timeout
-		PollTimeout:   30 * time.Minute,
+		PollTimeout:   120 * time.Minute,
 	}
 
 	fmt.Printf("waiting for volume %s to be deleted\n", volumeID)

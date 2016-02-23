@@ -19,7 +19,7 @@ func DeleteAmi(aws AWS, amiInfo ec2ami.Info) error {
 	waiterConfig := WaiterConfig{
 		Resource:      &amiInfo.InputConfig,
 		DesiredStatus: "", // we're abusing the waiter functionality here as a cheap timeout
-		PollTimeout:   30 * time.Minute,
+		PollTimeout:   120 * time.Minute,
 	}
 
 	fmt.Printf("waiting for AMI %s to be deleted\n", amiInfo.AmiID)
@@ -35,7 +35,7 @@ func DeleteAmi(aws AWS, amiInfo ec2ami.Info) error {
 			SnapshotRegion: amiInfo.Region,
 		},
 		DesiredStatus: "", // we're abusing the waiter functionality here as a cheap timeout
-		PollTimeout:   30 * time.Minute,
+		PollTimeout:   120 * time.Minute,
 	}
 
 	fmt.Printf("waiting for snapshot %s to be deleted\n", amiInfo.SnapshotID)
