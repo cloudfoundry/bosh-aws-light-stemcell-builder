@@ -52,10 +52,7 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 
 	wg := &sync.WaitGroup{}
 	errs := &sync.Pool{}
-
-	for _ = range b.config.AmiRegions {
-		wg.Add(1)
-	}
+	wg.Add(len(b.config.AmiRegions))
 
 	for _, region := range b.config.AmiRegions {
 		go func(region config.AmiRegion) {
