@@ -74,10 +74,12 @@ func WaitForStatus(status StatusFetcher, c WaiterConfig) (StatusInfo, error) {
 				retryCount++
 			}
 
+			fmt.Println("got status: %s, waiting for status: %s", info.Status(), c.DesiredStatus)
 			if info.Status() == c.DesiredStatus {
 				fmt.Println(fmt.Sprintf("%s matches desired status %s", c.Resource.ID(), c.DesiredStatus))
 				return info, nil
 			}
+
 		}
 	}
 }
