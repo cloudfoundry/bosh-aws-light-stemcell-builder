@@ -64,6 +64,7 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 			}
 
 			for regionName, amiInfo := range result {
+				log.Printf("adding AMI: %s for region: %s to AMI collection", regionName, amiInfo.AmiID)
 				amiCollection.Add(regionName, amiInfo)
 			}
 		}(region)
@@ -77,6 +78,7 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 
 	var regionToAmi = make(map[string]string)
 	for region, amiInfo := range amiCollection.GetAll() {
+		log.Printf("preparing to add AMI: %s for region: %s to manifest", region, amiInfo.AmiID)
 		regionToAmi[region] = amiInfo.AmiID
 	}
 
