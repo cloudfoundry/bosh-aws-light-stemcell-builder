@@ -68,6 +68,10 @@ var _ = Describe("CreateAmi lifecycle", func() {
 			amiInfo, err := ourEC2.CreateAmi(aws, volumeID, amiConfig)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(amiInfo.AmiID).ToNot(BeEmpty())
+			Expect(amiInfo.Status()).To(Equal(ourEC2.VolumeAvailableStatus))
+			Expect(amiInfo.Architecture).To(Equal(ec2ami.AmiArchitecture))
+			Expect(amiInfo.VirtualizationType).To(Equal(amiConfig.VirtualizationType))
+			Expect(amiInfo.Accessibility).To(Equal(ec2ami.AmiPublicAccessibility))
 
 			statusInfo, err := aws.DescribeImage(&amiInfo.InputConfig)
 			Expect(statusInfo).To(BeAssignableToTypeOf(amiInfo))

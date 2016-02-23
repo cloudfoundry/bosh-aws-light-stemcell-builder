@@ -49,13 +49,16 @@ func CreateAmi(aws AWS, volumeID string, amiConfig ec2ami.Config) (ec2ami.Info, 
 		return ec2ami.Info{}, fmt.Errorf("Error waiting for ami %s to be available %s", amiID, err)
 	}
 
+	amiInfo := statusInfo.(ec2ami.Info)
+
 	if amiConfig.Public {
 		err = aws.MakeImagePublic(amiConfig)
 		if err != nil {
 			return ec2ami.Info{}, fmt.Errorf("Error making image %s public", amiID)
 		}
+		amiInfo.Accessibility = ec2ami.AmiPublicAccessibility
 	}
-	amiInfo := statusInfo.(ec2ami.Info)
+
 	if validationError := amiInfo.InputConfig.Validate(); validationError != nil {
 		return ec2ami.Info{}, validationError
 	}
