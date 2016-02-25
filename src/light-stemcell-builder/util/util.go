@@ -1,78 +1,41 @@
 package util
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
-	"os/exec"
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
 )
 
-func yamlToJson(reader io.Reader) ([]byte, error) {
-	yamlToJsonCmd := exec.Command("yaml2json")
-	yamlToJsonCmd.Stdin = reader
-
-	errBuff := &bytes.Buffer{}
-	yamlToJsonCmd.Stderr = errBuff
-
-	output, err := yamlToJsonCmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("YamlToJson failed: %s, stderr: %s", err.Error(), errBuff.String())
-	}
-	return output, nil
-}
-
+// ReadYaml maps YAML from a reader to a map and outputs errors when YAML is
+// invalid
 func ReadYaml(manifestReader io.Reader) (map[string]interface{}, error) {
-	jsonManifest, err := yamlToJson(manifestReader)
+	byteArray, err := ioutil.ReadAll(manifestReader)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ReadYaml failed: %s", err)
 	}
 
-	var manifest map[string]interface{}
-	err = json.Unmarshal(jsonManifest, &manifest)
+	manifest := make(map[string]interface{})
+	err = yaml.Unmarshal(byteArray, manifest)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ReadYaml failed: Invalid YAML: %s", err)
 	}
 	return manifest, nil
 }
 
-func jsonToYaml(inputJson []byte, yamlWriter io.Writer) error {
-	jsonToYamlCmd := exec.Command("json2yaml")
-	stdin, err := jsonToYamlCmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-
-	_, err = stdin.Write(inputJson)
-	if err != nil {
-		return err
-	}
-	err = stdin.Close()
-	if err != nil {
-		return err
-	}
-
-	jsonToYamlCmd.Stdout = yamlWriter
-	errBuff := &bytes.Buffer{}
-
-	jsonToYamlCmd.Stderr = errBuff
-
-	err = jsonToYamlCmd.Run()
-	if err != nil {
-		return fmt.Errorf("YamlToJson failed: %s, stderr: %s", err.Error(), errBuff.String())
-	}
-	return nil
-}
-
+// WriteYaml writes YAML to a writer
 func WriteYaml(manifestWriter io.Writer, manifest map[string]interface{}) error {
-	outputManifest, err := json.Marshal(manifest)
+	output, err := yaml.Marshal(manifest)
 	if err != nil {
-		return err
+		return fmt.Errorf("WriteYaml failed: %s", err.Error())
 	}
 
-	err = jsonToYaml(outputManifest, manifestWriter)
+	_, err = manifestWriter.Write(output)
 	if err != nil {
-		return err
+		return fmt.Errorf("WriteYaml failed: %s", err.Error())
 	}
+
 	return nil
 }

@@ -2,9 +2,10 @@ package util_test
 
 import (
 	"bytes"
+	"light-stemcell-builder/util"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"light-stemcell-builder/util"
 )
 
 var _ = Describe("Util", func() {
@@ -24,7 +25,7 @@ var _ = Describe("Util", func() {
 				reader := bytes.NewReader([]byte("key: key: value"))
 				_, err := util.ReadYaml(reader)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("YamlToJson failed"))
+				Expect(err.Error()).To(ContainSubstring("ReadYaml failed: Invalid YAML"))
 			})
 		})
 	})
@@ -45,7 +46,7 @@ var _ = Describe("Util", func() {
 			content := make(map[string]interface{})
 			err := util.WriteYaml(writer, content)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(writer.String()).To(Equal("{}\n\n"))
+			Expect(writer.String()).To(ContainSubstring("{}"))
 		})
 	})
 })
