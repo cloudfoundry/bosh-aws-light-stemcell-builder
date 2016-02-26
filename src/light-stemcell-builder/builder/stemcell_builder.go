@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"path"
 	"strings"
-	"sync"
 )
 
 // Builder is responsible for extracting the contents of a heavy stemcell
@@ -50,32 +49,17 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		Logger:    b.logger,
 	}
 
-	wg := &sync.WaitGroup{}
-	errs := &sync.Pool{}
-	wg.Add(len(b.config.AmiRegions))
-
 	for _, region := range b.config.AmiRegions {
-		go func(region config.AmiRegion) {
-			defer wg.Done()
+		result, err := amiPublisher.Publish(imagePath, region)
 
-			result, err := amiPublisher.Publish(imagePath, region)
-			if err != nil {
-				errs.Put(fmt.Errorf("Error during creating AMIs: %s", err))
-				return
-			}
+		if err != nil {
+			return "", nil, fmt.Errorf("creating AMI in region %s: %s", region.Name, err)
+		}
 
-			for regionName, amiInfo := range result {
-				log.Printf("adding AMI: %s for region: %s to AMI collection", regionName, amiInfo.AmiID)
-				amiCollection.Add(regionName, amiInfo)
-			}
-		}(region)
-	}
-
-	wg.Wait()
-
-	firstErr := errs.Get()
-	if firstErr != nil {
-		return "", nil, firstErr.(error)
+		for regionName, amiInfo := range result {
+			log.Printf("adding AMI: %s for region: %s to AMI collection", regionName, amiInfo.AmiID)
+			amiCollection.Add(regionName, amiInfo)
+		}
 	}
 
 	manifestFileBytes, err := ioutil.ReadFile(manifestPath)
