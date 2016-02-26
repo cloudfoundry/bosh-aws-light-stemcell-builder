@@ -8,7 +8,7 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/ec2"
 	"light-stemcell-builder/ec2/ec2ami"
-	"light-stemcell-builder/util"
+	"light-stemcell-builder/manifest"
 	"log"
 	"os"
 	"os/exec"
@@ -78,12 +78,6 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 		return "", nil, firstErr.(error)
 	}
 
-	var regionToAmi = make(map[string]string)
-	for region, amiInfo := range amiCollection.GetAll() {
-		log.Printf("preparing to add AMI: %s for region: %s to manifest", region, amiInfo.AmiID)
-		regionToAmi[region] = amiInfo.AmiID
-	}
-
 	manifestFileBytes, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
 		return "", nil, err
@@ -93,7 +87,7 @@ func (b *Builder) Build(inputPath string, outputPath string) (string, map[string
 
 	stemcellPath := b.OutputPath(inputPath, outputPath)
 
-	err = b.UpdateManifestFile(manifestFileBuf, regionToAmi)
+	err = b.UpdateManifestFile(manifestFileBuf, amiCollection)
 	if err != nil {
 		return "", nil, err
 	}
@@ -157,50 +151,26 @@ func (b *Builder) OutputPath(heavyStemcellPath string, outputPath string) string
 	return path.Join(outputPath, lightStemcellPath)
 }
 
-func (b *Builder) UpdateManifestFile(manifestFile io.ReadWriter, regionToAmi map[string]string) error {
-	manifest, err := util.ReadYaml(manifestFile)
+func (b *Builder) UpdateManifestFile(manifestFile io.ReadWriter, amiCollection *ec2ami.Collection) error {
+	manifestStruct, err := manifest.NewFromReader(manifestFile)
 	if err != nil {
 		return fmt.Errorf("Error while reading stemcell manifest: %s", err)
 	}
 
-	err = b.UpdateManifestContent(manifest, regionToAmi)
+	if b.config.AmiConfiguration.VirtualizationType == "hvm" {
+		manifestStruct.SetHVM()
+	}
+
+	err = manifestStruct.AddAMICollection(amiCollection)
 	if err != nil {
 		return fmt.Errorf("Error while updating stemcell manifest: %s", err)
 	}
 
-	err = util.WriteYaml(manifestFile, manifest)
+	err = manifestStruct.ToYAML(manifestFile)
 	if err != nil {
 		return fmt.Errorf("Error while writing stemcell manifest: %s", err)
 	}
 
-	return nil
-}
-
-func (b *Builder) UpdateManifestContent(manifest map[string]interface{}, regionToAmiMap map[string]string) error {
-	var stemcellName string
-	if val, ok := manifest["name"]; ok {
-		stemcellName = val.(string)
-	} else {
-		return fmt.Errorf("Manifest missing 'name'")
-	}
-
-	var cloudProperties map[string]interface{}
-	if val, ok := manifest["cloud_properties"]; ok {
-		cloudProperties = val.(map[string]interface{})
-	} else {
-		return fmt.Errorf("Manifest missing 'cloud_properties'")
-	}
-	if _, ok := cloudProperties["name"]; !ok {
-		return fmt.Errorf("Manifest missing 'cloud_properties: name'")
-	}
-
-	cloudProperties["ami"] = regionToAmiMap
-
-	if b.config.AmiConfiguration.VirtualizationType == "hvm" {
-		stemcellName = strings.Replace(stemcellName, "xen", "xen-hvm", 1)
-		manifest["name"] = stemcellName
-		cloudProperties["name"] = stemcellName
-	}
 	return nil
 }
 

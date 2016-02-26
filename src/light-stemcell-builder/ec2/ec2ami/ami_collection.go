@@ -1,6 +1,10 @@
 package ec2ami
 
-import "sync"
+import (
+	"sync"
+
+	"gopkg.in/yaml.v2"
+)
 
 func NewCollection() *Collection {
 	return &Collection{amis: make(map[string]Info)}
@@ -30,4 +34,12 @@ func (a *Collection) GetAll() map[string]Info {
 	defer a.Unlock()
 
 	return a.amis
+}
+
+func (a *Collection) MarshalYAML() (interface{}, error) {
+	var marshaledAmis yaml.MapSlice
+	for region, info := range a.GetAll() {
+		marshaledAmis = append(marshaledAmis, yaml.MapItem{Key: region, Value: info.AmiID})
+	}
+	return marshaledAmis, nil
 }

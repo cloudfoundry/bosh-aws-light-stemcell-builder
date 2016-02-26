@@ -182,11 +182,10 @@ var _ = Describe("StemcellBuilder", func() {
 			b := builder.New(dummyAWS, builderConfig, logger)
 			manifestFile := bytes.NewBuffer(dummyManifest.Bytes())
 
-			regionToAmi := map[string]string{
-				"us-east-1": "ami-some-id",
-			}
+			amiCollection := ec2ami.NewCollection()
+			amiCollection.Add("us-east-1", ec2ami.Info{AmiID: "ami-some-id"})
 
-			err := b.UpdateManifestFile(manifestFile, regionToAmi)
+			err := b.UpdateManifestFile(manifestFile, amiCollection)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(manifestFile.String()).To(MatchRegexp("(?m)^name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent$"))
@@ -194,106 +193,6 @@ var _ = Describe("StemcellBuilder", func() {
 			Expect(manifestFile.String()).To(MatchRegexp("(?m)^  name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent$"))
 			Expect(manifestFile.String()).To(MatchRegexp("(?m)^  ami:$"))
 			Expect(manifestFile.String()).To(MatchRegexp("(?m)^    us-east-1: ami-some-id$"))
-		})
-	})
-
-	Describe("UpdateManifestContent", func() {
-		Context("given a HVM stemcell", func() {
-			builderConfig := config.Config{
-				AmiConfiguration: config.AmiConfiguration{
-					VirtualizationType: "hvm",
-				},
-			}
-
-			It("outputs the correct manifest", func() {
-				b := builder.New(dummyAWS, builderConfig, logger)
-				manifest := map[string]interface{}{
-					"name": "stemcell-xen-name",
-					"cloud_properties": map[string]interface{}{
-						"name": "stemcell-xen-name",
-					},
-				}
-				regionToAmi := map[string]string{
-					"us-east-1": "ami-some-id",
-				}
-				expectedManifest := map[string]interface{}{
-					"name": "stemcell-xen-hvm-name",
-					"cloud_properties": map[string]interface{}{
-						"name": "stemcell-xen-hvm-name",
-						"ami": map[string]string{
-							"us-east-1": "ami-some-id",
-						},
-					},
-				}
-
-				err := b.UpdateManifestContent(manifest, regionToAmi)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(manifest).To(Equal(expectedManifest))
-			})
-		})
-
-		Context("given a non-HVM stemcell", func() {
-			builderConfig := config.Config{
-				AmiConfiguration: config.AmiConfiguration{
-					VirtualizationType: "non-hvm",
-				},
-			}
-
-			It("outputs the correct manifest", func() {
-				b := builder.New(dummyAWS, builderConfig, logger)
-
-				manifest := map[string]interface{}{
-					"name": "stemcell-xen-name",
-					"cloud_properties": map[string]interface{}{
-						"name": "stemcell-xen-name",
-					},
-				}
-				regionToAmi := map[string]string{
-					"us-east-1": "ami-some-id",
-				}
-				expectedManifest := map[string]interface{}{
-					"name": "stemcell-xen-name",
-					"cloud_properties": map[string]interface{}{
-						"name": "stemcell-xen-name",
-						"ami": map[string]string{
-							"us-east-1": "ami-some-id",
-						},
-					},
-				}
-
-				err := b.UpdateManifestContent(manifest, regionToAmi)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(manifest).To(Equal(expectedManifest))
-			})
-		})
-
-		Context("given an invalid manifest", func() {
-			b := builder.New(dummyAWS, dummyConfig, logger)
-			It("errors with missing 'name'", func() {
-				manifest := make(map[string]interface{})
-				err := b.UpdateManifestContent(manifest, map[string]string{})
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("Manifest missing 'name'"))
-			})
-
-			It("errors with missing 'cloud_properties'", func() {
-				manifest := map[string]interface{}{
-					"name": "stemcell-xen-name",
-				}
-				err := b.UpdateManifestContent(manifest, map[string]string{})
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("Manifest missing 'cloud_properties'"))
-			})
-
-			It("errors with missing 'cloud_properties: name'", func() {
-				manifest := map[string]interface{}{
-					"name":             "stemcell-xen-name",
-					"cloud_properties": make(map[string]interface{}),
-				}
-				err := b.UpdateManifestContent(manifest, map[string]string{})
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("Manifest missing 'cloud_properties: name'"))
-			})
 		})
 	})
 
