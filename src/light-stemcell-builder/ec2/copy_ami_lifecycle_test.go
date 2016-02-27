@@ -50,26 +50,35 @@ var _ = Describe("CopyAmi Lifecycle", func() {
 		Expect(amiFixtureRegion).ToNot(Equal("cn-north-1"), "an AMI cannot be copied succesfully between the China region and any other region")
 
 		testName, err := uuid.New("bosh-ci-test")
-		amiConfig := ec2ami.Config{AmiID: amiFixtureID, Region: amiFixtureRegion, Description: "Copy AMI Lifecycle test AMI", VirtualizationType: "hvm"}
+		amiConfig := ec2ami.Config{AmiID: amiFixtureID, Region: amiFixtureRegion, Description: "Copy AMI Lifecycle test AMI", VirtualizationType: "paravirtual"}
 		amiConfig.UniqueName = testName
 
 		amiInfo := ec2ami.Info{InputConfig: amiConfig}
 		destinations := []string{"us-west-1", "us-west-2"}
 		amiCollection, err := ec2.CopyAmis(aws, amiInfo, destinations)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(amiCollection.Get("us-west-1").AmiID).ToNot(BeEmpty())
-		Expect(amiCollection.Get("us-west-2").AmiID).ToNot(BeEmpty())
+
+		for _, destination := range destinations {
+			ami := amiCollection.Get(destination)
+			Expect(ami.AmiID).ToNot(BeEmpty())
+			Expect(ami.Status()).To(Equal(ec2.VolumeAvailableStatus))
+			Expect(ami.Architecture).To(Equal(ec2ami.AmiArchitecture))
+			Expect(ami.VirtualizationType).To(Equal(amiConfig.VirtualizationType))
+			Expect(ami.Accessibility).To(Equal(ec2ami.AmiPublicAccessibility))
+		}
+
 		err = ec2.DeleteCopiedAmis(aws, amiCollection)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(amiExistsWithName(aws.GetConfig().Credentials, "us-west-1", testName)).To(BeFalse())
-		Expect(amiExistsWithName(aws.GetConfig().Credentials, "us-west-2", testName)).To(BeFalse())
+		for _, destination := range destinations {
+			Expect(amiExistsWithName(aws.GetConfig().Credentials, destination, testName)).To(BeFalse())
+		}
 	})
 
 	It("cleans up all AMIs if copying to a region fails", func() {
 		testName, err := uuid.New("bosh-ci-test")
 		Expect(err).ToNot(HaveOccurred())
 
-		amiConfig := ec2ami.Config{AmiID: amiFixtureID, Region: amiFixtureRegion, Description: "Copy AMI Lifecycle test AMI", VirtualizationType: "hvm"}
+		amiConfig := ec2ami.Config{AmiID: amiFixtureID, Region: amiFixtureRegion, Description: "Copy AMI Lifecycle test AMI", VirtualizationType: "paravirtual"}
 		amiConfig.UniqueName = testName
 
 		amiInfo := ec2ami.Info{InputConfig: amiConfig}

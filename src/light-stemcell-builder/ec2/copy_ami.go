@@ -107,10 +107,13 @@ func copyAmi(aws AWS, amiInfo ec2ami.Info, dest string) (ec2ami.Info, error) {
 		return ec2ami.Info{}, fmt.Errorf("Error waiting for copied ami %s to be available %s", copiedAmiID, err)
 	}
 
+	newAmiInfo := statusInfo.(ec2ami.Info)
+
 	err = aws.MakeImagePublic(copiedAmiConfig)
 	if err != nil {
 		return ec2ami.Info{}, err
 	}
+	newAmiInfo.Accessibility = ec2ami.AmiPublicAccessibility
 
-	return statusInfo.(ec2ami.Info), nil
+	return newAmiInfo, nil
 }
