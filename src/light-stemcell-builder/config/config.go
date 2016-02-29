@@ -44,6 +44,7 @@ type AmiRegion struct {
 type Credentials struct {
 	AccessKey string `json:"access_key"`
 	SecretKey string `json:"secret_key"`
+	Region    string `json:"-"`
 }
 
 type Config struct {
@@ -131,6 +132,10 @@ func (r *AmiRegion) validate() error {
 
 	if r.Credentials.SecretKey == "" {
 		return errors.New("secret_key must be specified for credentials")
+	}
+
+	if r.Credentials.Region == "" {
+		return errors.New("region must be specified for credentials")
 	}
 
 	for _, destinationRegion := range r.Destinations {
