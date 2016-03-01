@@ -3,7 +3,7 @@ package drivers_test
 import (
 	"fmt"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers"
+	"light-stemcell-builder/driversets"
 	"light-stemcell-builder/resources"
 	"os"
 	"strings"
@@ -45,7 +45,9 @@ var _ = Describe("CreateAmiDriver", func() {
 		amiDriverConfig.Accessibility = resources.PublicAmiAccessibility
 		amiDriverConfig.Description = "bosh cpi test ami"
 
-		amiDriver := drivers.NewCreateAmiDriver(os.Stdout, creds)
+		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+
+		amiDriver := ds.CreateAmiDriver()
 		amiID, err := amiDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -108,12 +110,18 @@ var _ = Describe("CreateAmiDriver", func() {
 		snapshotID := os.Getenv("EBS_SNAPSHOT_ID")
 		Expect(snapshotID).ToNot(BeEmpty(), "EBS_SNAPSHOT_ID must be set")
 
+		amiUniqueID := strings.ToUpper(uuid.NewV4().String())
+		amiName := fmt.Sprintf("BOSH-%s", amiUniqueID)
+
 		amiDriverConfig := resources.AmiDriverConfig{SnapshotID: snapshotID}
 		amiDriverConfig.VirtualizationType = resources.PvAmiVirtualization
 		amiDriverConfig.Accessibility = resources.PublicAmiAccessibility
+		amiDriverConfig.Name = amiName
 		amiDriverConfig.Description = "bosh cpi test ami"
 
-		amiDriver := drivers.NewCreateAmiDriver(os.Stdout, creds)
+		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+
+		amiDriver := ds.CreateAmiDriver()
 		amiID, err := amiDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 

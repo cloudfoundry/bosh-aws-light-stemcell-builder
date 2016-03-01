@@ -15,8 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-var _ resources.AmiDriver = &SDKCopyAmiDriver{}
-
 // SDKCopyAmiDriver uses the AWS SDK to register an AMI from an existing snapshot in EC2
 type SDKCopyAmiDriver struct {
 	creds  config.Credentials

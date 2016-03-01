@@ -3,7 +3,7 @@ package drivers_test
 import (
 	"fmt"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers"
+	"light-stemcell-builder/driversets"
 	"light-stemcell-builder/resources"
 	"os"
 	"strings"
@@ -37,10 +37,10 @@ var _ = Describe("CopyAmiDriver", func() {
 		Expect(dstRegion).ToNot(BeEmpty(), "AWS_DESTINATION_REGION must be set")
 		Expect(dstRegion).ToNot(Equal(region), "AWS_REGION and AWS_DESTINATION_REGION should be different")
 
-		snapshotID := os.Getenv("EBS_SNAPSHOT_ID")
-		Expect(snapshotID).ToNot(BeEmpty(), "EBS_SNAPSHOT_ID must be set")
+		existingAmiID := os.Getenv("AWS_AMI_FIXTURE_ID")
+		Expect(existingAmiID).ToNot(BeEmpty(), "AWS_AMI_FIXTURE_ID must be set")
 
-		amiDriverConfig := resources.AmiDriverConfig{SnapshotID: snapshotID}
+		amiDriverConfig := resources.AmiDriverConfig{}
 		amiUniqueID := strings.ToUpper(uuid.NewV4().String())
 		amiName := fmt.Sprintf("BOSH-%s", amiUniqueID)
 
@@ -48,15 +48,12 @@ var _ = Describe("CopyAmiDriver", func() {
 		amiDriverConfig.VirtualizationType = resources.HvmAmiVirtualization
 		amiDriverConfig.Accessibility = resources.PublicAmiAccessibility
 		amiDriverConfig.Description = "bosh cpi test ami"
-
-		amiCreateDriver := drivers.NewCreateAmiDriver(os.Stdout, creds)
-		originalAmiID, err := amiCreateDriver.Create(amiDriverConfig)
-		Expect(err).ToNot(HaveOccurred())
-
-		amiDriverConfig.ExistingAmiID = originalAmiID
+		amiDriverConfig.ExistingAmiID = existingAmiID
 		amiDriverConfig.DestinationRegion = dstRegion
 
-		amiCopyDriver := drivers.NewCopyAmiDriver(os.Stdout, creds)
+		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+
+		amiCopyDriver := ds.CopyAmiDriver()
 		copiedAmiID, err := amiCopyDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -69,9 +66,6 @@ var _ = Describe("CopyAmiDriver", func() {
 		Expect(*reqOutput.Images[0].Architecture).To(Equal(resources.AmiArchitecture))
 		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
 		Expect(*reqOutput.Images[0].Public).To(BeTrue())
-
-		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &originalAmiID}) // Ignore DeregisterImageOutput
-		Expect(err).ToNot(HaveOccurred())
 
 		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &copiedAmiID}) // Ignore DeregisterImageOutput
 		Expect(err).ToNot(HaveOccurred())

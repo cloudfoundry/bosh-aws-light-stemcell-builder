@@ -5,8 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers"
 	"light-stemcell-builder/drivers/manifests"
+	"light-stemcell-builder/driversets"
 	"light-stemcell-builder/resources"
 	"net/http"
 	"os"
@@ -43,7 +43,8 @@ var _ = Describe("MachineImageManifestDriver", func() {
 			BucketName:       bucketName,
 		}
 
-		driver := drivers.NewMachineImageManifestDriver(os.Stdout, creds)
+		ds := driversets.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		driver := ds.CreateMachineImageDriver()
 
 		url, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())

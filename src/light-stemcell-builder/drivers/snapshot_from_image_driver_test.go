@@ -2,7 +2,7 @@ package drivers_test
 
 import (
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers"
+	"light-stemcell-builder/driversets"
 	"light-stemcell-builder/resources"
 	"os"
 
@@ -37,7 +37,8 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 			MachineImageURL: imagePath,
 		}
 
-		driver := drivers.NewSnapshotFromImageDriver(os.Stdout, creds)
+		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+		driver := ds.CreateSnapshotDriver()
 
 		snapshotID, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())

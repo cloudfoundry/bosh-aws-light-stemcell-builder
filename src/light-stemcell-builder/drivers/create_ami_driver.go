@@ -17,8 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-var _ resources.AmiDriver = &SDKCreateAmiDriver{}
-
 const (
 	firstDeviceNameHVMAmi = "/dev/xvda"
 	firstDeviceNamePVAmi  = "/dev/sda"

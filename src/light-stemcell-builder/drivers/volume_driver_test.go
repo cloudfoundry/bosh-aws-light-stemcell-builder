@@ -3,6 +3,7 @@ package drivers_test
 import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/drivers"
+	"light-stemcell-builder/driversets"
 	"light-stemcell-builder/resources"
 	"os"
 
@@ -49,7 +50,9 @@ var _ = Describe("VolumeDriver", func() {
 			MachineImageManifestURL: manifestURL,
 		}
 
-		volumeDriver := drivers.NewVolumeDriver(os.Stdout, creds)
+		ds := driversets.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		volumeDriver := ds.CreateVolumeDriver()
+
 		volume := resources.NewVolume(volumeDriver, volumeDriverConfig)
 		volumeID, err := volume.WaitForCreation()
 		Expect(err).ToNot(HaveOccurred())
