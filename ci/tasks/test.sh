@@ -13,7 +13,11 @@ trap '{ rm -rf ${tmpdir}; }' EXIT
 : ${secret_key:?must be set}
 : ${bucket_name:?must be set}
 : ${region:?must be set}
+: ${copy_region:?must be set}
 : ${ami_fixture_id:?must be set}
+: ${existing_volume_id:?must be set}
+: ${existing_snapshot_id:?must be set}
+: ${uploaded_machine_image_url:?must be set}
 
 export AWS_ACCESS_KEY_ID=$access_key
 export AWS_SECRET_ACCESS_KEY=$secret_key
@@ -21,6 +25,13 @@ export AWS_SECRET_ACCESS_KEY=$secret_key
 export AWS_BUCKET_NAME=$bucket_name
 export AWS_REGION=$region
 export AMI_FIXTURE_ID=$ami_fixture_id
+
+export EBS_VOLUME_ID=${existing_volume_id}
+export EBS_SNAPSHOT_ID=${existing_snapshot_id}
+export S3_MACHINE_IMAGE_URL=${uploaded_machine_image_url}
+export MACHINE_IMAGE_PATH=${tmp_dir}/root.img
+export AWS_DESTINATION_REGION=${copy_region}
+
 export OUTPUT_STEMCELL_PATH=$PWD
 
 echo "Checking Java configuration"
@@ -40,7 +51,7 @@ fi
 ec2-describe-regions -O $access_key -W $secret_key --region $region
 
 echo "Downloading machine image"
-wget -O ${tmp_dir}/root.img https://s3.amazonaws.com/bosh-aws-light-stemcell-ci/root.img
+wget -O ${tmp_dir}/root.img ${uploaded_machine_image_url}
 export LOCAL_DISK_IMAGE_PATH=${tmp_dir}/root.img
 
 echo "Running integration tests"
