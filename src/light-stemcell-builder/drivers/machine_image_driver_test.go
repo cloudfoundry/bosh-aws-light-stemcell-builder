@@ -42,10 +42,10 @@ var _ = Describe("MachineImageDriver", func() {
 		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
 		driver := ds.CreateMachineImageDriver()
 
-		url, err := driver.Create(driverConfig)
+		machineImage, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		resp, err := http.Get(url)
+		resp, err := http.Get(machineImage.GetURL)
 		Expect(err).ToNot(HaveOccurred())
 
 		err = resp.Body.Close()

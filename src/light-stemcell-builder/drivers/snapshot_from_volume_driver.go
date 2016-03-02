@@ -35,7 +35,7 @@ func NewSnapshotFromVolumeDriver(logDest io.Writer, creds config.Credentials) *S
 }
 
 // Create produces a snapshot in EC2 from a previoulsy created EBS volume
-func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriverConfig) (string, error) {
+func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriverConfig) (resources.Snapshot, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
@@ -47,7 +47,7 @@ func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriv
 		Description: aws.String(fmt.Sprintf("bosh-light-stemcell-builder-%d", time.Now().UnixNano())),
 	})
 	if err != nil {
-		return "", fmt.Errorf("creating snapshot from EBS volume: %s: %s", driverConfig.VolumeID, err)
+		return resources.Snapshot{}, fmt.Errorf("creating snapshot from EBS volume: %s: %s", driverConfig.VolumeID, err)
 	}
 
 	d.logger.Printf("waiting on snapshot %s to be completed\n", *reqOutput.SnapshotId)
@@ -56,11 +56,11 @@ func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriv
 		SnapshotIds: []*string{reqOutput.SnapshotId},
 	})
 	if err != nil {
-		return "", fmt.Errorf("waiting for snapshot to complete: %s", err)
+		return resources.Snapshot{}, fmt.Errorf("waiting for snapshot to complete: %s", err)
 	}
 
 	d.logger.Printf("waited for snapshot %s completion for %f minutes\n", *reqOutput.SnapshotId, time.Since(waitStartTime).Minutes())
 	d.logger.Printf("created snapshot %s\n", *reqOutput.SnapshotId)
 
-	return *reqOutput.SnapshotId, nil
+	return resources.Snapshot{ID: *reqOutput.SnapshotId}, nil
 }

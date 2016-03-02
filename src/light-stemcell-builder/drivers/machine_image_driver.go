@@ -43,7 +43,7 @@ func NewMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKMach
 }
 
 // Create uploads a machine image to S3 and returns a presigned URL
-func (d *SDKMachineImageDriver) Create(driverConfig resources.MachineImageDriverConfig) (string, error) {
+func (d *SDKMachineImageDriver) Create(driverConfig resources.MachineImageDriverConfig) (resources.MachineImage, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
@@ -53,7 +53,7 @@ func (d *SDKMachineImageDriver) Create(driverConfig resources.MachineImageDriver
 
 	f, err := os.Open(driverConfig.MachineImagePath)
 	if err != nil {
-		return "", fmt.Errorf("opening machine image for upload: %s", err)
+		return resources.MachineImage{}, fmt.Errorf("opening machine image for upload: %s", err)
 	}
 
 	keyName := fmt.Sprintf("bosh-machine-image-%d", time.Now().UnixNano())
@@ -68,7 +68,7 @@ func (d *SDKMachineImageDriver) Create(driverConfig resources.MachineImageDriver
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("uploading machine image to S3: %s", err)
+		return resources.MachineImage{}, fmt.Errorf("uploading machine image to S3: %s", err)
 	}
 
 	d.logger.Printf("finished uploaded image to s3 after %f minutes\n", time.Since(uploadStartTime).Minutes())
@@ -80,10 +80,10 @@ func (d *SDKMachineImageDriver) Create(driverConfig resources.MachineImageDriver
 
 	machineImageURL, err := req.Presign(2 * time.Hour)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign GET request: %s", err)
+		return resources.MachineImage{}, fmt.Errorf("failed to sign GET request: %s", err)
 	}
 
 	d.logger.Printf("generated presigned GET URL %s\n", machineImageURL)
 
-	return machineImageURL, nil
+	return resources.MachineImage{GetURL: machineImageURL}, nil
 }

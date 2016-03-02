@@ -36,7 +36,7 @@ func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SD
 }
 
 // Create produces a snapshot in EC2 from a machine image previously uploaded to S3
-func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDriverConfig) (string, error) {
+func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDriverConfig) (resources.Snapshot, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
@@ -50,7 +50,7 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 		},
 	})
 	if err != nil {
-		return "", fmt.Errorf("creating import snapshot task: %s", err)
+		return resources.Snapshot{}, fmt.Errorf("creating import snapshot task: %s", err)
 	}
 
 	d.logger.Printf("waiting on ImportSnapshot task %s\n", *reqOutput.ImportTaskId)
@@ -62,24 +62,24 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	waitStartTime := time.Now()
 	err = d.waitUntilImportSnapshotTaskCompleted(taskFilter)
 	if err != nil {
-		return "", fmt.Errorf("waiting for snapshot to become available: %s", err)
+		return resources.Snapshot{}, fmt.Errorf("waiting for snapshot to become available: %s", err)
 	}
 
 	d.logger.Printf("waited on import task %s for %f minutes\n", *reqOutput.ImportTaskId, time.Since(waitStartTime).Minutes())
 
 	describeOutput, err := d.ec2Client.DescribeImportSnapshotTasks(taskFilter)
 	if err != nil {
-		return "", fmt.Errorf("describing snapshot from import snapshot task %s: %s", *reqOutput.ImportTaskId, err)
+		return resources.Snapshot{}, fmt.Errorf("describing snapshot from import snapshot task %s: %s", *reqOutput.ImportTaskId, err)
 	}
 
 	snapshotIDptr := describeOutput.ImportSnapshotTasks[0].SnapshotTaskDetail.SnapshotId
 	if snapshotIDptr == nil {
-		return "", fmt.Errorf("snapshot ID empty for import task: %s", *reqOutput.ImportTaskId)
+		return resources.Snapshot{}, fmt.Errorf("snapshot ID empty for import task: %s", *reqOutput.ImportTaskId)
 	}
 
 	d.logger.Printf("created snapshot %s\n", *snapshotIDptr)
 
-	return *snapshotIDptr, nil
+	return resources.Snapshot{ID: *snapshotIDptr}, nil
 }
 
 func (d *SDKSnapshotFromImageDriver) waitUntilImportSnapshotTaskCompleted(input *ec2.DescribeImportSnapshotTasksInput) error {

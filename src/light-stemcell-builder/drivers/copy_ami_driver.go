@@ -28,9 +28,7 @@ func NewCopyAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCopyAmiDr
 }
 
 // Create creates an AMI, copied from a source AMI, and optionally makes the AMI publically available
-func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (string, error) {
-	var err error
-
+func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resources.Ami, error) {
 	srcRegion := d.creds.Region
 	dstRegion := driverConfig.DestinationRegion
 
@@ -54,12 +52,12 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (strin
 		SourceRegion:  &srcRegion,
 	})
 	if err != nil {
-		return "", fmt.Errorf("copying AMI: %s", err)
+		return resources.Ami{}, fmt.Errorf("copying AMI: %s", err)
 	}
 
 	amiIDptr := output.ImageId
 	if amiIDptr == nil {
-		return "", errors.New("AMI id nil")
+		return resources.Ami{}, errors.New("AMI id nil")
 	}
 
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
@@ -67,7 +65,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (strin
 		ImageIds: []*string{amiIDptr},
 	})
 	if err != nil {
-		return "", fmt.Errorf("waiting for AMI: %s to be available", *amiIDptr)
+		return resources.Ami{}, fmt.Errorf("waiting for AMI: %s to be available", *amiIDptr)
 	}
 
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
@@ -84,5 +82,5 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (strin
 		})
 	}
 
-	return *amiIDptr, nil
+	return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
 }

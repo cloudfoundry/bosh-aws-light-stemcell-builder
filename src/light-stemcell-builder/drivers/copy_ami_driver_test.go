@@ -54,11 +54,11 @@ var _ = Describe("CopyAmiDriver", func() {
 		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
 		amiCopyDriver := ds.CopyAmiDriver()
-		copiedAmiID, err := amiCopyDriver.Create(amiDriverConfig)
+		copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(dstRegion)})
-		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{&copiedAmiID}})
+		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Images)).To(Equal(1))
@@ -67,7 +67,7 @@ var _ = Describe("CopyAmiDriver", func() {
 		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
 		Expect(*reqOutput.Images[0].Public).To(BeTrue())
 
-		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &copiedAmiID}) // Ignore DeregisterImageOutput
+		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(copiedAmi.ID)}) // Ignore DeregisterImageOutput
 		Expect(err).ToNot(HaveOccurred())
 	})
 })

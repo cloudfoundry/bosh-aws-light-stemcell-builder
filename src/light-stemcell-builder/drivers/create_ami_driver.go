@@ -27,6 +27,7 @@ const (
 // SDKCreateAmiDriver uses the AWS SDK to register an AMI from an existing snapshot in EC2
 type SDKCreateAmiDriver struct {
 	ec2Client *ec2.EC2
+	region    string
 	logger    *log.Logger
 }
 
@@ -39,11 +40,11 @@ func NewCreateAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCreateA
 		WithLogger(newDriverLogger(logger))
 
 	ec2Client := ec2.New(session.New(), awsConfig)
-	return &SDKCreateAmiDriver{ec2Client: ec2Client, logger: logger}
+	return &SDKCreateAmiDriver{ec2Client: ec2Client, region: creds.Region, logger: logger}
 }
 
 // Create registers an AMI from an existing snapshot and optionally makes the AMI publically available
-func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (string, error) {
+func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resources.Ami, error) {
 	var err error
 
 	createStartTime := time.Now()
@@ -59,7 +60,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (str
 	case resources.PvAmiVirtualization:
 		kernelID, err := d.findLatestKernelImage()
 		if err != nil {
-			return "", fmt.Errorf("generating register image request for PV AMI: %s", err)
+			return resources.Ami{}, fmt.Errorf("generating register image request for PV AMI: %s", err)
 		}
 
 		reqInput = reqinputs.NewPVAmiRequest(amiName, driverConfig.Description, driverConfig.SnapshotID, kernelID)
@@ -69,12 +70,12 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (str
 
 	reqOutput, err := d.ec2Client.RegisterImage(reqInput)
 	if err != nil {
-		return "", fmt.Errorf("registering AMI: %s", err)
+		return resources.Ami{}, fmt.Errorf("registering AMI: %s", err)
 	}
 
 	amiIDptr := reqOutput.ImageId
 	if amiIDptr == nil {
-		return "", errors.New("AMI id nil")
+		return resources.Ami{}, errors.New("AMI id nil")
 	}
 
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
@@ -82,7 +83,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (str
 		ImageIds: []*string{amiIDptr},
 	})
 	if err != nil {
-		return "", fmt.Errorf("waiting for AMI: %s to be available", *amiIDptr)
+		return resources.Ami{}, fmt.Errorf("waiting for AMI: %s to be available", *amiIDptr)
 	}
 
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
@@ -99,7 +100,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (str
 		})
 	}
 
-	return *amiIDptr, nil
+	return resources.Ami{ID: *amiIDptr, Region: d.region}, nil
 }
 
 func (d *SDKCreateAmiDriver) findLatestKernelImage() (string, error) {

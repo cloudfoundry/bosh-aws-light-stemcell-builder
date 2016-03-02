@@ -41,7 +41,7 @@ func NewVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKVolumeDriv
 }
 
 // Create makes an EBS volume from a machine image URL in the first availability zone returned from DescribeAvailabilityZones
-func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (string, error) {
+func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (resources.Volume, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
@@ -53,28 +53,28 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (str
 		},
 	})
 	if err != nil {
-		return "", fmt.Errorf("listing availability zones: %s", err)
+		return resources.Volume{}, fmt.Errorf("listing availability zones: %s", err)
 	}
 
 	if len(availabilityZoneOutput.AvailabilityZones) == 0 {
-		return "", fmt.Errorf("finding any available availability zones in region %s", *d.ec2client.Config.Region)
+		return resources.Volume{}, fmt.Errorf("finding any available availability zones in region %s", *d.ec2client.Config.Region)
 	}
 
 	availabilityZone := availabilityZoneOutput.AvailabilityZones[0].ZoneName
 	fetchManifestResp, err := http.Get(driverConfig.MachineImageManifestURL)
 	if err != nil {
-		return "", fmt.Errorf("fetching import volume manifest: %s", err)
+		return resources.Volume{}, fmt.Errorf("fetching import volume manifest: %s", err)
 	}
 
 	m := manifests.ImportVolumeManifest{}
 	manifestBytes, err := ioutil.ReadAll(fetchManifestResp.Body)
 	if err != nil {
-		return "", fmt.Errorf("reading import volume manifest from resposne: %s", err)
+		return resources.Volume{}, fmt.Errorf("reading import volume manifest from resposne: %s", err)
 	}
 
 	err = xml.Unmarshal(manifestBytes, &m)
 	if err != nil {
-		return "", fmt.Errorf("deserializing import volume manifest: %s", err)
+		return resources.Volume{}, fmt.Errorf("deserializing import volume manifest: %s", err)
 	}
 
 	reqOutput, err := d.ec2client.ImportVolume(&ec2.ImportVolumeInput{
@@ -90,12 +90,12 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (str
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("creating import volume task: %s", err)
+		return resources.Volume{}, fmt.Errorf("creating import volume task: %s", err)
 	}
 
 	conversionTaskIDptr := reqOutput.ConversionTask.ConversionTaskId
 	if conversionTaskIDptr == nil {
-		return "", fmt.Errorf("conversion task ID nil")
+		return resources.Volume{}, fmt.Errorf("conversion task ID nil")
 	}
 
 	d.logger.Printf("waiting on ImportVolume task %s\n", *conversionTaskIDptr)
@@ -109,17 +109,17 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (str
 	d.logger.Printf("waited on import task %s for %f minutes\n", *conversionTaskIDptr, time.Since(waitStartTime).Minutes())
 
 	if err != nil {
-		return "", fmt.Errorf("waiting for volume to be imported: %s", err)
+		return resources.Volume{}, fmt.Errorf("waiting for volume to be imported: %s", err)
 	}
 
 	taskOutput, err := d.ec2client.DescribeConversionTasks(taskFilter)
 	if err != nil {
-		return "", fmt.Errorf("fetching volume ID from conversion task %s", *conversionTaskIDptr)
+		return resources.Volume{}, fmt.Errorf("fetching volume ID from conversion task %s", *conversionTaskIDptr)
 	}
 
 	volumeIDptr := taskOutput.ConversionTasks[0].ImportVolume.Volume.Id
 	if volumeIDptr == nil {
-		return "", fmt.Errorf("volume ID nil")
+		return resources.Volume{}, fmt.Errorf("volume ID nil")
 	}
 
 	d.logger.Printf("waiting for volume to be available: %s\n", *volumeIDptr)
@@ -127,7 +127,7 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (str
 	err = d.ec2client.WaitUntilVolumeAvailable(&ec2.DescribeVolumesInput{VolumeIds: []*string{volumeIDptr}})
 	d.logger.Printf("waited on volume %s for %f seconds\n", *volumeIDptr, time.Since(waitStartTime).Seconds())
 
-	return *volumeIDptr, nil
+	return resources.Volume{ID: *volumeIDptr}, nil
 }
 
 func (d *SDKVolumeDriver) waitUntilImageConversionTaskCompleted(input *ec2.DescribeConversionTasksInput) error {

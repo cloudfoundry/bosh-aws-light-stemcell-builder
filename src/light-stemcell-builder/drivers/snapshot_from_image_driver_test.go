@@ -40,11 +40,11 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
 		driver := ds.CreateSnapshotDriver()
 
-		snapshotID, err := driver.Create(driverConfig)
+		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
-		reqOutput, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{&snapshotID}})
+		reqOutput, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{&snapshot.ID}})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Snapshots)).To(Equal(1))

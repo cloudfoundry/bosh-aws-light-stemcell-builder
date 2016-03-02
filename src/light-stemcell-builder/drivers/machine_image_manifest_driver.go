@@ -48,7 +48,7 @@ func NewMachineImageManifestDriver(logDest io.Writer, creds config.Credentials) 
 }
 
 // Create uploads a machine image to S3 and returns a presigned URL to an import volume manifest
-func (d *SDKMachineImageManifestDriver) Create(driverConfig resources.MachineImageDriverConfig) (string, error) {
+func (d *SDKMachineImageManifestDriver) Create(driverConfig resources.MachineImageDriverConfig) (resources.MachineImage, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
@@ -58,7 +58,7 @@ func (d *SDKMachineImageManifestDriver) Create(driverConfig resources.MachineIma
 
 	f, err := os.Open(driverConfig.MachineImagePath)
 	if err != nil {
-		return "", fmt.Errorf("opening machine image for upload: %s", err)
+		return resources.MachineImage{}, fmt.Errorf("opening machine image for upload: %s", err)
 	}
 
 	keyName := fmt.Sprintf("bosh-machine-image-%d", time.Now().UnixNano())
@@ -73,7 +73,7 @@ func (d *SDKMachineImageManifestDriver) Create(driverConfig resources.MachineIma
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("uploading machine image to S3: %s", err)
+		return resources.MachineImage{}, fmt.Errorf("uploading machine image to S3: %s", err)
 	}
 
 	d.logger.Printf("finished uploaded image to s3 after %f minutes\n", time.Since(uploadStartTime).Minutes())
@@ -84,17 +84,17 @@ func (d *SDKMachineImageManifestDriver) Create(driverConfig resources.MachineIma
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("fetching properties for uploaded machine image: %s in bucket: %s: %s", keyName, driverConfig.BucketName, err)
+		return resources.MachineImage{}, fmt.Errorf("fetching properties for uploaded machine image: %s in bucket: %s: %s", keyName, driverConfig.BucketName, err)
 	}
 
 	sizeInBytesPtr := headReqOutput.ContentLength
 	if sizeInBytesPtr == nil {
-		return "", errors.New("size in bytes nil")
+		return resources.MachineImage{}, errors.New("size in bytes nil")
 	}
 
 	manifestURL, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr)
 
-	return manifestURL, nil
+	return resources.MachineImage{GetURL: manifestURL}, nil
 }
 
 func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyName string, sizeInBytes int64) (string, error) {

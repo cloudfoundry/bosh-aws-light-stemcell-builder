@@ -48,11 +48,11 @@ var _ = Describe("CreateAmiDriver", func() {
 		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
 		amiDriver := ds.CreateAmiDriver()
-		amiID, err := amiDriver.Create(amiDriverConfig)
+		ami, err := amiDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
-		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{&amiID}})
+		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{&ami.ID}})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Images)).To(Equal(1))
@@ -62,7 +62,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(*reqOutput.Images[0].Public).To(BeTrue())
 
 		instanceReservation, err := ec2Client.RunInstances(&ec2.RunInstancesInput{
-			ImageId:      &amiID,
+			ImageId:      &ami.ID,
 			InstanceType: aws.String(ec2.InstanceTypeM3Medium),
 			MinCount:     aws.Int64(1),
 			MaxCount:     aws.Int64(1),
@@ -87,7 +87,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		err = ec2Client.WaitUntilInstanceTerminated(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
 		Expect(err).ToNot(HaveOccurred())
 
-		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &amiID}) // Ignore DeregisterImageOutput
+		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &ami.ID}) // Ignore DeregisterImageOutput
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -122,11 +122,11 @@ var _ = Describe("CreateAmiDriver", func() {
 		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
 		amiDriver := ds.CreateAmiDriver()
-		amiID, err := amiDriver.Create(amiDriverConfig)
+		ami, err := amiDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
-		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{&amiID}})
+		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{&ami.ID}})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Images)).To(Equal(1))
@@ -135,7 +135,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(*reqOutput.Images[0].Public).To(BeTrue())
 
 		instanceReservation, err := ec2Client.RunInstances(&ec2.RunInstancesInput{
-			ImageId:      &amiID,
+			ImageId:      &ami.ID,
 			InstanceType: aws.String(ec2.InstanceTypeM3Medium),
 			MinCount:     aws.Int64(1),
 			MaxCount:     aws.Int64(1),
@@ -160,7 +160,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		err = ec2Client.WaitUntilInstanceTerminated(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
 		Expect(err).ToNot(HaveOccurred())
 
-		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &amiID}) // Ignore DeregisterImageOutput
+		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &ami.ID}) // Ignore DeregisterImageOutput
 		Expect(err).ToNot(HaveOccurred())
 	})
 })

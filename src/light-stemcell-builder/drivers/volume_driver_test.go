@@ -2,7 +2,6 @@ package drivers_test
 
 import (
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers"
 	"light-stemcell-builder/driversets"
 	"light-stemcell-builder/resources"
 	"os"
@@ -37,33 +36,32 @@ var _ = Describe("VolumeDriver", func() {
 		bucketName := os.Getenv("AWS_BUCKET_NAME")
 		Expect(bucketName).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 
-		manifestDriverConfig := resources.MachineImageDriverConfig{
+		ds := driversets.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		machineImageDriverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: machineImagePath,
 			BucketName:       bucketName,
 		}
 
-		manifestDriver := drivers.NewMachineImageManifestDriver(os.Stdout, creds)
-		manifestURL, err := manifestDriver.Create(manifestDriverConfig)
+		machineImageDriver := ds.CreateMachineImageDriver()
+		machineImage, err := machineImageDriver.Create(machineImageDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		volumeDriverConfig := resources.VolumeDriverConfig{
-			MachineImageManifestURL: manifestURL,
+			MachineImageManifestURL: machineImage.GetURL,
 		}
 
-		ds := driversets.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 		volumeDriver := ds.CreateVolumeDriver()
 
-		volume := resources.NewVolume(volumeDriver, volumeDriverConfig)
-		volumeID, err := volume.WaitForCreation()
+		volume, err := volumeDriver.Create(volumeDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
-		reqOutput, err := ec2Client.DescribeVolumes(&ec2.DescribeVolumesInput{VolumeIds: []*string{aws.String(volumeID)}})
+		reqOutput, err := ec2Client.DescribeVolumes(&ec2.DescribeVolumesInput{VolumeIds: []*string{aws.String(volume.ID)}})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(reqOutput.Volumes).To(HaveLen(1))
 
-		_, err = ec2Client.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: aws.String(volumeID)})
+		_, err = ec2Client.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: aws.String(volume.ID)})
 		Expect(err).ToNot(HaveOccurred())
 	})
 })
