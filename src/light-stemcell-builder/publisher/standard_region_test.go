@@ -2,7 +2,8 @@ package publisher_test
 
 import (
 	"errors"
-	fakeDriversets "light-stemcell-builder/driverset/fakes"
+	"light-stemcell-builder/config"
+	fakeDriverset "light-stemcell-builder/driverset/fakes"
 	"light-stemcell-builder/publisher"
 	"light-stemcell-builder/resources"
 	fakeResources "light-stemcell-builder/resources/fakes"
@@ -12,22 +13,17 @@ import (
 )
 
 var _ = Describe("StandardRegionPublisher", func() {
-	It("can be initialized with publisher configuration", func() {
-		conf := publisher.Config{}
-
-		p := publisher.NewStandardRegionPublisher(conf)
-		Expect(p).ToNot(BeNil())
-	})
-
 	It("uses the provided driver set to orchestrate the creation of an AMI", func() {
-		conf := publisher.Config{
-			MachineImagePath: fakeMachineImagePath,
-			BucketName:       fakeBucketName,
-			AmiProperties:    fakeAmiProperties,
-			CopyDestinations: []string{fakeCopyDestination},
+		publisherConfig := publisher.Config{
+			config.AmiRegion{
+				RegionName:   fakeRegion,
+				BucketName:   fakeBucketName,
+				Destinations: []string{fakeCopyDestination},
+			},
+			fakeAmiConfig,
 		}
 
-		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -59,8 +55,8 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeCopyAmiDriver.CreateReturns(fakeCopiedAmi, nil)
 		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
 
-		p := publisher.NewStandardRegionPublisher(conf)
-		amiCollection, err := p.Publish(fakeDs)
+		p := publisher.NewStandardRegionPublisher(publisherConfig)
+		amiCollection, err := p.Publish(fakeDs, fakeMachineImagePath)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(fakeDs.CreateMachineImageDriverCallCount()).To(Equal(1))
@@ -96,9 +92,9 @@ var _ = Describe("StandardRegionPublisher", func() {
 	})
 
 	It("returns a machine image driver error if one was returned", func() {
-		conf := publisher.Config{}
+		publisherConfig := publisher.Config{}
 
-		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 
 		driverErr := errors.New("error in machine image driver")
 
@@ -106,17 +102,17 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{}, driverErr)
 		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
 
-		p := publisher.NewStandardRegionPublisher(conf)
-		_, err := p.Publish(fakeDs)
+		p := publisher.NewStandardRegionPublisher(publisherConfig)
+		_, err := p.Publish(fakeDs, fakeMachineImagePath)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
 	})
 
 	It("returns a snapshot driver error if one was returned", func() {
-		conf := publisher.Config{}
+		publisherConfig := publisher.Config{}
 
-		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -131,17 +127,17 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{}, driverErr)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
-		p := publisher.NewStandardRegionPublisher(conf)
-		_, err := p.Publish(fakeDs)
+		p := publisher.NewStandardRegionPublisher(publisherConfig)
+		_, err := p.Publish(fakeDs, fakeMachineImagePath)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
 	})
 
 	It("returns a create ami driver error if one was returned", func() {
-		conf := publisher.Config{}
+		publisherConfig := publisher.Config{}
 
-		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -163,19 +159,22 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeAmiDriver.CreateReturns(resources.Ami{}, driverErr)
 		fakeDs.CreateAmiDriverReturns(fakeAmiDriver)
 
-		p := publisher.NewStandardRegionPublisher(conf)
-		_, err := p.Publish(fakeDs)
+		p := publisher.NewStandardRegionPublisher(publisherConfig)
+		_, err := p.Publish(fakeDs, fakeMachineImagePath)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
 	})
 
 	It("returns a copy ami driver error if one was returned", func() {
-		conf := publisher.Config{
-			CopyDestinations: []string{fakeCopyDestination},
+		publisherConfig := publisher.Config{
+			config.AmiRegion{
+				Destinations: []string{fakeCopyDestination},
+			},
+			fakeAmiConfig,
 		}
 
-		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -206,8 +205,8 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeCopyAmiDriver.CreateReturns(resources.Ami{}, driverErr)
 		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
 
-		p := publisher.NewStandardRegionPublisher(conf)
-		_, err := p.Publish(fakeDs)
+		p := publisher.NewStandardRegionPublisher(publisherConfig)
+		_, err := p.Publish(fakeDs, fakeMachineImagePath)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
@@ -225,9 +224,15 @@ const (
 	fakeCopyDestination  = "fake copy destination"
 )
 
-var fakeAmiProperties = resources.AmiProperties{
-	Accessibility:      "fake ami accessability",
+var fakeAmiConfig = config.AmiConfiguration{
+	Visibility:         "public",
 	Description:        "fake ami description",
-	Name:               "fake ami name",
+	AmiName:            "fake ami name",
 	VirtualizationType: "fake virtualization type",
+}
+var fakeAmiProperties = resources.AmiProperties{
+	Name:               fakeAmiConfig.AmiName,
+	Description:        fakeAmiConfig.Description,
+	Accessibility:      fakeAmiConfig.Visibility,
+	VirtualizationType: fakeAmiConfig.VirtualizationType,
 }

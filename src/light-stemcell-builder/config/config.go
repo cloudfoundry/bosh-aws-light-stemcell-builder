@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"light-stemcell-builder/uuid"
 )
 
 const (
@@ -29,13 +30,14 @@ var isolated = map[string]bool{IsolatedChinaRegion: true}
 // 2. optional, defaulted
 // 3. optional
 type AmiConfiguration struct {
+	AmiName            string `json:"name"`
 	Description        string `json:"description"`
 	VirtualizationType string `json:"virtualization_type"`
 	Visibility         string `json:"visibility"`
 }
 
 type AmiRegion struct {
-	Name         string      `json:"name"`
+	RegionName   string      `json:"name"`
 	Credentials  Credentials `json:"credentials"`
 	BucketName   string      `json:"bucket_name"`
 	Destinations []string    `json:"destinations"`
@@ -65,12 +67,25 @@ func NewFromReader(r io.Reader) (Config, error) {
 		return Config{}, err
 	}
 
+	if c.AmiConfiguration.AmiName == "" {
+		amiName, err := uuid.New("BOSH")
+		if err != nil {
+			return Config{}, fmt.Errorf("Unable to generate amiName: %s", err.Error())
+		}
+		c.AmiConfiguration.AmiName = amiName
+	}
+
 	if c.AmiConfiguration.VirtualizationType == "" {
 		c.AmiConfiguration.VirtualizationType = HardwareAssistedVirtualization
 	}
 
 	if c.AmiConfiguration.Visibility == "" {
 		c.AmiConfiguration.Visibility = PublicVisibility
+	}
+
+	for i := range c.AmiRegions {
+		region := &c.AmiRegions[i]
+		region.Credentials.Region = region.RegionName
 	}
 
 	err = c.validate()
@@ -118,7 +133,7 @@ func (config *Config) validate() error {
 }
 
 func (r *AmiRegion) validate() error {
-	if r.Name == "" {
+	if r.RegionName == "" {
 		return errors.New("name must be specified for ami_regions entries")
 	}
 
@@ -143,13 +158,13 @@ func (r *AmiRegion) validate() error {
 			return fmt.Errorf("%s is an isolated region and cannot be specified as a copy destination", destinationRegion)
 		}
 
-		if r.Name == destinationRegion {
+		if r.RegionName == destinationRegion {
 			return fmt.Errorf("%s specified as both a source and a copy destination", destinationRegion)
 		}
 	}
 
-	if isolated[r.Name] && len(r.Destinations) != 0 {
-		return fmt.Errorf("%s is an isolated region and cannot specify copy destinations", r.Name)
+	if isolated[r.RegionName] && len(r.Destinations) != 0 {
+		return fmt.Errorf("%s is an isolated region and cannot specify copy destinations", r.RegionName)
 	}
 
 	return nil

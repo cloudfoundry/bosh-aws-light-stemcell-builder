@@ -49,11 +49,20 @@ var _ = Describe("Config", func() {
   `
 
 	Describe("NewFromReader", func() {
-		It("returns a Config, with visibility and virtulization_type defaulted", func() {
+		It("returns a Config, with ami name, visibility, and virtulization_type defaulted", func() {
 			c, err := parseConfig(baseJSON, identityModifier)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(c.AmiConfiguration.AmiName).To(MatchRegexp("BOSH-.+"))
 			Expect(c.AmiConfiguration.VirtualizationType).To(Equal(config.HardwareAssistedVirtualization))
 			Expect(c.AmiConfiguration.Visibility).To(Equal(config.PublicVisibility))
+		})
+
+		It("sets the name if provided", func() {
+			c, err := parseConfig(baseJSON, func(c *config.Config) {
+				c.AmiConfiguration.AmiName = "fake-name"
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(c.AmiConfiguration.AmiName).To(Equal("fake-name"))
 		})
 
 		Context("with an invalid 'ami_configuration' specified", func() {
@@ -92,7 +101,7 @@ var _ = Describe("Config", func() {
 		Context("given a 'region' config without 'name'", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.AmiRegions[0].Name = ""
+					c.AmiRegions[0].RegionName = ""
 				})
 				Expect(err).To(MatchError("name must be specified for ami_regions entries"))
 			})
@@ -101,7 +110,7 @@ var _ = Describe("Config", func() {
 		Context("when a 'region' config specifies itself as one of the copy destinations", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.AmiRegions[0].Name = "us-east-1"
+					c.AmiRegions[0].RegionName = "us-east-1"
 					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "us-east-1")
 				})
 				Expect(err).To(HaveOccurred())
@@ -142,7 +151,7 @@ var _ = Describe("Config", func() {
 
 			It("returns an error if copy destinations are specified for a China region", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.AmiRegions[0].Name = "cn-north-1"
+					c.AmiRegions[0].RegionName = "cn-north-1"
 					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "anything")
 				})
 				Expect(err).To(MatchError("cn-north-1 is an isolated region and cannot specify copy destinations"))
