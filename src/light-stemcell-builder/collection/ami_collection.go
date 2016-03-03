@@ -6,6 +6,7 @@ import (
 )
 
 type Ami struct {
+	VirtualizationType string
 	sync.Mutex
 	amis []resources.Ami
 }

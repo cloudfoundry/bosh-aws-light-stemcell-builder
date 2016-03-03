@@ -2,9 +2,10 @@ package manifest_test
 
 import (
 	"bytes"
-	"fmt"
-	"light-stemcell-builder/ec2/ec2ami"
 	"light-stemcell-builder/manifest"
+	"light-stemcell-builder/resources"
+
+	"gopkg.in/yaml.v2"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -12,13 +13,14 @@ import (
 
 var _ = Describe("Manifest", func() {
 	Context("reading and writing the manifest", func() {
-		manifestBytes := []byte(`name: bosh-aws-xen-ubuntu-trusty-go_agent
+		manifestBytes := []byte(`
+name: bosh-aws-xen-ubuntu-trusty-go_agent
 version: blah
 bosh_protocol: 1
 sha1: some-sha
 operating_system: ubuntu-trusty
 cloud_properties:
-  name: {}
+  name: bosh-aws-xen-ubuntu-trusty-go_agent
   version: blah
   infrastructure: aws
   hypervisor: xen
@@ -30,51 +32,60 @@ cloud_properties:
   architecture: x86_64
   root_device_name: /dev/sda1`)
 
-		It("correctly preserves the YAML file", func() {
+		It("writes the expected YAML file", func() {
 			manifestReader := bytes.NewReader(manifestBytes)
-			manifestStruct, err := manifest.NewFromReader(manifestReader)
+			m, err := manifest.NewFromReader(manifestReader)
 			Expect(err).ToNot(HaveOccurred())
 
-			outputManifest := &bytes.Buffer{}
-			err = manifestStruct.ToYAML(outputManifest)
+			m.PublishedAmis = []resources.Ami{
+				resources.Ami{
+					Region:             "fake-region",
+					ID:                 "fake-ami-id",
+					VirtualizationType: resources.PvAmiVirtualization,
+				},
+			}
+
+			writer := &bytes.Buffer{}
+			err = m.Write(writer)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(outputManifest.String()).To(ContainSubstring(string(manifestBytes)))
-			Expect(outputManifest.String()).ToNot(MatchRegexp("(?m)^  ami:.*$"))
-			Expect(outputManifest.String()).ToNot(MatchRegexp("(?m)^    .*$"))
+
+			resultManifest := &manifest.Manifest{}
+			err = yaml.Unmarshal(writer.Bytes(), resultManifest)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(resultManifest.Name).To(Equal("bosh-aws-xen-ubuntu-trusty-go_agent"))
+			Expect(resultManifest.Version).To(Equal("blah"))
+			Expect(resultManifest.BoshProtocol).To(Equal("1"))
+			Expect(resultManifest.Sha1).To(Equal("some-sha"))
+			Expect(resultManifest.OperatingSystem).To(Equal("ubuntu-trusty"))
+			Expect(resultManifest.CloudProperties.Amis).To(HaveLen(1))
+			Expect(resultManifest.CloudProperties.Amis["fake-region"]).To(Equal("fake-ami-id"))
 		})
 
-		It("correctly adds the region to AMI map to the YAML file", func() {
+		It("adds 'hvm' to name if AMI collection has HVM virtualization type", func() {
 			manifestReader := bytes.NewReader(manifestBytes)
-			manifestStruct, err := manifest.NewFromReader(manifestReader)
+			m, err := manifest.NewFromReader(manifestReader)
 			Expect(err).ToNot(HaveOccurred())
 
-			amiCollection := ec2ami.NewCollection()
-			amiCollection.Add("us-east-1", ec2ami.Info{AmiID: "ami-us-east-1"})
-			manifestStruct.AddAMICollection(amiCollection)
+			m.PublishedAmis = []resources.Ami{
+				resources.Ami{
+					Region:             "fake-region",
+					ID:                 "fake-ami-id",
+					VirtualizationType: resources.HvmAmiVirtualization,
+				},
+			}
 
-			outputManifest := &bytes.Buffer{}
-			err = manifestStruct.ToYAML(outputManifest)
+			writer := &bytes.Buffer{}
+			err = m.Write(writer)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(outputManifest.String()).To(ContainSubstring(string(manifestBytes)))
-			Expect(outputManifest.String()).To(MatchRegexp("(?m)^  ami:$"))
-			Expect(outputManifest.String()).To(MatchRegexp("(?m)^    us-east-1: ami-us-east-1$"))
-		})
-		Context("SetHVM", func() {
-			It("correctly changes the stemcell name", func() {
-				manifestReader := bytes.NewReader(manifestBytes)
-				manifestStruct, err := manifest.NewFromReader(manifestReader)
-				Expect(err).ToNot(HaveOccurred())
 
-				manifestStruct.SetHVM()
+			resultManifest := &manifest.Manifest{}
+			err = yaml.Unmarshal(writer.Bytes(), resultManifest)
+			Expect(err).ToNot(HaveOccurred())
 
-				outputManifest := &bytes.Buffer{}
-				err = manifestStruct.ToYAML(outputManifest)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(outputManifest.String()).To(MatchRegexp("(?m)^name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent$"))
-				Expect(outputManifest.String()).To(MatchRegexp("(?m)^  name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent$"))
-				fmt.Printf("outputManifest: %s", outputManifest.String())
-			})
+			Expect(resultManifest.Name).To(Equal("bosh-aws-xen-hvm-ubuntu-trusty-go_agent"))
 		})
+
 		Context("given an invalid manifest", func() {
 			It("NewFromReader returns an error", func() {
 				manifestReader := bytes.NewReader([]byte("key: key: value"))
@@ -82,6 +93,16 @@ cloud_properties:
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("unmarshaling YAML to manifest: "))
 			})
+		})
+
+		It("returns an error if Amis is not set", func() {
+			manifestReader := bytes.NewReader(manifestBytes)
+			manifestStruct, err := manifest.NewFromReader(manifestReader)
+			Expect(err).ToNot(HaveOccurred())
+
+			outputManifest := &bytes.Buffer{}
+			err = manifestStruct.Write(outputManifest)
+			Expect(err).To(MatchError("no Amis have been added to the manifest"))
 		})
 	})
 })

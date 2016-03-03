@@ -89,6 +89,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		}))
 
 		Expect(amiCollection.GetAll()).To(ConsistOf(fakeAmi, fakeCopiedAmi))
+		Expect(amiCollection.VirtualizationType).To(Equal(fakeAmiConfig.VirtualizationType))
 	})
 
 	It("returns a machine image driver error if one was returned", func() {

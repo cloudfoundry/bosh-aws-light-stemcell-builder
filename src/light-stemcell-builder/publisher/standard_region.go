@@ -69,7 +69,9 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 		return nil, fmt.Errorf("creating ami: %s", err)
 	}
 
-	amis := collection.Ami{}
+	amis := collection.Ami{
+		VirtualizationType: p.AmiProperties.VirtualizationType,
+	}
 	amis.Add(sourceAmi)
 
 	copyAmiDriver := ds.CopyAmiDriver()

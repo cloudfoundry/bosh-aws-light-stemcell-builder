@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"light-stemcell-builder/ec2/ec2ami"
+	"light-stemcell-builder/resources"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -14,12 +14,21 @@ import (
 // Manifest represents the stemcell manifest. We don't care about anything
 // other than cloud_properties and the name
 type Manifest struct {
-	Name            string        `yaml:"name"`
-	Version         interface{}   `yaml:"version"`
-	BoshProtocol    interface{}   `yaml:"bosh_protocol"`
-	Sha1            interface{}   `yaml:"sha1"`
-	OperatingSystem interface{}   `yaml:"operating_system"`
-	CloudProperties yaml.MapSlice `yaml:"cloud_properties"`
+	Name            string          `yaml:"name"`
+	Version         string          `yaml:"version"`
+	BoshProtocol    string          `yaml:"bosh_protocol"`
+	Sha1            string          `yaml:"sha1"`
+	OperatingSystem string          `yaml:"operating_system"`
+	CloudProperties CloudProperties `yaml:"cloud_properties"`
+	PublishedAmis   []resources.Ami `yaml:"-"`
+}
+
+// RegionToAmiMapping is a simple map of AWS region to AMI ID in that region
+type RegionToAmiMapping map[string]string
+
+// CloudProperties contains only our region to AMI ID mapping
+type CloudProperties struct {
+	Amis RegionToAmiMapping `yaml:"ami"`
 }
 
 // NewFromReader creates a new manifest from the YAML stored in the reader
@@ -28,16 +37,34 @@ func NewFromReader(reader io.Reader) (*Manifest, error) {
 	if err != nil {
 		return nil, fmt.Errorf("reading manifest: %s", err)
 	}
+
 	m := &Manifest{}
 	err = yaml.Unmarshal(manifestBytes, m)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshaling YAML to manifest: %s", err)
 	}
+
 	return m, nil
 }
 
-// ToYAML writes the YAML representation of this manifest to the io.Writer
-func (m *Manifest) ToYAML(writer io.Writer) error {
+// Write writes the YAML representation of this manifest to the io.Writer
+func (m *Manifest) Write(writer io.Writer) error {
+	if len(m.PublishedAmis) == 0 {
+		return errors.New("no Amis have been added to the manifest")
+	}
+
+	m.CloudProperties.Amis = make(RegionToAmiMapping)
+
+	for i := range m.PublishedAmis {
+		ami := m.PublishedAmis[i]
+		m.CloudProperties.Amis[ami.Region] = ami.ID
+	}
+
+	virtualizationType := m.PublishedAmis[0].VirtualizationType
+	if virtualizationType == resources.HvmAmiVirtualization {
+		m.Name = strings.Replace(m.Name, "xen", "xen-hvm", 1)
+	}
+
 	output, err := yaml.Marshal(m)
 	if err != nil {
 		return fmt.Errorf("marshaling manifest to YAML: %s", err)
@@ -47,30 +74,4 @@ func (m *Manifest) ToYAML(writer io.Writer) error {
 		return fmt.Errorf("writing YAML: %s", err)
 	}
 	return nil
-}
-
-// AddAMICollection adds the collection to the manifest
-func (m *Manifest) AddAMICollection(a *ec2ami.Collection) error {
-	if a == nil {
-		return errors.New("AMI Collection is nil")
-	}
-	m.CloudProperties = append(m.CloudProperties, yaml.MapItem{Key: "ami", Value: a})
-	return nil
-}
-
-// SetHVM designates this stemcell as an HVM stemcell and sets the name accordingly
-func (m *Manifest) SetHVM() {
-	name := strings.Replace(m.Name, "xen", "xen-hvm", 1)
-	index := -1
-	for i, item := range m.CloudProperties {
-		if item.Key == "name" {
-			index = i
-			break
-		}
-	}
-	if index >= 0 {
-		m.CloudProperties = append(m.CloudProperties[:index], m.CloudProperties[index+1:]...)
-	}
-	m.CloudProperties = append(yaml.MapSlice{yaml.MapItem{Key: "name", Value: name}}, m.CloudProperties...)
-	m.Name = name
 }

@@ -1,14 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"light-stemcell-builder/builder"
+	"io"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/ec2/ec2cli"
+	"light-stemcell-builder/driverset"
+	"light-stemcell-builder/manifest"
+	"light-stemcell-builder/publisher"
 	"log"
 	"os"
+	"sync"
 )
 
 func usage(message string) {
@@ -19,69 +21,94 @@ func usage(message string) {
 }
 
 func main() {
-	logger := log.New(os.Stdout, "", log.LstdFlags)
+	sharedWriter := &logWriter{
+		writer: os.Stderr,
+	}
+
+	logger := log.New(sharedWriter, "", log.LstdFlags)
 
 	configPath := flag.String("c", "", "Path to the JSON configuration file")
-	inputPath := flag.String("i", "", "Path to the input stemcell")
-	outputPath := flag.String("o", "", "Path to the output folder for the light stemcell")
+	machineImagePath := flag.String("image", "", "Path to the input machine image (root.img)")
+	manifestPath := flag.String("manifest", "", "Path to the input stemcell.MF")
 
 	flag.Parse()
 
 	if *configPath == "" {
 		usage("-c flag is required")
 	}
-	if *inputPath == "" {
-		usage("-i flag is required")
-	}
-	if *outputPath == "" {
-		usage("-o flag is required")
+	if *machineImagePath == "" {
+		usage("--image flag is required")
 	}
 
-	if _, err := os.Stat(*configPath); err != nil {
-		usage(fmt.Sprintf("config file was not found: %s", *configPath))
-	}
-	if _, err := os.Stat(*inputPath); err != nil {
-		usage(fmt.Sprintf("input stemcell was not found: %s", *inputPath))
-	}
-	fileInfo, err := os.Stat(*outputPath)
-	if err != nil {
-		usage(fmt.Sprintf("output folder was not found: %s", *outputPath))
-	}
-	if !fileInfo.IsDir() {
-		usage(fmt.Sprintf("output folder is not a directory: %s", *outputPath))
+	if *manifestPath == "" {
+		usage("--manifest flag is required")
 	}
 
 	configFile, err := os.Open(*configPath)
+	if err != nil {
+		logger.Fatalf("Error opening config file: %s", err)
+	}
 
 	defer func() {
-		err = configFile.Close()
-		if err != nil {
-			logger.Fatalf("Error closing config file: %s", err.Error())
+		closeErr := configFile.Close()
+		if closeErr != nil {
+			logger.Fatalf("Error closing config file: %s", closeErr)
 		}
 	}()
 
 	if err != nil {
-		logger.Fatalf("Error opening config file: %s", err.Error())
+		logger.Fatalf("Error opening config file: %s", err)
 	}
-
-	aws := &ec2cli.EC2Cli{}
 
 	c, err := config.NewFromReader(configFile)
 	if err != nil {
-		logger.Fatalf("Error parsing config file: %s. Message: %s", *configPath, err.Error())
+		logger.Fatalf("Error parsing config file: %s. Message: %s", *configPath, err)
 	}
 
-	b := builder.New(aws, c, logger)
-	stemcell, amis, err := b.Build(*inputPath, *outputPath)
+	if _, err := os.Stat(*machineImagePath); os.IsNotExist(err) {
+		logger.Fatalf("machine image not found at: %s", *machineImagePath)
+	}
+
+	if _, err := os.Stat(*manifestPath); os.IsNotExist(err) {
+		logger.Fatalf("manifest not found at: %s", *manifestPath)
+	}
+
+	f, err := os.Open(*manifestPath)
 	if err != nil {
-		logger.Fatalf("Error during stemcell builder: %s\n", err)
+		logger.Fatalf("opening manifest: %s", err)
 	}
 
-	amiJSON, err := json.Marshal(amis)
+	m, err := manifest.NewFromReader(f)
 	if err != nil {
-		logger.Printf("Error output encoding: %s\n", err)
+		logger.Fatalf("reading manifest: %s", err)
 	}
 
-	logger.Printf("Created AMIs:\n%s", amiJSON)
-	logger.Printf("Output saved to: %s\n", stemcell)
+	regionConfig := c.AmiRegions[0]
+
+	ds := driverset.NewStandardRegionDriverSet(sharedWriter, regionConfig.Credentials)
+
+	p := publisher.NewStandardRegionPublisher(publisher.Config{
+		AmiRegion:        regionConfig,
+		AmiConfiguration: c.AmiConfiguration,
+	})
+
+	amiCollection, err := p.Publish(ds, *machineImagePath)
+	if err != nil {
+		logger.Fatalf("Error publishing AMIs: %s", err)
+	}
+
+	m.PublishedAmis = amiCollection.GetAll()
+	m.Write(os.Stdout)
+}
+
+type logWriter struct {
+	sync.Mutex
+	writer io.Writer
+}
+
+func (l *logWriter) Write(message []byte) (int, error) {
+	l.Lock()
+	defer l.Unlock()
+
+	return l.writer.Write(message)
 }

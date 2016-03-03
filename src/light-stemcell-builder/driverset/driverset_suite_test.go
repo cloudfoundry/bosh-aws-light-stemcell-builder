@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDriversets(t *testing.T) {
+func TestDriverset(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Driversets Suite")
+	RunSpecs(t, "Driverset Suite")
 }

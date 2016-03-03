@@ -100,7 +100,13 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 		})
 	}
 
-	return resources.Ami{ID: *amiIDptr, Region: d.region}, nil
+	ami := resources.Ami{
+		ID:                 *amiIDptr,
+		Region:             d.region,
+		VirtualizationType: driverConfig.VirtualizationType,
+	}
+
+	return ami, nil
 }
 
 func (d *SDKCreateAmiDriver) findLatestKernelImage() (string, error) {

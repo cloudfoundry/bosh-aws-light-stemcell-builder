@@ -17,10 +17,12 @@ type AmiDriver interface {
 
 // Ami represents an AMI resource in EC2
 type Ami struct {
-	ID     string
-	Region string
+	ID                 string
+	Region             string
+	VirtualizationType string
 }
 
+// AmiProperties describes what properties the published AMI should have
 type AmiProperties struct {
 	Accessibility      string
 	Description        string
