@@ -2,7 +2,7 @@
 package fakes
 
 import (
-	"light-stemcell-builder/driversets"
+	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 	"sync"
 )
@@ -130,4 +130,4 @@ func (fake *FakeStandardRegionDriverSet) CopyAmiDriverReturns(result1 resources.
 	}{result1}
 }
 
-var _ driversets.StandardRegionDriverSet = new(FakeStandardRegionDriverSet)
+var _ driverset.StandardRegionDriverSet = new(FakeStandardRegionDriverSet)

@@ -2,7 +2,7 @@ package publisher_test
 
 import (
 	"errors"
-	fakeDriversets "light-stemcell-builder/driversets/fakes"
+	fakeDriversets "light-stemcell-builder/driverset/fakes"
 	"light-stemcell-builder/publisher"
 	"light-stemcell-builder/resources"
 	fakeResources "light-stemcell-builder/resources/fakes"
@@ -27,7 +27,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 			CopyDestinations: []string{fakeCopyDestination},
 		}
 
-		fakeDs := &fakeDriversets.FakeStandardRegionDriverSet{}
+		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -98,7 +98,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 	It("returns a machine image driver error if one was returned", func() {
 		conf := publisher.Config{}
 
-		fakeDs := &fakeDriversets.FakeStandardRegionDriverSet{}
+		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
 
 		driverErr := errors.New("error in machine image driver")
 
@@ -116,7 +116,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 	It("returns a snapshot driver error if one was returned", func() {
 		conf := publisher.Config{}
 
-		fakeDs := &fakeDriversets.FakeStandardRegionDriverSet{}
+		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -141,7 +141,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 	It("returns a create ami driver error if one was returned", func() {
 		conf := publisher.Config{}
 
-		fakeDs := &fakeDriversets.FakeStandardRegionDriverSet{}
+		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -175,7 +175,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 			CopyDestinations: []string{fakeCopyDestination},
 		}
 
-		fakeDs := &fakeDriversets.FakeStandardRegionDriverSet{}
+		fakeDs := &fakedriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}

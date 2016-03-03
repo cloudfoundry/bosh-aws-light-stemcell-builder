@@ -3,7 +3,7 @@ package publisher
 import (
 	"fmt"
 	"light-stemcell-builder/collection"
-	"light-stemcell-builder/driversets"
+	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 	"sync"
 )
@@ -26,7 +26,7 @@ type StandardRegionPublisher struct {
 	c Config
 }
 
-func (p *StandardRegionPublisher) Publish(ds driversets.StandardRegionDriverSet) (*collection.Ami, error) {
+func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet) (*collection.Ami, error) {
 	machineImageDriverConfig := resources.MachineImageDriverConfig{
 		MachineImagePath: p.c.MachineImagePath,
 		BucketName:       p.c.BucketName,

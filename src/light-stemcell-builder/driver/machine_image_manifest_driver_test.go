@@ -1,8 +1,12 @@
-package drivers_test
+package driver_test
 
 import (
+	"encoding/xml"
+	"io"
+	"io/ioutil"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/driversets"
+	"light-stemcell-builder/driver/manifests"
+	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 	"net/http"
 	"os"
@@ -11,8 +15,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("MachineImageDriver", func() {
-	It("uploads a machine image to S3 and creates a presigned URL", func() {
+var _ = Describe("MachineImageManifestDriver", func() {
+	It("uploads a machine image to S3 and creates a presigned URL for an import volume manifest", func() {
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
@@ -39,7 +43,7 @@ var _ = Describe("MachineImageDriver", func() {
 			BucketName:       bucketName,
 		}
 
-		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 		driver := ds.CreateMachineImageDriver()
 
 		machineImage, err := driver.Create(driverConfig)
@@ -48,10 +52,18 @@ var _ = Describe("MachineImageDriver", func() {
 		resp, err := http.Get(machineImage.GetURL)
 		Expect(err).ToNot(HaveOccurred())
 
-		err = resp.Body.Close()
-		Expect(err).ToNot(HaveOccurred())
+		defer func(reader io.ReadCloser) {
+			err = reader.Close()
+			Expect(err).ToNot(HaveOccurred())
+		}(resp.Body)
 
 		Expect(resp.StatusCode).To(Equal(200))
 
+		manifestBytes, err := ioutil.ReadAll(resp.Body)
+		Expect(err).ToNot(HaveOccurred())
+
+		m := manifests.ImportVolumeManifest{}
+		err = xml.Unmarshal(manifestBytes, &m)
+		Expect(err).ToNot(HaveOccurred())
 	})
 })

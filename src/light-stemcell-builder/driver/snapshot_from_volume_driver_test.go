@@ -1,8 +1,8 @@
-package drivers_test
+package driver_test
 
 import (
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/driversets"
+	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 	"os"
 
@@ -37,7 +37,7 @@ var _ = Describe("SnapshotFromVolumeDriver", func() {
 			VolumeID: volumeID,
 		}
 
-		ds := driversets.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 		driver := ds.CreateSnapshotDriver()
 
 		snapshot, err := driver.Create(driverConfig)

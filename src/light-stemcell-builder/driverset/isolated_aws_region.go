@@ -1,25 +1,25 @@
-package driversets
+package driverset
 
 import (
 	"io"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers"
+	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
 )
 
 type IsolatedRegionDriverSet struct {
-	machineImageDriver *drivers.SDKMachineImageManifestDriver
-	volumeDriver       *drivers.SDKVolumeDriver
-	snapshotDriver     *drivers.SDKSnapshotFromVolumeDriver
-	createAmiDriver    *drivers.SDKCreateAmiDriver
+	machineImageDriver *driver.SDKMachineImageManifestDriver
+	volumeDriver       *driver.SDKVolumeDriver
+	snapshotDriver     *driver.SDKSnapshotFromVolumeDriver
+	createAmiDriver    *driver.SDKCreateAmiDriver
 }
 
 func NewIsolatedRegionDriverSet(logDest io.Writer, creds config.Credentials) IsolatedRegionDriverSet {
 	return IsolatedRegionDriverSet{
-		machineImageDriver: drivers.NewMachineImageManifestDriver(logDest, creds),
-		volumeDriver:       drivers.NewVolumeDriver(logDest, creds),
-		snapshotDriver:     drivers.NewSnapshotFromVolumeDriver(logDest, creds),
-		createAmiDriver:    drivers.NewCreateAmiDriver(logDest, creds),
+		machineImageDriver: driver.NewMachineImageManifestDriver(logDest, creds),
+		volumeDriver:       driver.NewVolumeDriver(logDest, creds),
+		snapshotDriver:     driver.NewSnapshotFromVolumeDriver(logDest, creds),
+		createAmiDriver:    driver.NewCreateAmiDriver(logDest, creds),
 	}
 }
 

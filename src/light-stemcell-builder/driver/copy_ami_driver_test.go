@@ -1,9 +1,9 @@
-package drivers_test
+package driver_test
 
 import (
 	"fmt"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/driversets"
+	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 	"os"
 	"strings"
@@ -51,7 +51,7 @@ var _ = Describe("CopyAmiDriver", func() {
 		amiDriverConfig.ExistingAmiID = existingAmiID
 		amiDriverConfig.DestinationRegion = dstRegion
 
-		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
 		amiCopyDriver := ds.CopyAmiDriver()
 		copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)

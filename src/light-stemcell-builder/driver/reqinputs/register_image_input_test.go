@@ -1,7 +1,7 @@
 package reqinputs_test
 
 import (
-	"light-stemcell-builder/drivers/reqinputs"
+	"light-stemcell-builder/driver/reqinputs"
 	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/service/ec2"

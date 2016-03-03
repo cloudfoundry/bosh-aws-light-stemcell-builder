@@ -1,4 +1,4 @@
-package drivers_test
+package driverset_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDrivers(t *testing.T) {
+func TestDriversets(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Drivers Suite")
+	RunSpecs(t, "Driversets Suite")
 }

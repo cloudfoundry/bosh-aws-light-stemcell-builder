@@ -1,11 +1,11 @@
-package drivers
+package driver
 
 import (
 	"errors"
 	"fmt"
 	"io"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers/reqinputs"
+	"light-stemcell-builder/driver/reqinputs"
 	"light-stemcell-builder/resources"
 	"log"
 	"sort"

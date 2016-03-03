@@ -1,4 +1,4 @@
-package drivers
+package driver
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers/manifests"
+	"light-stemcell-builder/driver/manifests"
 	"light-stemcell-builder/resources"
 	"log"
 	"os"

@@ -1,9 +1,9 @@
-package driversets
+package driverset
 
 import (
 	"io"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers"
+	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
 )
 
@@ -16,18 +16,18 @@ type StandardRegionDriverSet interface {
 }
 
 type standardRegionDriverSet struct {
-	machineImageDriver *drivers.SDKMachineImageDriver
-	snapshotDriver     *drivers.SDKSnapshotFromImageDriver
-	createAmiDriver    *drivers.SDKCreateAmiDriver
-	copyAmiDriver      *drivers.SDKCopyAmiDriver
+	machineImageDriver *driver.SDKMachineImageDriver
+	snapshotDriver     *driver.SDKSnapshotFromImageDriver
+	createAmiDriver    *driver.SDKCreateAmiDriver
+	copyAmiDriver      *driver.SDKCopyAmiDriver
 }
 
 func NewStandardRegionDriverSet(logDest io.Writer, creds config.Credentials) StandardRegionDriverSet {
 	return &standardRegionDriverSet{
-		machineImageDriver: drivers.NewMachineImageDriver(logDest, creds),
-		snapshotDriver:     drivers.NewSnapshotFromImageDriver(logDest, creds),
-		createAmiDriver:    drivers.NewCreateAmiDriver(logDest, creds),
-		copyAmiDriver:      drivers.NewCopyAmiDriver(logDest, creds),
+		machineImageDriver: driver.NewMachineImageDriver(logDest, creds),
+		snapshotDriver:     driver.NewSnapshotFromImageDriver(logDest, creds),
+		createAmiDriver:    driver.NewCreateAmiDriver(logDest, creds),
+		copyAmiDriver:      driver.NewCopyAmiDriver(logDest, creds),
 	}
 }
 

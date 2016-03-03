@@ -1,4 +1,4 @@
-package driversets
+package driverset
 
 import "light-stemcell-builder/resources"
 

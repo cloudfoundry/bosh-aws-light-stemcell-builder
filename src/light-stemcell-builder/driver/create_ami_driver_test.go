@@ -1,9 +1,9 @@
-package drivers_test
+package driver_test
 
 import (
 	"fmt"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/driversets"
+	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 	"os"
 	"strings"
@@ -45,7 +45,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		amiDriverConfig.Accessibility = resources.PublicAmiAccessibility
 		amiDriverConfig.Description = "bosh cpi test ami"
 
-		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
 		amiDriver := ds.CreateAmiDriver()
 		ami, err := amiDriver.Create(amiDriverConfig)
@@ -119,7 +119,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		amiDriverConfig.Name = amiName
 		amiDriverConfig.Description = "bosh cpi test ami"
 
-		ds := driversets.NewStandardRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
 		amiDriver := ds.CreateAmiDriver()
 		ami, err := amiDriver.Create(amiDriverConfig)

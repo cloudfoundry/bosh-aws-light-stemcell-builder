@@ -1,4 +1,4 @@
-package drivers
+package driver
 
 import (
 	"encoding/xml"
@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/drivers/manifests"
+	"light-stemcell-builder/driver/manifests"
 	"light-stemcell-builder/resources"
 	"log"
 	"net/http"

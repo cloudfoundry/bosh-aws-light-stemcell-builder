@@ -1,8 +1,8 @@
-package drivers_test
+package driver_test
 
 import (
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/driversets"
+	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 	"os"
 
@@ -36,7 +36,7 @@ var _ = Describe("VolumeDriver", func() {
 		bucketName := os.Getenv("AWS_BUCKET_NAME")
 		Expect(bucketName).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 
-		ds := driversets.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 		machineImageDriverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: machineImagePath,
 			BucketName:       bucketName,
