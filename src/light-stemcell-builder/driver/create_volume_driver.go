@@ -19,35 +19,33 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-var _ resources.VolumeDriver = &SDKVolumeDriver{}
-
-// SDKVolumeDriver is an implementation of the resources VolumeDriver that
+// SDKCreateVolumeDriver is an implementation of the resources VolumeDriver that
 // handles creation of a volume from a machine image on AWS
-type SDKVolumeDriver struct {
-	ec2client *ec2.EC2
+type SDKCreateVolumeDriver struct {
+	ec2Client *ec2.EC2
 	logger    *log.Logger
 }
 
-// NewVolumeDriver creates a SDKVolumeDriver for importing a volume from a machine image url
-func NewVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKVolumeDriver {
-	logger := log.New(logDest, "SDKVolumeDriver ", log.LstdFlags)
+// NewCreateVolumeDriver creates a SDKCreateVolumeDriver for importing a volume from a machine image url
+func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCreateVolumeDriver {
+	logger := log.New(logDest, "SDKCreateVolumeDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
 		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
 	ec2Client := ec2.New(session.New(), awsConfig)
-	return &SDKVolumeDriver{ec2client: ec2Client, logger: logger}
+	return &SDKCreateVolumeDriver{ec2Client: ec2Client, logger: logger}
 }
 
 // Create makes an EBS volume from a machine image URL in the first availability zone returned from DescribeAvailabilityZones
-func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (resources.Volume, error) {
+func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (resources.Volume, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
 	}(createStartTime)
 
-	availabilityZoneOutput, err := d.ec2client.DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{
+	availabilityZoneOutput, err := d.ec2Client.DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{
 		Filters: []*ec2.Filter{
 			&ec2.Filter{Name: aws.String("state"), Values: []*string{aws.String("available")}},
 		},
@@ -57,7 +55,7 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (res
 	}
 
 	if len(availabilityZoneOutput.AvailabilityZones) == 0 {
-		return resources.Volume{}, fmt.Errorf("finding any available availability zones in region %s", *d.ec2client.Config.Region)
+		return resources.Volume{}, fmt.Errorf("finding any available availability zones in region %s", *d.ec2Client.Config.Region)
 	}
 
 	availabilityZone := availabilityZoneOutput.AvailabilityZones[0].ZoneName
@@ -66,18 +64,26 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (res
 		return resources.Volume{}, fmt.Errorf("fetching import volume manifest: %s", err)
 	}
 
-	m := manifests.ImportVolumeManifest{}
+	defer fetchManifestResp.Body.Close()
 	manifestBytes, err := ioutil.ReadAll(fetchManifestResp.Body)
 	if err != nil {
-		return resources.Volume{}, fmt.Errorf("reading import volume manifest from resposne: %s", err)
+		return resources.Volume{}, fmt.Errorf("reading import volume manifest from response: %s", err)
 	}
+	if fetchManifestResp.StatusCode < 200 || fetchManifestResp.StatusCode >= 300 {
+		return resources.Volume{}, fmt.Errorf("Received invalid response code '%d' fetching resource '%s': %s",
+			fetchManifestResp.StatusCode,
+			driverConfig.MachineImageManifestURL,
+			manifestBytes)
+	}
+
+	m := manifests.ImportVolumeManifest{}
 
 	err = xml.Unmarshal(manifestBytes, &m)
 	if err != nil {
-		return resources.Volume{}, fmt.Errorf("deserializing import volume manifest: %s", err)
+		return resources.Volume{}, fmt.Errorf("deserializing import volume manifest. Bytes:\n%s\nError: %s", manifestBytes, err)
 	}
 
-	reqOutput, err := d.ec2client.ImportVolume(&ec2.ImportVolumeInput{
+	reqOutput, err := d.ec2Client.ImportVolume(&ec2.ImportVolumeInput{
 		AvailabilityZone: availabilityZone,
 		Image: &ec2.DiskImageDetail{
 			ImportManifestUrl: aws.String(driverConfig.MachineImageManifestURL),
@@ -112,7 +118,7 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (res
 		return resources.Volume{}, fmt.Errorf("waiting for volume to be imported: %s", err)
 	}
 
-	taskOutput, err := d.ec2client.DescribeConversionTasks(taskFilter)
+	taskOutput, err := d.ec2Client.DescribeConversionTasks(taskFilter)
 	if err != nil {
 		return resources.Volume{}, fmt.Errorf("fetching volume ID from conversion task %s", *conversionTaskIDptr)
 	}
@@ -124,13 +130,13 @@ func (d *SDKVolumeDriver) Create(driverConfig resources.VolumeDriverConfig) (res
 
 	d.logger.Printf("waiting for volume to be available: %s\n", *volumeIDptr)
 	waitStartTime = time.Now()
-	err = d.ec2client.WaitUntilVolumeAvailable(&ec2.DescribeVolumesInput{VolumeIds: []*string{volumeIDptr}})
+	err = d.ec2Client.WaitUntilVolumeAvailable(&ec2.DescribeVolumesInput{VolumeIds: []*string{volumeIDptr}})
 	d.logger.Printf("waited on volume %s for %f seconds\n", *volumeIDptr, time.Since(waitStartTime).Seconds())
 
 	return resources.Volume{ID: *volumeIDptr}, nil
 }
 
-func (d *SDKVolumeDriver) waitUntilImageConversionTaskCompleted(input *ec2.DescribeConversionTasksInput) error {
+func (d *SDKCreateVolumeDriver) waitUntilImageConversionTaskCompleted(input *ec2.DescribeConversionTasksInput) error {
 	waiterCfg := waiter.Config{
 		Operation:   "DescribeConversionTasks",
 		Delay:       15,
@@ -158,7 +164,7 @@ func (d *SDKVolumeDriver) waitUntilImageConversionTaskCompleted(input *ec2.Descr
 	}
 
 	w := waiter.Waiter{
-		Client: d.ec2client,
+		Client: d.ec2Client,
 		Input:  input,
 		Config: waiterCfg,
 	}

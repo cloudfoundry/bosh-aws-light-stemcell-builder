@@ -2,9 +2,10 @@ package driver_test
 
 import (
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/driverset"
+	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -13,8 +14,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("VolumeDriver", func() {
-	It("creates an EBS Volume from a previously uploaded machine image", func() {
+var _ = Describe("Volume Driver Lifecycle", func() {
+	FIt("creates and deletes an EBS Volume from a previously uploaded machine image", func() {
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
@@ -36,23 +37,22 @@ var _ = Describe("VolumeDriver", func() {
 		bucketName := os.Getenv("AWS_BUCKET_NAME")
 		Expect(bucketName).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 
-		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		createMachineImageDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, creds)
 		machineImageDriverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: machineImagePath,
 			BucketName:       bucketName,
 		}
 
-		machineImageDriver := ds.MachineImageDriver()
-		machineImage, err := machineImageDriver.Create(machineImageDriverConfig)
+		machineImage, err := createMachineImageDriver.Create(machineImageDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		volumeDriverConfig := resources.VolumeDriverConfig{
 			MachineImageManifestURL: machineImage.GetURL,
 		}
 
-		volumeDriver := ds.CreateVolumeDriver()
+		createVolumeDriver := driver.NewCreateVolumeDriver(GinkgoWriter, creds)
 
-		volume, err := volumeDriver.Create(volumeDriverConfig)
+		volume, err := createVolumeDriver.Create(volumeDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
@@ -61,7 +61,17 @@ var _ = Describe("VolumeDriver", func() {
 
 		Expect(reqOutput.Volumes).To(HaveLen(1))
 
-		_, err = ec2Client.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: aws.String(volume.ID)})
+		deleteVolumeDriver := driver.NewDeleteVolumeDriver(GinkgoWriter, creds)
+
+		err = deleteVolumeDriver.Delete(volume)
 		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func() error {
+			_, err = ec2Client.DescribeVolumes(&ec2.DescribeVolumesInput{VolumeIds: []*string{aws.String(volume.ID)}})
+			return err
+		}, 10*time.Minute, 10*time.Second).Should(MatchError(ContainSubstring("InvalidVolume.NotFound")))
+
+		deleteMachineImageDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
+		_ = deleteMachineImageDriver.Delete(machineImage) // ignore error on cleanup
 	})
 })
