@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"light-stemcell-builder/collection"
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/manifest"
@@ -83,22 +84,58 @@ func main() {
 		logger.Fatalf("reading manifest: %s", err)
 	}
 
-	regionConfig := c.AmiRegions[0]
+	amiCollection := collection.Ami{}
+	errCollection := collection.Error{}
 
-	ds := driverset.NewStandardRegionDriverSet(sharedWriter, regionConfig.Credentials)
+	var wg sync.WaitGroup
+	wg.Add(len(c.AmiRegions))
 
-	p := publisher.NewStandardRegionPublisher(publisher.Config{
-		AmiRegion:        regionConfig,
-		AmiConfiguration: c.AmiConfiguration,
-	})
+	for i := range c.AmiRegions {
+		go func(regionConfig config.AmiRegion) {
+			defer wg.Done()
 
-	amiCollection, err := p.Publish(ds, *machineImagePath)
-	if err != nil {
-		logger.Fatalf("Error publishing AMIs: %s", err)
+			switch {
+			case regionConfig.IsolatedRegion:
+				ds := driverset.NewIsolatedRegionDriverSet(sharedWriter, regionConfig.Credentials)
+				p := publisher.NewIsolatedRegionPublisher(sharedWriter, publisher.Config{
+					AmiRegion:        regionConfig,
+					AmiConfiguration: c.AmiConfiguration,
+				})
+
+				amis, err := p.Publish(ds, *machineImagePath)
+				if err != nil {
+					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
+				} else {
+					amiCollection.Merge(amis)
+				}
+			default:
+				ds := driverset.NewStandardRegionDriverSet(sharedWriter, regionConfig.Credentials)
+				p := publisher.NewStandardRegionPublisher(sharedWriter, publisher.Config{
+					AmiRegion:        regionConfig,
+					AmiConfiguration: c.AmiConfiguration,
+				})
+
+				amis, err := p.Publish(ds, *machineImagePath)
+				if err != nil {
+					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
+				} else {
+					amiCollection.Merge(amis)
+				}
+			}
+		}(c.AmiRegions[i])
+	}
+
+	logger.Println("Waiting for publishers to finish...")
+	wg.Wait()
+
+	combinedErr := errCollection.Error()
+	if combinedErr != nil {
+		logger.Fatal(combinedErr)
 	}
 
 	m.PublishedAmis = amiCollection.GetAll()
 	m.Write(os.Stdout)
+	logger.Println("Publishing finished successfully")
 }
 
 type logWriter struct {

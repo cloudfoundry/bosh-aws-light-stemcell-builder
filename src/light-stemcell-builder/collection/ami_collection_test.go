@@ -29,4 +29,27 @@ var _ = Describe("Ami", func() {
 
 		Expect(amiCollection.GetAll()).To(Equal(fakeAmis))
 	})
+
+	It("merges another collection into itself", func() {
+		collectionA := collection.Ami{}
+		collectionB := collection.Ami{}
+
+		fakeAmis := []resources.Ami{
+			resources.Ami{
+				ID:     "fake-0",
+				Region: "fake-region-0",
+			},
+			resources.Ami{
+				ID:     "fake-1",
+				Region: "fake-region-1",
+			},
+		}
+
+		collectionA.Add(fakeAmis[0])
+		collectionB.Add(fakeAmis[1])
+
+		collectionA.Merge(collectionB)
+
+		Expect(collectionA.GetAll()).To(ConsistOf(fakeAmis))
+	})
 })

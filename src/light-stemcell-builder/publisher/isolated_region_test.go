@@ -12,17 +12,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("StandardRegionPublisher", func() {
-
+var _ = Describe("IsolatedRegionPublisher", func() {
 	const (
 		fakeMachineImageURL  = "fake machine image url"
+		fakeVolumeID         = "fake volume id"
 		fakeSnapshotID       = "fake snapshot id"
 		fakeAmiID            = "fake AMI id"
-		fakeCopiedAmiID      = "fake copied AMI id"
 		fakeBucketName       = "fake bucket name"
 		fakeRegion           = "fake region"
 		fakeMachineImagePath = "fake machine image path"
-		fakeCopyDestination  = "fake copy destination"
 	)
 
 	var fakeAmiConfig = config.AmiConfiguration{
@@ -41,32 +39,37 @@ var _ = Describe("StandardRegionPublisher", func() {
 	It("uses the provided driver set to orchestrate the creation of an AMI", func() {
 		publisherConfig := publisher.Config{
 			AmiRegion: config.AmiRegion{
-				RegionName:   fakeRegion,
-				BucketName:   fakeBucketName,
-				Destinations: []string{fakeCopyDestination},
+				RegionName: fakeRegion,
+				BucketName: fakeBucketName,
 			},
 			AmiConfiguration: fakeAmiConfig,
 		}
 
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
+
+		fakeVolume := resources.Volume{
+			ID: fakeVolumeID,
+		}
+
 		fakeSnapshot := resources.Snapshot{
 			ID: fakeSnapshotID,
 		}
+
 		fakeAmi := resources.Ami{
 			ID:     fakeAmiID,
 			Region: fakeRegion,
-		}
-		fakeCopiedAmi := resources.Ami{
-			ID:     fakeCopiedAmiID,
-			Region: fakeCopyDestination,
 		}
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver.CreateReturns(fakeVolume, nil)
+		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
@@ -76,11 +79,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeCreateAmiDriver.CreateReturns(fakeAmi, nil)
 		fakeDs.CreateAmiDriverReturns(fakeCreateAmiDriver)
 
-		fakeCopyAmiDriver := &fakeResources.FakeAmiDriver{}
-		fakeCopyAmiDriver.CreateReturns(fakeCopiedAmi, nil)
-		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
-
-		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
 		amiCollection, err := p.Publish(fakeDs, fakeMachineImagePath)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -91,10 +90,16 @@ var _ = Describe("StandardRegionPublisher", func() {
 			BucketName:       fakeBucketName,
 		}))
 
+		Expect(fakeDs.CreateVolumeDriverCallCount()).To(Equal(1))
+		Expect(fakeVolumeDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeVolumeDriver.CreateArgsForCall(0)).To(Equal(resources.VolumeDriverConfig{
+			MachineImageManifestURL: fakeMachineImageURL,
+		}))
+
 		Expect(fakeDs.CreateSnapshotDriverCallCount()).To(Equal(1))
 		Expect(fakeSnapshotDriver.CreateCallCount()).To(Equal(1))
 		Expect(fakeSnapshotDriver.CreateArgsForCall(0)).To(Equal(resources.SnapshotDriverConfig{
-			MachineImageURL: fakeMachineImageURL,
+			VolumeID: fakeVolumeID,
 		}))
 
 		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1))
@@ -104,31 +109,40 @@ var _ = Describe("StandardRegionPublisher", func() {
 			AmiProperties: fakeAmiProperties,
 		}))
 
-		Expect(fakeDs.CopyAmiDriverCallCount()).To(Equal(1))
-		Expect(fakeCopyAmiDriver.CreateCallCount()).To(Equal(1))
-
-		Expect(fakeCopyAmiDriver.CreateArgsForCall(0)).To(Equal(resources.AmiDriverConfig{
-			ExistingAmiID:     fakeAmiID,
-			DestinationRegion: fakeCopyDestination,
-			AmiProperties:     fakeAmiProperties,
-		}))
-
-		Expect(amiCollection.GetAll()).To(ConsistOf(fakeAmi, fakeCopiedAmi))
+		Expect(amiCollection.GetAll()).To(ConsistOf(fakeAmi))
 		Expect(amiCollection.VirtualizationType).To(Equal(fakeAmiConfig.VirtualizationType))
 	})
 
 	It("returns a machine image driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
-
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
-
+		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in machine image driver")
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{}, driverErr)
 		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
 
-		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
+		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
+	})
+
+	It("returns a volume driver error if one was returned", func() {
+		publisherConfig := publisher.Config{}
+		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
+		driverErr := errors.New("error in volume driver")
+
+		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
+		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver.CreateReturns(resources.Volume{}, driverErr)
+		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
+
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
 		_, err := p.Publish(fakeDs, fakeMachineImagePath)
 
 		Expect(err).To(HaveOccurred())
@@ -137,23 +151,22 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 	It("returns a snapshot driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
-
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
-		fakeMachineImage := resources.MachineImage{
-			GetURL: fakeMachineImageURL,
-		}
-
+		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in ami driver")
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
-		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
+		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
 		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver.CreateReturns(resources.Volume{ID: fakeVolumeID}, nil)
+		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{}, driverErr)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
-		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
 		_, err := p.Publish(fakeDs, fakeMachineImagePath)
 
 		Expect(err).To(HaveOccurred())
@@ -162,76 +175,26 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 	It("returns a create ami driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
-
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
-		fakeMachineImage := resources.MachineImage{
-			GetURL: fakeMachineImageURL,
-		}
-		fakeSnapshot := resources.Snapshot{
-			ID: fakeSnapshotID,
-		}
-
+		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in create ami driver")
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
-		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
+		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
 		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
 
+		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver.CreateReturns(resources.Volume{ID: fakeVolumeID}, nil)
+		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
+
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
-		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
+		fakeSnapshotDriver.CreateReturns(resources.Snapshot{ID: fakeSnapshotID}, nil)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
 		fakeAmiDriver := &fakeResources.FakeAmiDriver{}
 		fakeAmiDriver.CreateReturns(resources.Ami{}, driverErr)
 		fakeDs.CreateAmiDriverReturns(fakeAmiDriver)
 
-		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
-
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
-	})
-
-	It("returns a copy ami driver error if one was returned", func() {
-		publisherConfig := publisher.Config{
-			AmiRegion: config.AmiRegion{
-				Destinations: []string{fakeCopyDestination},
-			},
-			AmiConfiguration: fakeAmiConfig,
-		}
-
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
-		fakeMachineImage := resources.MachineImage{
-			GetURL: fakeMachineImageURL,
-		}
-		fakeSnapshot := resources.Snapshot{
-			ID: fakeSnapshotID,
-		}
-
-		driverErr := errors.New("error in copy ami driver")
-
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
-		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
-
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
-		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
-		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
-
-		fakeAmi := resources.Ami{
-			ID:     fakeAmiID,
-			Region: fakeRegion,
-		}
-
-		fakeCreateAmiDriver := &fakeResources.FakeAmiDriver{}
-		fakeCreateAmiDriver.CreateReturns(fakeAmi, nil)
-		fakeDs.CreateAmiDriverReturns(fakeCreateAmiDriver)
-
-		fakeCopyAmiDriver := &fakeResources.FakeAmiDriver{}
-		fakeCopyAmiDriver.CreateReturns(resources.Ami{}, driverErr)
-		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
-
-		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
 		_, err := p.Publish(fakeDs, fakeMachineImagePath)
 
 		Expect(err).To(HaveOccurred())

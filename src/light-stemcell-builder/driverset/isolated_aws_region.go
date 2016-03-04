@@ -7,7 +7,15 @@ import (
 	"light-stemcell-builder/resources"
 )
 
-type IsolatedRegionDriverSet struct {
+//go:generate counterfeiter -o fakes/fake_isolated_region_driver_set.go . IsolatedRegionDriverSet
+type IsolatedRegionDriverSet interface {
+	CreateMachineImageDriver() resources.MachineImageDriver
+	CreateVolumeDriver() resources.VolumeDriver
+	CreateSnapshotDriver() resources.SnapshotDriver
+	CreateAmiDriver() resources.AmiDriver
+}
+
+type isolatedRegionDriverSet struct {
 	machineImageDriver *driver.SDKMachineImageManifestDriver
 	volumeDriver       *driver.SDKVolumeDriver
 	snapshotDriver     *driver.SDKSnapshotFromVolumeDriver
@@ -15,7 +23,7 @@ type IsolatedRegionDriverSet struct {
 }
 
 func NewIsolatedRegionDriverSet(logDest io.Writer, creds config.Credentials) IsolatedRegionDriverSet {
-	return IsolatedRegionDriverSet{
+	return &isolatedRegionDriverSet{
 		machineImageDriver: driver.NewMachineImageManifestDriver(logDest, creds),
 		volumeDriver:       driver.NewVolumeDriver(logDest, creds),
 		snapshotDriver:     driver.NewSnapshotFromVolumeDriver(logDest, creds),
@@ -23,18 +31,18 @@ func NewIsolatedRegionDriverSet(logDest io.Writer, creds config.Credentials) Iso
 	}
 }
 
-func (s *IsolatedRegionDriverSet) CreateMachineImageDriver() resources.MachineImageDriver {
+func (s *isolatedRegionDriverSet) CreateMachineImageDriver() resources.MachineImageDriver {
 	return s.machineImageDriver
 }
 
-func (s *IsolatedRegionDriverSet) CreateVolumeDriver() resources.VolumeDriver {
+func (s *isolatedRegionDriverSet) CreateVolumeDriver() resources.VolumeDriver {
 	return s.volumeDriver
 }
 
-func (s *IsolatedRegionDriverSet) CreateSnapshotDriver() resources.SnapshotDriver {
+func (s *isolatedRegionDriverSet) CreateSnapshotDriver() resources.SnapshotDriver {
 	return s.snapshotDriver
 }
 
-func (s *IsolatedRegionDriverSet) CreateAmiDriver() resources.AmiDriver {
+func (s *isolatedRegionDriverSet) CreateAmiDriver() resources.AmiDriver {
 	return s.createAmiDriver
 }

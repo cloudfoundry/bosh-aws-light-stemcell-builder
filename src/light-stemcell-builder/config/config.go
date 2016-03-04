@@ -37,10 +37,11 @@ type AmiConfiguration struct {
 }
 
 type AmiRegion struct {
-	RegionName   string      `json:"name"`
-	Credentials  Credentials `json:"credentials"`
-	BucketName   string      `json:"bucket_name"`
-	Destinations []string    `json:"destinations"`
+	RegionName     string      `json:"name"`
+	Credentials    Credentials `json:"credentials"`
+	BucketName     string      `json:"bucket_name"`
+	Destinations   []string    `json:"destinations"`
+	IsolatedRegion bool        `json:"-"`
 }
 
 type Credentials struct {
@@ -86,6 +87,7 @@ func NewFromReader(r io.Reader) (Config, error) {
 	for i := range c.AmiRegions {
 		region := &c.AmiRegions[i]
 		region.Credentials.Region = region.RegionName
+		region.IsolatedRegion = isolated[region.RegionName]
 	}
 
 	err = c.validate()

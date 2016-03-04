@@ -142,6 +142,14 @@ var _ = Describe("Config", func() {
 		})
 
 		Context("when China is involved", func() {
+			It("sets IsolatedRegion to true", func() {
+				c, err := parseConfig(baseJSON, func(c *config.Config) {
+					c.AmiRegions[0].RegionName = "cn-north-1"
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(c.AmiRegions[0].IsolatedRegion).To(BeTrue())
+			})
+
 			It("returns an error if a China region is specified in copy destinations", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "cn-north-1")

@@ -24,3 +24,9 @@ func (a *Ami) GetAll() []resources.Ami {
 
 	return a.amis
 }
+
+func (a *Ami) Merge(other *Ami) {
+	for _, otherAmi := range other.GetAll() {
+		a.Add(otherAmi)
+	}
+}
