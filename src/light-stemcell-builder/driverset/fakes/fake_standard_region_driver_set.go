@@ -8,10 +8,10 @@ import (
 )
 
 type FakeStandardRegionDriverSet struct {
-	CreateMachineImageDriverStub        func() resources.MachineImageDriver
-	createMachineImageDriverMutex       sync.RWMutex
-	createMachineImageDriverArgsForCall []struct{}
-	createMachineImageDriverReturns     struct {
+	MachineImageDriverStub        func() resources.MachineImageDriver
+	machineImageDriverMutex       sync.RWMutex
+	machineImageDriverArgsForCall []struct{}
+	machineImageDriverReturns     struct {
 		result1 resources.MachineImageDriver
 	}
 	CreateSnapshotDriverStub        func() resources.SnapshotDriver
@@ -34,26 +34,26 @@ type FakeStandardRegionDriverSet struct {
 	}
 }
 
-func (fake *FakeStandardRegionDriverSet) CreateMachineImageDriver() resources.MachineImageDriver {
-	fake.createMachineImageDriverMutex.Lock()
-	fake.createMachineImageDriverArgsForCall = append(fake.createMachineImageDriverArgsForCall, struct{}{})
-	fake.createMachineImageDriverMutex.Unlock()
-	if fake.CreateMachineImageDriverStub != nil {
-		return fake.CreateMachineImageDriverStub()
+func (fake *FakeStandardRegionDriverSet) MachineImageDriver() resources.MachineImageDriver {
+	fake.machineImageDriverMutex.Lock()
+	fake.machineImageDriverArgsForCall = append(fake.machineImageDriverArgsForCall, struct{}{})
+	fake.machineImageDriverMutex.Unlock()
+	if fake.MachineImageDriverStub != nil {
+		return fake.MachineImageDriverStub()
 	} else {
-		return fake.createMachineImageDriverReturns.result1
+		return fake.machineImageDriverReturns.result1
 	}
 }
 
-func (fake *FakeStandardRegionDriverSet) CreateMachineImageDriverCallCount() int {
-	fake.createMachineImageDriverMutex.RLock()
-	defer fake.createMachineImageDriverMutex.RUnlock()
-	return len(fake.createMachineImageDriverArgsForCall)
+func (fake *FakeStandardRegionDriverSet) MachineImageDriverCallCount() int {
+	fake.machineImageDriverMutex.RLock()
+	defer fake.machineImageDriverMutex.RUnlock()
+	return len(fake.machineImageDriverArgsForCall)
 }
 
-func (fake *FakeStandardRegionDriverSet) CreateMachineImageDriverReturns(result1 resources.MachineImageDriver) {
-	fake.CreateMachineImageDriverStub = nil
-	fake.createMachineImageDriverReturns = struct {
+func (fake *FakeStandardRegionDriverSet) MachineImageDriverReturns(result1 resources.MachineImageDriver) {
+	fake.MachineImageDriverStub = nil
+	fake.machineImageDriverReturns = struct {
 		result1 resources.MachineImageDriver
 	}{result1}
 }

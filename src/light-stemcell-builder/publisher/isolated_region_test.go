@@ -65,11 +65,13 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeMachineImageDriver.DeleteReturns(nil)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(fakeVolume, nil)
-		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
+		fakeVolumeDriver.DeleteReturns(nil)
+		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
@@ -83,31 +85,37 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		amiCollection, err := p.Publish(fakeDs, fakeMachineImagePath)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(fakeDs.CreateMachineImageDriverCallCount()).To(Equal(1))
-		Expect(fakeMachineImageDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.MachineImageDriverCallCount()).To(Equal(1), "Expected Driverset.MachineImageDriver to be called once")
+		Expect(fakeMachineImageDriver.CreateCallCount()).To(Equal(1), "Expected MachineImageDriver.Create to be called once")
 		Expect(fakeMachineImageDriver.CreateArgsForCall(0)).To(Equal(resources.MachineImageDriverConfig{
 			MachineImagePath: fakeMachineImagePath,
 			BucketName:       fakeBucketName,
 		}))
 
-		Expect(fakeDs.CreateVolumeDriverCallCount()).To(Equal(1))
-		Expect(fakeVolumeDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.VolumeDriverCallCount()).To(Equal(1), "Expected Driverset.VolumeDriver to be called once")
+		Expect(fakeVolumeDriver.CreateCallCount()).To(Equal(1), "Expected VolumeDriver.Create to be called once")
 		Expect(fakeVolumeDriver.CreateArgsForCall(0)).To(Equal(resources.VolumeDriverConfig{
 			MachineImageManifestURL: fakeMachineImageURL,
 		}))
 
-		Expect(fakeDs.CreateSnapshotDriverCallCount()).To(Equal(1))
-		Expect(fakeSnapshotDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.CreateSnapshotDriverCallCount()).To(Equal(1), "Expected Driverset.CreateSnapshotDriver to be called once")
+		Expect(fakeSnapshotDriver.CreateCallCount()).To(Equal(1), "Expected CreateSnapshotDriver.Create to be called once")
 		Expect(fakeSnapshotDriver.CreateArgsForCall(0)).To(Equal(resources.SnapshotDriverConfig{
 			VolumeID: fakeVolumeID,
 		}))
 
-		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1))
-		Expect(fakeCreateAmiDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1), "Expected Driverset.CreateAmiDriver to be called once")
+		Expect(fakeCreateAmiDriver.CreateCallCount()).To(Equal(1), "Expected CreateAmiDriver.Create to be called once")
 		Expect(fakeCreateAmiDriver.CreateArgsForCall(0)).To(Equal(resources.AmiDriverConfig{
 			SnapshotID:    fakeSnapshotID,
 			AmiProperties: fakeAmiProperties,
 		}))
+
+		Expect(fakeMachineImageDriver.DeleteCallCount()).To(Equal(1), "Expected MachineImageDriver.Delete to be called once")
+		Expect(fakeMachineImageDriver.DeleteArgsForCall(0)).To(Equal(fakeMachineImage))
+
+		Expect(fakeVolumeDriver.DeleteCallCount()).To(Equal(1), "Expected VolumeDriver.Delete to be called once")
+		Expect(fakeVolumeDriver.DeleteArgsForCall(0)).To(Equal(fakeVolume))
 
 		Expect(amiCollection.GetAll()).To(ConsistOf(fakeAmi))
 		Expect(amiCollection.VirtualizationType).To(Equal(fakeAmiConfig.VirtualizationType))
@@ -120,7 +128,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{}, driverErr)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
 		_, err := p.Publish(fakeDs, fakeMachineImagePath)
@@ -136,11 +144,11 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(resources.Volume{}, driverErr)
-		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
+		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
 		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
 		_, err := p.Publish(fakeDs, fakeMachineImagePath)
@@ -156,11 +164,11 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(resources.Volume{ID: fakeVolumeID}, nil)
-		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
+		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{}, driverErr)
@@ -180,11 +188,11 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(resources.Volume{ID: fakeVolumeID}, nil)
-		fakeDs.CreateVolumeDriverReturns(fakeVolumeDriver)
+		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{ID: fakeSnapshotID}, nil)

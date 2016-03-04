@@ -46,12 +46,17 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 		BucketName:       p.BucketName,
 	}
 
-	machineImageDriver := ds.CreateMachineImageDriver()
+	machineImageDriver := ds.MachineImageDriver()
 	machineImage, err := machineImageDriver.Create(machineImageDriverConfig)
-
 	if err != nil {
 		return nil, fmt.Errorf("creating machine image: %s", err)
 	}
+	defer func() {
+		err := machineImageDriver.Delete(machineImage)
+		if err != nil {
+			p.logger.Printf("Failed to delete machine image %s: %s", machineImage.GetURL, err)
+		}
+	}()
 
 	snapshotDriverConfig := resources.SnapshotDriverConfig{
 		MachineImageURL: machineImage.GetURL,
@@ -107,8 +112,6 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 	}
 
 	procGroup.Wait()
-
-	// TODO: cleanup machine images
 
 	return &amis, errCol.Error()
 }

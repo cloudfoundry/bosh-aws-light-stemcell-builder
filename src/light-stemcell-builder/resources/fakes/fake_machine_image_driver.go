@@ -16,6 +16,14 @@ type FakeMachineImageDriver struct {
 		result1 resources.MachineImage
 		result2 error
 	}
+	DeleteStub        func(resources.MachineImage) error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
+		arg1 resources.MachineImage
+	}
+	deleteReturns struct {
+		result1 error
+	}
 }
 
 func (fake *FakeMachineImageDriver) Create(arg1 resources.MachineImageDriverConfig) (resources.MachineImage, error) {
@@ -49,6 +57,38 @@ func (fake *FakeMachineImageDriver) CreateReturns(result1 resources.MachineImage
 		result1 resources.MachineImage
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeMachineImageDriver) Delete(arg1 resources.MachineImage) error {
+	fake.deleteMutex.Lock()
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+		arg1 resources.MachineImage
+	}{arg1})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub(arg1)
+	} else {
+		return fake.deleteReturns.result1
+	}
+}
+
+func (fake *FakeMachineImageDriver) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
+}
+
+func (fake *FakeMachineImageDriver) DeleteArgsForCall(i int) resources.MachineImage {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return fake.deleteArgsForCall[i].arg1
+}
+
+func (fake *FakeMachineImageDriver) DeleteReturns(result1 error) {
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
+		result1 error
+	}{result1}
 }
 
 var _ resources.MachineImageDriver = new(FakeMachineImageDriver)

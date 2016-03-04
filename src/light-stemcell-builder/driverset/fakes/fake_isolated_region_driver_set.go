@@ -8,16 +8,16 @@ import (
 )
 
 type FakeIsolatedRegionDriverSet struct {
-	CreateMachineImageDriverStub        func() resources.MachineImageDriver
-	createMachineImageDriverMutex       sync.RWMutex
-	createMachineImageDriverArgsForCall []struct{}
-	createMachineImageDriverReturns     struct {
+	MachineImageDriverStub        func() resources.MachineImageDriver
+	machineImageDriverMutex       sync.RWMutex
+	machineImageDriverArgsForCall []struct{}
+	machineImageDriverReturns     struct {
 		result1 resources.MachineImageDriver
 	}
-	CreateVolumeDriverStub        func() resources.VolumeDriver
-	createVolumeDriverMutex       sync.RWMutex
-	createVolumeDriverArgsForCall []struct{}
-	createVolumeDriverReturns     struct {
+	VolumeDriverStub        func() resources.VolumeDriver
+	volumeDriverMutex       sync.RWMutex
+	volumeDriverArgsForCall []struct{}
+	volumeDriverReturns     struct {
 		result1 resources.VolumeDriver
 	}
 	CreateSnapshotDriverStub        func() resources.SnapshotDriver
@@ -34,50 +34,50 @@ type FakeIsolatedRegionDriverSet struct {
 	}
 }
 
-func (fake *FakeIsolatedRegionDriverSet) CreateMachineImageDriver() resources.MachineImageDriver {
-	fake.createMachineImageDriverMutex.Lock()
-	fake.createMachineImageDriverArgsForCall = append(fake.createMachineImageDriverArgsForCall, struct{}{})
-	fake.createMachineImageDriverMutex.Unlock()
-	if fake.CreateMachineImageDriverStub != nil {
-		return fake.CreateMachineImageDriverStub()
+func (fake *FakeIsolatedRegionDriverSet) MachineImageDriver() resources.MachineImageDriver {
+	fake.machineImageDriverMutex.Lock()
+	fake.machineImageDriverArgsForCall = append(fake.machineImageDriverArgsForCall, struct{}{})
+	fake.machineImageDriverMutex.Unlock()
+	if fake.MachineImageDriverStub != nil {
+		return fake.MachineImageDriverStub()
 	} else {
-		return fake.createMachineImageDriverReturns.result1
+		return fake.machineImageDriverReturns.result1
 	}
 }
 
-func (fake *FakeIsolatedRegionDriverSet) CreateMachineImageDriverCallCount() int {
-	fake.createMachineImageDriverMutex.RLock()
-	defer fake.createMachineImageDriverMutex.RUnlock()
-	return len(fake.createMachineImageDriverArgsForCall)
+func (fake *FakeIsolatedRegionDriverSet) MachineImageDriverCallCount() int {
+	fake.machineImageDriverMutex.RLock()
+	defer fake.machineImageDriverMutex.RUnlock()
+	return len(fake.machineImageDriverArgsForCall)
 }
 
-func (fake *FakeIsolatedRegionDriverSet) CreateMachineImageDriverReturns(result1 resources.MachineImageDriver) {
-	fake.CreateMachineImageDriverStub = nil
-	fake.createMachineImageDriverReturns = struct {
+func (fake *FakeIsolatedRegionDriverSet) MachineImageDriverReturns(result1 resources.MachineImageDriver) {
+	fake.MachineImageDriverStub = nil
+	fake.machineImageDriverReturns = struct {
 		result1 resources.MachineImageDriver
 	}{result1}
 }
 
-func (fake *FakeIsolatedRegionDriverSet) CreateVolumeDriver() resources.VolumeDriver {
-	fake.createVolumeDriverMutex.Lock()
-	fake.createVolumeDriverArgsForCall = append(fake.createVolumeDriverArgsForCall, struct{}{})
-	fake.createVolumeDriverMutex.Unlock()
-	if fake.CreateVolumeDriverStub != nil {
-		return fake.CreateVolumeDriverStub()
+func (fake *FakeIsolatedRegionDriverSet) VolumeDriver() resources.VolumeDriver {
+	fake.volumeDriverMutex.Lock()
+	fake.volumeDriverArgsForCall = append(fake.volumeDriverArgsForCall, struct{}{})
+	fake.volumeDriverMutex.Unlock()
+	if fake.VolumeDriverStub != nil {
+		return fake.VolumeDriverStub()
 	} else {
-		return fake.createVolumeDriverReturns.result1
+		return fake.volumeDriverReturns.result1
 	}
 }
 
-func (fake *FakeIsolatedRegionDriverSet) CreateVolumeDriverCallCount() int {
-	fake.createVolumeDriverMutex.RLock()
-	defer fake.createVolumeDriverMutex.RUnlock()
-	return len(fake.createVolumeDriverArgsForCall)
+func (fake *FakeIsolatedRegionDriverSet) VolumeDriverCallCount() int {
+	fake.volumeDriverMutex.RLock()
+	defer fake.volumeDriverMutex.RUnlock()
+	return len(fake.volumeDriverArgsForCall)
 }
 
-func (fake *FakeIsolatedRegionDriverSet) CreateVolumeDriverReturns(result1 resources.VolumeDriver) {
-	fake.CreateVolumeDriverStub = nil
-	fake.createVolumeDriverReturns = struct {
+func (fake *FakeIsolatedRegionDriverSet) VolumeDriverReturns(result1 resources.VolumeDriver) {
+	fake.VolumeDriverStub = nil
+	fake.volumeDriverReturns = struct {
 		result1 resources.VolumeDriver
 	}{result1}
 }

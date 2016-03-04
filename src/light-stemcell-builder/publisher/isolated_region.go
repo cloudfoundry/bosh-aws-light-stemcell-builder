@@ -42,21 +42,35 @@ func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, 
 		BucketName:       p.BucketName,
 	}
 
-	machineImageDriver := ds.CreateMachineImageDriver()
+	machineImageDriver := ds.MachineImageDriver()
 	machineImage, err := machineImageDriver.Create(machineImageDriverConfig)
 	if err != nil {
 		return nil, fmt.Errorf("creating machine image: %s", err)
 	}
 
+	defer func() {
+		err := machineImageDriver.Delete(machineImage)
+		if err != nil {
+			p.logger.Printf("Failed to delete machine image %s: %s", machineImage.GetURL, err)
+		}
+	}()
+
 	volumeDriverConfig := resources.VolumeDriverConfig{
 		MachineImageManifestURL: machineImage.GetURL,
 	}
 
-	volumeDriver := ds.CreateVolumeDriver()
+	volumeDriver := ds.VolumeDriver()
 	volume, err := volumeDriver.Create(volumeDriverConfig)
 	if err != nil {
 		return nil, fmt.Errorf("creating volume: %s", err)
 	}
+
+	defer func() {
+		err := volumeDriver.Delete(volume)
+		if err != nil {
+			p.logger.Printf("Failed to delete volume %s: %s", volume.ID, err)
+		}
+	}()
 
 	snapshotDriverConfig := resources.SnapshotDriverConfig{
 		VolumeID: volume.ID,

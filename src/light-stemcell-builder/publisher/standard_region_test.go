@@ -66,7 +66,8 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeMachineImageDriver.DeleteReturns(nil)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
@@ -84,34 +85,37 @@ var _ = Describe("StandardRegionPublisher", func() {
 		amiCollection, err := p.Publish(fakeDs, fakeMachineImagePath)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(fakeDs.CreateMachineImageDriverCallCount()).To(Equal(1))
-		Expect(fakeMachineImageDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.MachineImageDriverCallCount()).To(Equal(1), "Expected Driverset.MachineImageDriver to be called once")
+		Expect(fakeMachineImageDriver.CreateCallCount()).To(Equal(1), "Expected MachineImageDriver.Create to be called once")
 		Expect(fakeMachineImageDriver.CreateArgsForCall(0)).To(Equal(resources.MachineImageDriverConfig{
 			MachineImagePath: fakeMachineImagePath,
 			BucketName:       fakeBucketName,
 		}))
 
-		Expect(fakeDs.CreateSnapshotDriverCallCount()).To(Equal(1))
-		Expect(fakeSnapshotDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.CreateSnapshotDriverCallCount()).To(Equal(1), "Expected Driverset.CreateSnapshotDriver to be called once")
+		Expect(fakeSnapshotDriver.CreateCallCount()).To(Equal(1), "Expected CreateSnapshotDriver.Create to be called once")
 		Expect(fakeSnapshotDriver.CreateArgsForCall(0)).To(Equal(resources.SnapshotDriverConfig{
 			MachineImageURL: fakeMachineImageURL,
 		}))
 
-		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1))
-		Expect(fakeCreateAmiDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1), "Expected Driverset.CreateAmiDriver to be called once")
+		Expect(fakeCreateAmiDriver.CreateCallCount()).To(Equal(1), "Expected CreateAmiDriver.Create to be called once")
 		Expect(fakeCreateAmiDriver.CreateArgsForCall(0)).To(Equal(resources.AmiDriverConfig{
 			SnapshotID:    fakeSnapshotID,
 			AmiProperties: fakeAmiProperties,
 		}))
 
-		Expect(fakeDs.CopyAmiDriverCallCount()).To(Equal(1))
-		Expect(fakeCopyAmiDriver.CreateCallCount()).To(Equal(1))
+		Expect(fakeDs.CopyAmiDriverCallCount()).To(Equal(1), "Expected Driverset.CopyAmiDriver to be called once")
+		Expect(fakeCopyAmiDriver.CreateCallCount()).To(Equal(1), "Expected CopyAmiDriver.Create to be called once")
 
 		Expect(fakeCopyAmiDriver.CreateArgsForCall(0)).To(Equal(resources.AmiDriverConfig{
 			ExistingAmiID:     fakeAmiID,
 			DestinationRegion: fakeCopyDestination,
 			AmiProperties:     fakeAmiProperties,
 		}))
+
+		Expect(fakeMachineImageDriver.DeleteCallCount()).To(Equal(1), "Expected MachineImageDriver.Delete to be called once")
+		Expect(fakeMachineImageDriver.DeleteArgsForCall(0)).To(Equal(fakeMachineImage))
 
 		Expect(amiCollection.GetAll()).To(ConsistOf(fakeAmi, fakeCopiedAmi))
 		Expect(amiCollection.VirtualizationType).To(Equal(fakeAmiConfig.VirtualizationType))
@@ -126,7 +130,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{}, driverErr)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
 		_, err := p.Publish(fakeDs, fakeMachineImagePath)
@@ -147,7 +151,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{}, driverErr)
@@ -175,7 +179,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
@@ -212,7 +216,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
-		fakeDs.CreateMachineImageDriverReturns(fakeMachineImageDriver)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
