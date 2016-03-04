@@ -20,18 +20,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-var _ resources.MachineImageDriver = &SDKMachineImageDriver{}
-
-// The SDKMachineImageManifestDriver uploads a machine image to S3 and creates an import volume manifest
-type SDKMachineImageManifestDriver struct {
+// The SDKCreateMachineImageManifestDriver uploads a machine image to S3 and creates an import volume manifest
+type SDKCreateMachineImageManifestDriver struct {
 	s3Client    *s3.S3
 	logger      *log.Logger
 	genManifest bool
 }
 
-// NewMachineImageManifestDriver creates a MachineImageDriver machine image manifest generation
-func NewMachineImageManifestDriver(logDest io.Writer, creds config.Credentials) *SDKMachineImageManifestDriver {
-	logger := log.New(logDest, "SDKMachineImageManifestDriver ", log.LstdFlags)
+// NewCreateMachineImageManifestDriver creates a MachineImageDriver machine image manifest generation
+func NewCreateMachineImageManifestDriver(logDest io.Writer, creds config.Credentials) *SDKCreateMachineImageManifestDriver {
+	logger := log.New(logDest, "SDKCreateMachineImageManifestDriver ", log.LstdFlags)
 
 	awsConfig := aws.NewConfig().
 		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
@@ -41,14 +39,14 @@ func NewMachineImageManifestDriver(logDest io.Writer, creds config.Credentials) 
 	s3Session := session.New(awsConfig)
 	s3Client := s3.New(s3Session)
 
-	return &SDKMachineImageManifestDriver{
+	return &SDKCreateMachineImageManifestDriver{
 		s3Client: s3Client,
 		logger:   logger,
 	}
 }
 
 // Create uploads a machine image to S3 and returns a presigned URL to an import volume manifest
-func (d *SDKMachineImageManifestDriver) Create(driverConfig resources.MachineImageDriverConfig) (resources.MachineImage, error) {
+func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.MachineImageDriverConfig) (resources.MachineImage, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
@@ -92,12 +90,22 @@ func (d *SDKMachineImageManifestDriver) Create(driverConfig resources.MachineIma
 		return resources.MachineImage{}, errors.New("size in bytes nil")
 	}
 
-	manifestURL, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr)
+	m, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr)
+	if err != nil {
+		return resources.MachineImage{}, fmt.Errorf("Failed to generate machine image manifest: %s", err)
+	}
 
-	return resources.MachineImage{GetURL: manifestURL}, nil
+	manifestURL, err := d.uploadManifest(driverConfig.BucketName, m)
+
+	machineImage := resources.MachineImage{
+		GetURL:     manifestURL,
+		DeleteURLs: []string{m.SelfDestructURL, m.Parts.Part.DeleteURL},
+	}
+
+	return machineImage, nil
 }
 
-func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyName string, sizeInBytes int64) (string, error) {
+func (d *SDKCreateMachineImageManifestDriver) generateManifest(bucketName string, keyName string, sizeInBytes int64) (*manifests.ImportVolumeManifest, error) {
 	// Generate presigned GET request
 	req, _ := d.s3Client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
@@ -106,7 +114,7 @@ func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyN
 
 	presignedGetURL, err := req.Presign(2 * time.Hour)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign request: %s", err)
+		return nil, fmt.Errorf("failed to sign request: %s", err)
 	}
 
 	d.logger.Printf("generated presigned GET URL %s\n", presignedGetURL)
@@ -119,7 +127,7 @@ func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyN
 
 	presignedHeadURL, err := req.Presign(1 * time.Hour)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign request: %s", err)
+		return nil, fmt.Errorf("failed to sign request: %s", err)
 	}
 
 	d.logger.Printf("generated presigned HEAD URL %s\n", presignedHeadURL)
@@ -132,12 +140,10 @@ func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyN
 
 	presignedDeleteURL, err := req.Presign(1 * time.Hour)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign request: %s", err)
+		return nil, fmt.Errorf("failed to sign request: %s", err)
 	}
 
 	d.logger.Printf("generated presigned DELETE URL %s\n", presignedDeleteURL)
-
-	manifestKey := fmt.Sprintf("bosh-machine-image-manifest-%d", time.Now().UnixNano())
 
 	imageProps := manifests.MachineImageProperties{
 		KeyName:   keyName,
@@ -146,6 +152,26 @@ func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyN
 		DeleteURL: presignedDeleteURL,
 		SizeBytes: sizeInBytes,
 	}
+
+	return manifests.New(imageProps), nil
+}
+
+func (d *SDKCreateMachineImageManifestDriver) uploadManifest(bucketName string, m *manifests.ImportVolumeManifest) (string, error) {
+
+	manifestKey := fmt.Sprintf("bosh-machine-image-manifest-%d", time.Now().UnixNano())
+
+	// create presigned GET request for the manifest
+	getReq, _ := d.s3Client.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(manifestKey),
+	})
+
+	manifestGetURL, err := getReq.Presign(1 * time.Hour)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign manifest GET request: %s", err)
+	}
+
+	d.logger.Printf("generated presigned manifest GET URL %s\n", manifestGetURL)
 
 	// create presigned DELETE request for the manifest
 	deleteReq, _ := d.s3Client.DeleteObjectRequest(&s3.DeleteObjectInput{
@@ -160,7 +186,7 @@ func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyN
 
 	d.logger.Printf("generated presigned manifest DELETE URL %s\n", manifestDeleteURL)
 
-	m := manifests.New(imageProps, manifestDeleteURL)
+	m.SelfDestructURL = manifestDeleteURL
 
 	manifestBytes, err := xml.Marshal(m)
 	if err != nil {
@@ -182,19 +208,6 @@ func (d *SDKMachineImageManifestDriver) generateManifest(bucketName string, keyN
 	}
 
 	d.logger.Printf("finished uploaded machine image manifest to s3 after %f seconds\n", time.Since(uploadStartTime).Seconds())
-
-	// create presigned GET request for the manifest
-	getReq, _ := d.s3Client.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(manifestKey),
-	})
-
-	manifestGetURL, err := getReq.Presign(1 * time.Hour)
-	if err != nil {
-		return "", fmt.Errorf("failed to sign manifest GET request: %s", err)
-	}
-
-	d.logger.Printf("generated presigned manifest GET URL %s\n", manifestGetURL)
 
 	return manifestGetURL, nil
 }

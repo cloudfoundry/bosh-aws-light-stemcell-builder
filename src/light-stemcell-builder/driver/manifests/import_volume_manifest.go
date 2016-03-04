@@ -61,17 +61,16 @@ type ByteRange struct {
 }
 
 // New returns an Import Volume Manifest ready for marshalling to XML
-func New(imageProperties MachineImageProperties, deleteManifestURL string) ImportVolumeManifest {
+func New(imageProperties MachineImageProperties) *ImportVolumeManifest {
 	roundedSizeGB := int64(math.Ceil(float64(imageProperties.SizeBytes) / gbInBytes))
 
-	m := ImportVolumeManifest{
+	m := &ImportVolumeManifest{
 		SizeBytes:       imageProperties.SizeBytes,
 		ImporterVersion: importerVersion,
 		ImporterRelease: importerRelease,
 		ImporterName:    importerName,
 		Version:         awsAPIVersion,
 		FileFormat:      fileFormat,
-		SelfDestructURL: deleteManifestURL,
 		VolumeSizeGB:    roundedSizeGB,
 	}
 

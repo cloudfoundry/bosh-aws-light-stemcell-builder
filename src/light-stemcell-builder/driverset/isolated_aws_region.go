@@ -9,14 +9,14 @@ import (
 
 //go:generate counterfeiter -o fakes/fake_isolated_region_driver_set.go . IsolatedRegionDriverSet
 type IsolatedRegionDriverSet interface {
-	CreateMachineImageDriver() resources.MachineImageDriver
+	MachineImageDriver() resources.MachineImageDriver
 	CreateVolumeDriver() resources.VolumeDriver
 	CreateSnapshotDriver() resources.SnapshotDriver
 	CreateAmiDriver() resources.AmiDriver
 }
 
 type isolatedRegionDriverSet struct {
-	machineImageDriver *driver.SDKMachineImageManifestDriver
+	machineImageDriver resources.MachineImageDriver
 	volumeDriver       *driver.SDKVolumeDriver
 	snapshotDriver     *driver.SDKSnapshotFromVolumeDriver
 	createAmiDriver    *driver.SDKCreateAmiDriver
@@ -24,14 +24,20 @@ type isolatedRegionDriverSet struct {
 
 func NewIsolatedRegionDriverSet(logDest io.Writer, creds config.Credentials) IsolatedRegionDriverSet {
 	return &isolatedRegionDriverSet{
-		machineImageDriver: driver.NewMachineImageManifestDriver(logDest, creds),
-		volumeDriver:       driver.NewVolumeDriver(logDest, creds),
-		snapshotDriver:     driver.NewSnapshotFromVolumeDriver(logDest, creds),
-		createAmiDriver:    driver.NewCreateAmiDriver(logDest, creds),
+		machineImageDriver: struct {
+			*driver.SDKCreateMachineImageManifestDriver
+			*driver.SDKDeleteMachineImageDriver
+		}{
+			driver.NewCreateMachineImageManifestDriver(logDest, creds),
+			driver.NewDeleteMachineImageDriver(logDest, creds),
+		},
+		volumeDriver:    driver.NewVolumeDriver(logDest, creds),
+		snapshotDriver:  driver.NewSnapshotFromVolumeDriver(logDest, creds),
+		createAmiDriver: driver.NewCreateAmiDriver(logDest, creds),
 	}
 }
 
-func (s *isolatedRegionDriverSet) CreateMachineImageDriver() resources.MachineImageDriver {
+func (s *isolatedRegionDriverSet) MachineImageDriver() resources.MachineImageDriver {
 	return s.machineImageDriver
 }
 

@@ -16,17 +16,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-var _ resources.MachineImageDriver = &SDKMachineImageDriver{}
-
-// The SDKMachineImageDriver uploads a machine image to S3 and creates a presigned URL for GET operations
-type SDKMachineImageDriver struct {
+// The SDKCreateMachineImageDriver uploads a machine image to S3 and creates a presigned URL for GET operations
+type SDKCreateMachineImageDriver struct {
 	s3Client *s3.S3
 	logger   *log.Logger
 }
 
-// NewMachineImageDriver creates a MachineImageDriver for S3 uploads
-func NewMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKMachineImageDriver {
-	logger := log.New(logDest, "SDKMachineImageDriver ", log.LstdFlags)
+// NewCreateMachineImageDriver creates a MachineImageDriver for S3 uploads
+func NewCreateMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKCreateMachineImageDriver {
+	logger := log.New(logDest, "SDKCreateMachineImageDriver ", log.LstdFlags)
 
 	awsConfig := aws.NewConfig().
 		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
@@ -36,14 +34,14 @@ func NewMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKMach
 	s3Session := session.New(awsConfig)
 	s3Client := s3.New(s3Session)
 
-	return &SDKMachineImageDriver{
+	return &SDKCreateMachineImageDriver{
 		s3Client: s3Client,
 		logger:   logger,
 	}
 }
 
 // Create uploads a machine image to S3 and returns a presigned URL
-func (d *SDKMachineImageDriver) Create(driverConfig resources.MachineImageDriverConfig) (resources.MachineImage, error) {
+func (d *SDKCreateMachineImageDriver) Create(driverConfig resources.MachineImageDriverConfig) (resources.MachineImage, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
@@ -73,17 +71,34 @@ func (d *SDKMachineImageDriver) Create(driverConfig resources.MachineImageDriver
 
 	d.logger.Printf("finished uploaded image to s3 after %f minutes\n", time.Since(uploadStartTime).Minutes())
 
-	req, _ := d.s3Client.GetObjectRequest(&s3.GetObjectInput{
+	getReq, _ := d.s3Client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(driverConfig.BucketName),
 		Key:    aws.String(keyName),
 	})
 
-	machineImageURL, err := req.Presign(2 * time.Hour)
+	machineImageGetURL, err := getReq.Presign(2 * time.Hour)
 	if err != nil {
 		return resources.MachineImage{}, fmt.Errorf("failed to sign GET request: %s", err)
 	}
 
-	d.logger.Printf("generated presigned GET URL %s\n", machineImageURL)
+	d.logger.Printf("generated presigned GET URL %s\n", machineImageGetURL)
 
-	return resources.MachineImage{GetURL: machineImageURL}, nil
+	deleteReq, _ := d.s3Client.DeleteObjectRequest(&s3.DeleteObjectInput{
+		Bucket: aws.String(driverConfig.BucketName),
+		Key:    aws.String(keyName),
+	})
+
+	machineImageDeleteURL, err := deleteReq.Presign(24 * time.Hour)
+	if err != nil {
+		return resources.MachineImage{}, fmt.Errorf("failed to sign DELETE request: %s", err)
+	}
+
+	d.logger.Printf("generated presigned GET URL %s\n", machineImageDeleteURL)
+
+	machineImage := resources.MachineImage{
+		GetURL:     machineImageGetURL,
+		DeleteURLs: []string{machineImageDeleteURL},
+	}
+
+	return machineImage, nil
 }

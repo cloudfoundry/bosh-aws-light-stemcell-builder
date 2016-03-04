@@ -42,7 +42,7 @@ var _ = Describe("VolumeDriver", func() {
 			BucketName:       bucketName,
 		}
 
-		machineImageDriver := ds.CreateMachineImageDriver()
+		machineImageDriver := ds.MachineImageDriver()
 		machineImage, err := machineImageDriver.Create(machineImageDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
