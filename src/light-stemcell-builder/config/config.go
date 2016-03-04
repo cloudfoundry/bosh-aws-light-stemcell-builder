@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"light-stemcell-builder/uuid"
+
+	"github.com/satori/go.uuid"
 )
 
 const (
@@ -69,11 +70,10 @@ func NewFromReader(r io.Reader) (Config, error) {
 	}
 
 	if c.AmiConfiguration.AmiName == "" {
-		amiName, err := uuid.New("BOSH")
 		if err != nil {
 			return Config{}, fmt.Errorf("Unable to generate amiName: %s", err.Error())
 		}
-		c.AmiConfiguration.AmiName = amiName
+		c.AmiConfiguration.AmiName = fmt.Sprintf("BOSH-%s", uuid.NewV4().String())
 	}
 
 	if c.AmiConfiguration.VirtualizationType == "" {
