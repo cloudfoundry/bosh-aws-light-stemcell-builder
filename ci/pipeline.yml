@@ -2,7 +2,9 @@
 groups:
   - name: builder
     jobs:
-      - test
+      - test-unit
+      - test-drivers
+      - test-integration
       - promote
 
   - name: publishing
@@ -19,14 +21,43 @@ groups:
       - promote
 
 jobs:
-  - name: test
+  - name: test-unit
     serial: true
     plan:
       - get: builder-src
         resource: builder-src-in
         trigger: true
       - task: test
-        file: builder-src/ci/tasks/test.yml
+        file: builder-src/ci/tasks/test-unit.yml
+
+  - name: test-drivers
+    serial: true
+    plan:
+      - get: builder-src
+        resource: builder-src-in
+        trigger: true
+      - task: test
+        file: builder-src/ci/tasks/test-drivers.yml
+        config:
+          params:
+            access_key:                 {{test__access_key}}
+            secret_key:                 {{test__secret_key}}
+            bucket_name:                {{test__bucket_name}}
+            region:                     {{test__region}}
+            copy_region:                {{test__copy_region}}
+            ami_fixture_id:             {{test__ami_fixture_id}}
+            existing_volume_id:         {{test__volume_fixture_id}}
+            existing_snapshot_id:       {{test__snapshot_fixture_id}}
+            uploaded_machine_image_url: {{test__machine_image_fixture_url}}
+
+  - name: test-integration
+    serial: true
+    plan:
+      - get: builder-src
+        resource: builder-src-in
+        trigger: true
+      - task: test
+        file: builder-src/ci/tasks/test-integration.yml
         config:
           params:
             access_key:                 {{test__access_key}}
@@ -38,16 +69,12 @@ jobs:
             cn_secret_key:              {{test__cn_secret_key}}
             cn_bucket_name:             {{test__cn_bucket_name}}
             cn_region:                  {{test__cn_region}}
-            ami_fixture_id:             {{test__ami_fixture_id}}
-            existing_volume_id:         {{test__volume_fixture_id}}
-            existing_snapshot_id:       {{test__snapshot_fixture_id}}
-            uploaded_machine_image_url: {{test__machine_image_fixture_url}}
 
   - name: promote
     plan:
       - aggregate:
         - get: builder-src
-          passed: [test]
+          passed: [test-unit, test-drivers, test-integration]
           resource: builder-src-in
           trigger: true
         - get: version-semver

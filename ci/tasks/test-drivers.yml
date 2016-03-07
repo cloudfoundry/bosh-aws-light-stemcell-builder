@@ -1,0 +1,17 @@
+---
+platform: linux
+image: docker:///boshcpi/aws-light-stemcell-builder
+inputs:
+- name: builder-src
+run:
+  path: builder-src/ci/tasks/test-drivers.sh
+params:
+  access_key:                 ""
+  secret_key:                 ""
+  bucket_name:                ""
+  region:                     ""
+  copy_region:                ""
+  ami_fixture_id:             ""
+  existing_volume_id:         ""
+  existing_snapshot_id:       ""
+  uploaded_machine_image_url: ""
