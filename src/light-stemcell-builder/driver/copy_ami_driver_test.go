@@ -37,8 +37,8 @@ var _ = Describe("CopyAmiDriver", func() {
 		Expect(dstRegion).ToNot(BeEmpty(), "AWS_DESTINATION_REGION must be set")
 		Expect(dstRegion).ToNot(Equal(region), "AWS_REGION and AWS_DESTINATION_REGION should be different")
 
-		existingAmiID := os.Getenv("AWS_AMI_FIXTURE_ID")
-		Expect(existingAmiID).ToNot(BeEmpty(), "AWS_AMI_FIXTURE_ID must be set")
+		existingAmiID := os.Getenv("AMI_FIXTURE_ID")
+		Expect(existingAmiID).ToNot(BeEmpty(), "AMI_FIXTURE_ID must be set")
 
 		amiDriverConfig := resources.AmiDriverConfig{}
 		amiUniqueID := strings.ToUpper(uuid.NewV4().String())
