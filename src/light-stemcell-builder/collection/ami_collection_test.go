@@ -31,8 +31,8 @@ var _ = Describe("Ami", func() {
 	})
 
 	It("merges another collection into itself", func() {
-		collectionA := collection.Ami{}
-		collectionB := collection.Ami{}
+		collectionA := &collection.Ami{}
+		collectionB := &collection.Ami{}
 
 		fakeAmis := []resources.Ami{
 			resources.Ami{

@@ -15,8 +15,14 @@ var _ = Describe("IsolatedAwsRegion", func() {
 		creds := config.Credentials{}
 		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 
-		Expect(ds.CreateMachineImageDriver()).To(BeAssignableToTypeOf(&driver.SDKMachineImageManifestDriver{}))
-		Expect(ds.CreateVolumeDriver()).To(BeAssignableToTypeOf(&driver.SDKVolumeDriver{}))
+		Expect(ds.MachineImageDriver()).To(BeAssignableToTypeOf(struct {
+			*driver.SDKCreateMachineImageManifestDriver
+			*driver.SDKDeleteMachineImageDriver
+		}{}))
+		Expect(ds.VolumeDriver()).To(BeAssignableToTypeOf(struct {
+			*driver.SDKCreateVolumeDriver
+			*driver.SDKDeleteVolumeDriver
+		}{}))
 		Expect(ds.CreateSnapshotDriver()).To(BeAssignableToTypeOf(&driver.SDKSnapshotFromVolumeDriver{}))
 		Expect(ds.CreateAmiDriver()).To(BeAssignableToTypeOf(&driver.SDKCreateAmiDriver{}))
 	})
