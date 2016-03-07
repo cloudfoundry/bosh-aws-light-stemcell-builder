@@ -54,12 +54,13 @@ echo "Downloading machine image"
 wget -O ${tmp_dir}/root.img ${uploaded_machine_image_url}
 export LOCAL_DISK_IMAGE_PATH=${tmp_dir}/root.img
 
-echo "Running integration tests"
+echo "Running all tests"
 
 pushd ${release_dir} > /dev/null
   . .envrc
   # TODO: re-enable errcheck (need to resolve errors found when `go get`ing)
   # go get github.com/kisielk/errcheck
   # errcheck light-stemcell-builder/...
-  go test -v -timeout 1h30m light-stemcell-builder/...
+
+  ginkgo -p -r src/light-stemcell-builder/
 popd

@@ -13,4 +13,8 @@ RUN cd /tmp && \
     tar -C /usr/local -xzf go*.tar.gz && \
     rm go*.tar.gz
 
-ENV PATH /usr/local/go/bin:$PATH
+ENV GOPATH /opt/go
+
+ENV PATH /usr/local/go/bin:/opt/go/bin:$PATH
+
+RUN mkdir /opt/go && go get github.com/onsi/ginkgo/ginkgo
