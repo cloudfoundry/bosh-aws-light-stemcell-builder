@@ -4,18 +4,4 @@ image: docker:///boshcpi/aws-light-stemcell-builder
 inputs:
 - name: builder-src
 run:
-  path: builder-src/ci/tasks/test.sh
-params:
-  access_key:                 ""
-  secret_key:                 ""
-  bucket_name:                ""
-  region:                     ""
-  copy_region:                ""
-  cn_access_key:              ""
-  cn_secret_key:              ""
-  cn_bucket_name:             ""
-  cn_region:                  ""
-  ami_fixture_id:             ""
-  existing_volume_id:         ""
-  existing_snapshot_id:       ""
-  uploaded_machine_image_url: ""
+  path: builder-src/ci/tasks/test-unit.sh
