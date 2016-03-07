@@ -36,7 +36,7 @@ echo "Downloading machine image"
 export MACHINE_IMAGE_PATH=${tmp_dir}/image.iso
 wget -O ${MACHINE_IMAGE_PATH} http://tinycorelinux.net/7.x/x86_64/release/TinyCorePure64-7.0.iso
 
-echo "Running all tests"
+echo "Running driver tests"
 
 pushd ${release_dir} > /dev/null
   . .envrc
