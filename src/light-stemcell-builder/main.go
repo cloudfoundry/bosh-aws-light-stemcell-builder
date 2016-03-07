@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"light-stemcell-builder/collection"
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
@@ -74,12 +76,12 @@ func main() {
 		logger.Fatalf("manifest not found at: %s", *manifestPath)
 	}
 
-	f, err := os.Open(*manifestPath)
+	manifestBytes, err := ioutil.ReadFile(*manifestPath)
 	if err != nil {
 		logger.Fatalf("opening manifest: %s", err)
 	}
 
-	m, err := manifest.NewFromReader(f)
+	m, err := manifest.NewFromReader(bytes.NewReader(manifestBytes))
 	if err != nil {
 		logger.Fatalf("reading manifest: %s", err)
 	}
@@ -134,7 +136,10 @@ func main() {
 	}
 
 	m.PublishedAmis = amiCollection.GetAll()
-	m.Write(os.Stdout)
+	err = m.Write(os.Stdout)
+	if err != nil {
+		logger.Fatalf("writing manifest: %s", err)
+	}
 	logger.Println("Publishing finished successfully")
 }
 

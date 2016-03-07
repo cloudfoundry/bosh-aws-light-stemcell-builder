@@ -1,39 +1,31 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex -o pipefail
 
-source builder-src/ci/tasks/utils.sh
+my_dir="$( cd $(dirname $0) && pwd )"
+release_dir="$( cd ${my_dir} && cd ../.. && pwd )"
 
-check_param ami_description
-check_param ami_virtualization_type
-check_param ami_visibility
-check_param us_ami_region
-check_param us_ami_access_key
-check_param us_ami_secret_key
-check_param us_ami_bucket_name
-check_param us_ami_destinations
-check_param cn_ami_region
-check_param cn_ami_access_key
-check_param cn_ami_secret_key
-check_param cn_ami_bucket_name
+source ${release_dir}/ci/tasks/utils.sh
 
-# export AWS_ACCESS_KEY_ID=$access_key
-# export AWS_SECRET_ACCESS_KEY=$secret_key
+: ${ami_description:?}
+: ${ami_virtualization_type:?}
+: ${ami_visibility:?}
+: ${us_ami_region:?}
+: ${us_ami_access_key:?}
+: ${us_ami_secret_key:?}
+: ${us_ami_bucket_name:?}
+: ${us_ami_destinations:?}
+: ${cn_ami_region:?}
+: ${cn_ami_access_key:?}
+: ${cn_ami_secret_key:?}
+: ${cn_ami_bucket_name:?}
 
-echo "Checking Java configuration"
-$JAVA_HOME/bin/java -version
-
-echo "Checking EC2 CLI has been properly installed"
-which ec2-describe-regions
-ec2-describe-regions -O $us_ami_access_key -W $us_ami_secret_key --region $us_ami_region
-# ec2-describe-regions -O $cn_ami_access_key -W $cn_ami_secret_key --region $cn_ami_region
-
-stemcell_path=$(echo $PWD/input-stemcell/*.tgz)
-output_path=$PWD/light-stemcell/
+stemcell_path=${PWD}/input-stemcell/*.tgz
+output_path=${PWD}/light-stemcell/
 
 echo "Building light stemcell"
 
-export CONFIG_PATH=$PWD/config.json
+export CONFIG_PATH=${PWD}/config.json
 
 cat > $CONFIG_PATH << EOF
 {
@@ -67,7 +59,34 @@ EOF
 echo "Configuration:"
 cat $CONFIG_PATH
 
-pushd builder-src > /dev/null
+extracted_stemcell_dir=${PWD}/extracted-stemcell
+mkdir -p ${extracted_stemcell_dir}
+tar -C ${extracted_stemcell_dir} -xf ${stemcell_path}
+tar -xf ${extracted_stemcell_dir}/image
+
+original_stemcell_name="$(basename ${stemcell_path})"
+light_stemcell_name="light-${original_stemcell_name}"
+
+if [ "${ami_virtualization_type}" = "hvm" ]; then
+  light_stemcell_name="${light_stemcell_name/xen/xen-hvm}"
+fi
+
+stemcell_image=${PWD}/root.img
+stemcell_manifest=${extracted_stemcell_dir}/stemcell.MF
+
+pushd ${release_dir} > /dev/null
   . .envrc
-  go run src/light-stemcell-builder/main.go -c $CONFIG_PATH -i $stemcell_path -o $output_path
+  # Make sure we've closed the manifest file before writing to it
+  go run src/light-stemcell-builder/main.go \
+    -c $CONFIG_PATH \
+    --image ${stemcell_image} \
+      --manifest ${stemcell_manifest} \
+    | tee tmp-manifest
+
+  mv tmp-manifest ${stemcell_manifest}
+
 popd
+
+> ${extracted_stemcell_dir}/image
+tar -C ${extracted_stemcell_dir} -czf ${output_path}/${light_stemcell_name} .
+tar -tf ${output_path}/${light_stemcell_name}
