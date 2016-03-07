@@ -19,12 +19,18 @@ trap '{ rm -rf ${tmpdir}; }' EXIT
 : ${existing_snapshot_id:?must be set}
 : ${uploaded_machine_image_url:?must be set}
 
+# US Regions
 export AWS_ACCESS_KEY_ID=$access_key
 export AWS_SECRET_ACCESS_KEY=$secret_key
-
 export AWS_BUCKET_NAME=$bucket_name
 export AWS_REGION=$region
 export AWS_DESTINATION_REGION=${copy_region}
+
+# China Region
+export AWS_CN_ACCESS_KEY_ID=$access_key
+export AWS_CN_SECRET_ACCESS_KEY=$secret_key
+export AWS_CN_BUCKET_NAME=$bucket_name
+export AWS_CN_REGION=$region
 
 # Fixtures
 export S3_MACHINE_IMAGE_URL=${uploaded_machine_image_url}
@@ -32,10 +38,9 @@ export EBS_VOLUME_ID=${existing_volume_id}
 export EBS_SNAPSHOT_ID=${existing_snapshot_id}
 export AMI_FIXTURE_ID=${ami_fixture_id}
 
-export MACHINE_IMAGE_PATH=${tmp_dir}/root.img
-
 echo "Downloading machine image"
-wget -O ${MACHINE_IMAGE_PATH} ${uploaded_machine_image_url}
+export MACHINE_IMAGE_PATH=${tmp_dir}/image.iso
+wget -O ${MACHINE_IMAGE_PATH} http://tinycorelinux.net/7.x/x86_64/release/TinyCorePure64-7.0.iso
 
 echo "Running all tests"
 
