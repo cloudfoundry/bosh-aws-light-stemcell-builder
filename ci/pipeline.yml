@@ -33,11 +33,15 @@ jobs:
             secret_key:                 {{test__secret_key}}
             bucket_name:                {{test__bucket_name}}
             region:                     {{test__region}}
-            ami_fixture_id:             {{test__ami_fixture_id}}
             copy_region:                {{test__copy_region}}
+            cn_access_key:              {{test__cn_access_key}}
+            cn_secret_key:              {{test__cn_secret_key}}
+            cn_bucket_name:             {{test__cn_bucket_name}}
+            cn_region:                  {{test__cn_region}}
+            ami_fixture_id:             {{test__ami_fixture_id}}
             existing_volume_id:         {{test__volume_fixture_id}}
             existing_snapshot_id:       {{test__snapshot_fixture_id}}
-            uploaded_machine_image_url: {{test_machine_image_fixture_url}}
+            uploaded_machine_image_url: {{test__machine_image_fixture_url}}
 
   - name: promote
     plan:
