@@ -76,6 +76,9 @@ var _ = Describe("CreateAmiDriver", func() {
 		})
 		Expect(err).ToNot(HaveOccurred())
 
+		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		Expect(err).ToNot(HaveOccurred())
+
 		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
 		Expect(err).ToNot(HaveOccurred())
 
@@ -147,6 +150,9 @@ var _ = Describe("CreateAmiDriver", func() {
 				},
 			},
 		})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
