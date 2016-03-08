@@ -11,6 +11,10 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -18,6 +22,7 @@ import (
 
 var _ = Describe("Main", func() {
 
+	var cfg config.Config
 	var configPath string
 	var manifestPath string
 	var machineImagePath string
@@ -59,7 +64,7 @@ var _ = Describe("Main", func() {
 		cnBucket := os.Getenv("AWS_CN_BUCKET_NAME")
 		Expect(cnBucket).ToNot(BeEmpty(), "AWS_CN_BUCKET_NAME must be set")
 
-		c := config.Config{
+		cfg = config.Config{
 			AmiConfiguration: config.AmiConfiguration{
 				Description:        "Integration Test AMI",
 				VirtualizationType: "hvm",
@@ -88,7 +93,7 @@ var _ = Describe("Main", func() {
 
 		expectedRegions = append(usDestinations, usRegion, cnRegion)
 
-		integrationConfig, err := json.Marshal(c)
+		integrationConfig, err := json.Marshal(cfg)
 		Expect(err).ToNot(HaveOccurred())
 
 		configFile, err := ioutil.TempFile("", "integration-config.json")
@@ -146,13 +151,13 @@ cloud_properties:
 			fmt.Sprintf("--manifest=%s", manifestPath),
 		)
 
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		gexecSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())
 
-		session.Wait(30 * time.Minute)
-		Expect(session.ExitCode()).To(BeZero())
+		gexecSession.Wait(30 * time.Minute)
+		Expect(gexecSession.ExitCode()).To(BeZero())
 
-		stdout := bytes.NewReader(session.Out.Contents())
+		stdout := bytes.NewReader(gexecSession.Out.Contents())
 		m, err := manifest.NewFromReader(stdout)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -168,6 +173,41 @@ cloud_properties:
 		for _, region := range expectedRegions {
 			Expect(amis).To(HaveKey(region))
 			Expect(amis[region]).ToNot(BeEmpty())
+		}
+
+		usCreds := credentials.NewStaticCredentials(cfg.AmiRegions[0].Credentials.AccessKey, cfg.AmiRegions[0].Credentials.SecretKey, "")
+		cnCreds := credentials.NewStaticCredentials(cfg.AmiRegions[1].Credentials.AccessKey, cfg.AmiRegions[1].Credentials.SecretKey, "")
+
+		for region, amiID := range amis {
+
+			var awsConfig *aws.Config
+			if region == "cn-north-1" {
+				awsConfig = aws.NewConfig().
+					WithCredentials(cnCreds).
+					WithRegion(region)
+			} else {
+				awsConfig = aws.NewConfig().
+					WithCredentials(usCreds).
+					WithRegion(region)
+			}
+
+			ec2Client := ec2.New(session.New(), awsConfig)
+
+			reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(amiID)}})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(reqOutput.Images).To(HaveLen(1))
+			snapshotID := reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId
+			Expect(snapshotID).ToNot(BeNil())
+
+			_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(amiID)})
+			if err != nil {
+				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deregistering image %s in %s: %s", amiID, region, err)))
+			}
+			_, err = ec2Client.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: snapshotID})
+			if err != nil {
+				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deleting snapshot %s in %s: %s", *snapshotID, region, err)))
+			}
 		}
 	})
 })
