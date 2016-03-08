@@ -44,5 +44,7 @@ pushd ${release_dir} > /dev/null
   # go get github.com/kisielk/errcheck
   # errcheck light-stemcell-builder/...
 
-  ginkgo -p -r src/light-stemcell-builder/driver
+  # Run all driver specs in parallel to reduce test time
+  spec_count="$(grep "It(" -r src/light-stemcell-builder/driver | wc -l)"
+  ginkgo -nodes ${spec_count} -r src/light-stemcell-builder/driver
 popd
