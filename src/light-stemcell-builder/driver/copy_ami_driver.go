@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -61,9 +62,9 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	}
 
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
-	err = ec2Client.WaitUntilImageAvailable(&ec2.DescribeImagesInput{
+	err = d.waitUntilImageAvailable(&ec2.DescribeImagesInput{
 		ImageIds: []*string{amiIDptr},
-	})
+	}, ec2Client)
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("waiting for AMI: %s to be available", *amiIDptr)
 	}
@@ -83,4 +84,33 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	}
 
 	return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
+}
+
+func (d *SDKCopyAmiDriver) waitUntilImageAvailable(input *ec2.DescribeImagesInput, c *ec2.EC2) error {
+	waiterCfg := waiter.Config{
+		Operation:   "DescribeImages",
+		Delay:       15,
+		MaxAttempts: 60,
+		Acceptors: []waiter.WaitAcceptor{
+			{
+				State:    "success",
+				Matcher:  "pathAll",
+				Argument: "Images[].State",
+				Expected: "available",
+			},
+			{
+				State:    "failure",
+				Matcher:  "pathAny",
+				Argument: "Images[].State",
+				Expected: "failed",
+			},
+		},
+	}
+
+	w := waiter.Waiter{
+		Client: c,
+		Input:  input,
+		Config: waiterCfg,
+	}
+	return w.Wait()
 }
