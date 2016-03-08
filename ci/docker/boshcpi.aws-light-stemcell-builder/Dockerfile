@@ -7,6 +7,7 @@ ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
 RUN apt-get install -y git tar curl wget make unzip; apt-get clean
+RUN apt-get install -y qemu-utils; apt-get clean
 
 RUN cd /tmp && \
     curl -O -L https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz && \

@@ -71,7 +71,10 @@ if [ "${ami_virtualization_type}" = "hvm" ]; then
   light_stemcell_name="${light_stemcell_name/xen/xen-hvm}"
 fi
 
-stemcell_image=${PWD}/root.img
+# convert raw format to smaller stream optimized format to reduce upload time
+raw_stemcell_image=${PWD}/root.img
+optimized_stemcell_image=${PWD}/tiny.vmdk
+qemu-img convert -O vmdk -o subformat=streamOptimized ${raw_stemcell_image} ${optimized_stemcell_image}
 stemcell_manifest=${extracted_stemcell_dir}/stemcell.MF
 
 pushd ${release_dir} > /dev/null
@@ -79,8 +82,9 @@ pushd ${release_dir} > /dev/null
   # Make sure we've closed the manifest file before writing to it
   go run src/light-stemcell-builder/main.go \
     -c $CONFIG_PATH \
-    --image ${stemcell_image} \
-      --manifest ${stemcell_manifest} \
+    --image ${optimized_stemcell_image} \
+    --format vmdk \
+    --manifest ${stemcell_manifest} \
     | tee tmp-manifest
 
   mv tmp-manifest ${stemcell_manifest}
