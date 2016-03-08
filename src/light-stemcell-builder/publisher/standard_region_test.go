@@ -47,6 +47,10 @@ var _ = Describe("StandardRegionPublisher", func() {
 			},
 			AmiConfiguration: fakeAmiConfig,
 		}
+		machineImageConfig := publisher.MachineImageConfig{
+			LocalPath:  fakeMachineImagePath,
+			FileFormat: resources.VolumeRawFormat,
+		}
 
 		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
@@ -82,13 +86,14 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
 
 		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
-		amiCollection, err := p.Publish(fakeDs, fakeMachineImagePath)
+		amiCollection, err := p.Publish(fakeDs, machineImageConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(fakeDs.MachineImageDriverCallCount()).To(Equal(1), "Expected Driverset.MachineImageDriver to be called once")
 		Expect(fakeMachineImageDriver.CreateCallCount()).To(Equal(1), "Expected MachineImageDriver.Create to be called once")
 		Expect(fakeMachineImageDriver.CreateArgsForCall(0)).To(Equal(resources.MachineImageDriverConfig{
 			MachineImagePath: fakeMachineImagePath,
+			FileFormat:       resources.VolumeRawFormat,
 			BucketName:       fakeBucketName,
 		}))
 
@@ -96,6 +101,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		Expect(fakeSnapshotDriver.CreateCallCount()).To(Equal(1), "Expected CreateSnapshotDriver.Create to be called once")
 		Expect(fakeSnapshotDriver.CreateArgsForCall(0)).To(Equal(resources.SnapshotDriverConfig{
 			MachineImageURL: fakeMachineImageURL,
+			FileFormat:      resources.VolumeRawFormat,
 		}))
 
 		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1), "Expected Driverset.CreateAmiDriver to be called once")
@@ -123,6 +129,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 	It("returns a machine image driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
 
 		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 
@@ -133,7 +140,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
@@ -141,6 +148,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 	It("returns a snapshot driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
 
 		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
@@ -158,7 +166,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
 		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
@@ -166,6 +174,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 	It("returns a create ami driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
 
 		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
@@ -190,7 +199,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeDs.CreateAmiDriverReturns(fakeAmiDriver)
 
 		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
@@ -203,6 +212,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 			},
 			AmiConfiguration: fakeAmiConfig,
 		}
+		machineImageConfig := publisher.MachineImageConfig{}
 
 		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
@@ -236,7 +246,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
 
 		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))

@@ -31,15 +31,16 @@ func NewIsolatedRegionPublisher(logDest io.Writer, c Config) *IsolatedRegionPubl
 	}
 }
 
-func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, machineImagePath string) (*collection.Ami, error) {
+func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, machineImageConfig MachineImageConfig) (*collection.Ami, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
 		p.logger.Printf("completed Publish() in %f minutes\n", time.Since(startTime).Minutes())
 	}(createStartTime)
 
 	machineImageDriverConfig := resources.MachineImageDriverConfig{
-		MachineImagePath: machineImagePath,
+		MachineImagePath: machineImageConfig.LocalPath,
 		BucketName:       p.BucketName,
+		FileFormat:       machineImageConfig.FileFormat,
 	}
 
 	machineImageDriver := ds.MachineImageDriver()

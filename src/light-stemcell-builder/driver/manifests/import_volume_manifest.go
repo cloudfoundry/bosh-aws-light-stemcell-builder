@@ -9,7 +9,6 @@ const (
 	importerName    = "aws-light-stemcell-builder"
 	importerVersion = "0.1.0"
 	importerRelease = "beta"
-	fileFormat      = "RAW"
 	awsAPIVersion   = "2010-11-15"
 )
 
@@ -17,11 +16,12 @@ const gbInBytes = 1 << 30
 
 // MachineImageProperties contains information needed by AWS to download a machine image from S3
 type MachineImageProperties struct {
-	KeyName   string
-	HeadURL   string
-	GetURL    string
-	DeleteURL string
-	SizeBytes int64
+	KeyName    string
+	HeadURL    string
+	GetURL     string
+	DeleteURL  string
+	SizeBytes  int64
+	FileFormat string
 }
 
 // ImportVolumeManifest will produce an Import Volume Manifest when marshalled to XML
@@ -70,7 +70,7 @@ func New(imageProperties MachineImageProperties) *ImportVolumeManifest {
 		ImporterRelease: importerRelease,
 		ImporterName:    importerName,
 		Version:         awsAPIVersion,
-		FileFormat:      fileFormat,
+		FileFormat:      imageProperties.FileFormat,
 		VolumeSizeGB:    roundedSizeGB,
 	}
 

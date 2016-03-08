@@ -14,4 +14,5 @@ type MachineImage struct {
 type MachineImageDriverConfig struct {
 	MachineImagePath string
 	BucketName       string
+	FileFormat       string
 }

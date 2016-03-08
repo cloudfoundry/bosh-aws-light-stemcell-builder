@@ -44,6 +44,10 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 			},
 			AmiConfiguration: fakeAmiConfig,
 		}
+		machineImageConfig := publisher.MachineImageConfig{
+			LocalPath:  fakeMachineImagePath,
+			FileFormat: resources.VolumeRawFormat,
+		}
 
 		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
@@ -82,7 +86,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		fakeDs.CreateAmiDriverReturns(fakeCreateAmiDriver)
 
 		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
-		amiCollection, err := p.Publish(fakeDs, fakeMachineImagePath)
+		amiCollection, err := p.Publish(fakeDs, machineImageConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(fakeDs.MachineImageDriverCallCount()).To(Equal(1), "Expected Driverset.MachineImageDriver to be called once")
@@ -90,6 +94,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		Expect(fakeMachineImageDriver.CreateArgsForCall(0)).To(Equal(resources.MachineImageDriverConfig{
 			MachineImagePath: fakeMachineImagePath,
 			BucketName:       fakeBucketName,
+			FileFormat:       machineImageConfig.FileFormat,
 		}))
 
 		Expect(fakeDs.VolumeDriverCallCount()).To(Equal(1), "Expected Driverset.VolumeDriver to be called once")
@@ -123,6 +128,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 	It("returns a machine image driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
 		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in machine image driver")
 
@@ -131,7 +137,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
 		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
@@ -139,6 +145,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 	It("returns a volume driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
 		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in volume driver")
 
@@ -151,7 +158,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
 		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
@@ -159,6 +166,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 	It("returns a snapshot driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
 		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in ami driver")
 
@@ -175,7 +183,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
 		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
@@ -183,6 +191,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 
 	It("returns a create ami driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
 		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in create ami driver")
 
@@ -203,7 +212,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		fakeDs.CreateAmiDriverReturns(fakeAmiDriver)
 
 		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
-		_, err := p.Publish(fakeDs, fakeMachineImagePath)
+		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))

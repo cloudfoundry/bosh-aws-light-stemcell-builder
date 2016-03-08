@@ -95,7 +95,7 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 		return resources.MachineImage{}, errors.New("size in bytes nil")
 	}
 
-	m, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr)
+	m, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr, driverConfig.FileFormat)
 	if err != nil {
 		return resources.MachineImage{}, fmt.Errorf("Failed to generate machine image manifest: %s", err)
 	}
@@ -110,7 +110,7 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 	return machineImage, nil
 }
 
-func (d *SDKCreateMachineImageManifestDriver) generateManifest(bucketName string, keyName string, sizeInBytes int64) (*manifests.ImportVolumeManifest, error) {
+func (d *SDKCreateMachineImageManifestDriver) generateManifest(bucketName string, keyName string, sizeInBytes int64, fileFormat string) (*manifests.ImportVolumeManifest, error) {
 	// Generate presigned GET request
 	req, _ := d.s3Client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
@@ -151,11 +151,12 @@ func (d *SDKCreateMachineImageManifestDriver) generateManifest(bucketName string
 	d.logger.Printf("generated presigned DELETE URL %s\n", presignedDeleteURL)
 
 	imageProps := manifests.MachineImageProperties{
-		KeyName:   keyName,
-		HeadURL:   presignedHeadURL,
-		GetURL:    presignedGetURL,
-		DeleteURL: presignedDeleteURL,
-		SizeBytes: sizeInBytes,
+		KeyName:    keyName,
+		HeadURL:    presignedHeadURL,
+		GetURL:     presignedGetURL,
+		DeleteURL:  presignedDeleteURL,
+		SizeBytes:  sizeInBytes,
+		FileFormat: fileFormat,
 	}
 
 	return manifests.New(imageProps), nil

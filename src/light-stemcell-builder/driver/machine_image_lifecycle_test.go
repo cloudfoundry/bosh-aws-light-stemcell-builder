@@ -17,9 +17,10 @@ import (
 var _ = Describe("Machine Image Lifecycle", func() {
 
 	var (
-		creds      config.Credentials
-		imagePath  string
-		bucketName string
+		creds       config.Credentials
+		imagePath   string
+		imageFormat string
+		bucketName  string
 	)
 
 	BeforeEach(func() {
@@ -41,6 +42,9 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		imagePath = os.Getenv("MACHINE_IMAGE_PATH")
 		Expect(imagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
 
+		imageFormat = os.Getenv("MACHINE_IMAGE_FORMAT")
+		Expect(imageFormat).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
+
 		bucketName = os.Getenv("AWS_BUCKET_NAME")
 		Expect(bucketName).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 	})
@@ -48,6 +52,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
 		driverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: imagePath,
+			FileFormat:       imageFormat,
 			BucketName:       bucketName,
 		}
 
@@ -75,6 +80,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	It("uploads a machine image w/manifest to S3 with pre-signed URLs for GET and DELETE", func() {
 		driverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: imagePath,
+			FileFormat:       imageFormat,
 			BucketName:       bucketName,
 		}
 

@@ -26,6 +26,7 @@ var _ = Describe("Main", func() {
 	var configPath string
 	var manifestPath string
 	var machineImagePath string
+	var machineImageFormat string
 	var expectedRegions []string
 
 	BeforeEach(func() {
@@ -50,6 +51,9 @@ var _ = Describe("Main", func() {
 
 		machineImagePath = os.Getenv("MACHINE_IMAGE_PATH")
 		Expect(machineImagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
+
+		machineImageFormat = os.Getenv("MACHINE_IMAGE_FORMAT")
+		Expect(machineImageFormat).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
 
 		// China Region
 		cnAccessKey := os.Getenv("AWS_CN_ACCESS_KEY_ID")
@@ -145,11 +149,14 @@ cloud_properties:
 		defer gexec.CleanupBuildArtifacts()
 		Expect(err).ToNot(HaveOccurred())
 
-		command := exec.Command(pathToBinary,
-			fmt.Sprintf("-c=%s", configPath),
+		args := []string{fmt.Sprintf("-c=%s", configPath),
 			fmt.Sprintf("--image=%s", machineImagePath),
 			fmt.Sprintf("--manifest=%s", manifestPath),
-		)
+		}
+		if machineImageFormat != "RAW" {
+			args = append(args, fmt.Sprintf("--format=%s", machineImageFormat))
+		}
+		command := exec.Command(pathToBinary, args...)
 
 		gexecSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())

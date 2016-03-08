@@ -34,7 +34,7 @@ func NewStandardRegionPublisher(logDest io.Writer, c Config) *StandardRegionPubl
 	}
 }
 
-func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, machineImagePath string) (*collection.Ami, error) {
+func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, machineImageConfig MachineImageConfig) (*collection.Ami, error) {
 
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
@@ -42,7 +42,8 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 	}(createStartTime)
 
 	machineImageDriverConfig := resources.MachineImageDriverConfig{
-		MachineImagePath: machineImagePath,
+		MachineImagePath: machineImageConfig.LocalPath,
+		FileFormat:       machineImageConfig.FileFormat,
 		BucketName:       p.BucketName,
 	}
 
@@ -60,6 +61,7 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 
 	snapshotDriverConfig := resources.SnapshotDriverConfig{
 		MachineImageURL: machineImage.GetURL,
+		FileFormat:      machineImageConfig.FileFormat,
 	}
 
 	snapshotDriver := ds.CreateSnapshotDriver()

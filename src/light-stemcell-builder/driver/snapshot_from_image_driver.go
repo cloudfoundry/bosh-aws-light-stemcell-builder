@@ -46,7 +46,7 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	reqOutput, err := d.ec2Client.ImportSnapshot(&ec2.ImportSnapshotInput{
 		DiskContainer: &ec2.SnapshotDiskContainer{
 			Url:    &driverConfig.MachineImageURL,
-			Format: aws.String(resources.VolumeFormat),
+			Format: aws.String(driverConfig.FileFormat),
 		},
 	})
 	if err != nil {

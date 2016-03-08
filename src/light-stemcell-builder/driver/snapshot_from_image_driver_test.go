@@ -33,8 +33,12 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 		imagePath := os.Getenv("S3_MACHINE_IMAGE_URL")
 		Expect(imagePath).ToNot(BeEmpty(), "S3_MACHINE_IMAGE_URL must be set")
 
+		imageFormat := os.Getenv("S3_MACHINE_IMAGE_FORMAT")
+		Expect(imageFormat).ToNot(BeEmpty(), "S3_MACHINE_IMAGE_FORMAT must be set")
+
 		driverConfig := resources.SnapshotDriverConfig{
 			MachineImageURL: imagePath,
+			FileFormat:      imageFormat,
 		}
 
 		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)

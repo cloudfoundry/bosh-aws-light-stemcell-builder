@@ -1,11 +1,5 @@
 package resources
 
-// Volume properties which we do not expect to change
-const (
-	VolumeFormat       = "RAW"
-	VolumeArchitecture = "x86_64"
-)
-
 // SnapshotDriver abstracts the creation of a snapshot in AWS
 //go:generate counterfeiter -o fakes/fake_snapshot_driver.go . SnapshotDriver
 type SnapshotDriver interface {
@@ -19,6 +13,8 @@ type Snapshot struct {
 
 // SnapshotDriverConfig contains information used to create a snapshot from either an EBS volume or machine image
 type SnapshotDriverConfig struct {
-	VolumeID        string
+	VolumeID string
+
 	MachineImageURL string
+	FileFormat      string
 }

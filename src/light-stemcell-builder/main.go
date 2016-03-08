@@ -32,6 +32,7 @@ func main() {
 
 	configPath := flag.String("c", "", "Path to the JSON configuration file")
 	machineImagePath := flag.String("image", "", "Path to the input machine image (root.img)")
+	machineImageFormat := flag.String("format", "RAW", "Format of the input machine image (RAW or vmdk). Defaults to RAW.")
 	manifestPath := flag.String("manifest", "", "Path to the input stemcell.MF")
 
 	flag.Parse()
@@ -92,6 +93,11 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(len(c.AmiRegions))
 
+	imageConfig := publisher.MachineImageConfig{
+		LocalPath:  *machineImagePath,
+		FileFormat: *machineImageFormat,
+	}
+
 	for i := range c.AmiRegions {
 		go func(regionConfig config.AmiRegion) {
 			defer wg.Done()
@@ -104,7 +110,7 @@ func main() {
 					AmiConfiguration: c.AmiConfiguration,
 				})
 
-				amis, err := p.Publish(ds, *machineImagePath)
+				amis, err := p.Publish(ds, imageConfig)
 				if err != nil {
 					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
 				} else {
@@ -117,7 +123,7 @@ func main() {
 					AmiConfiguration: c.AmiConfiguration,
 				})
 
-				amis, err := p.Publish(ds, *machineImagePath)
+				amis, err := p.Publish(ds, imageConfig)
 				if err != nil {
 					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
 				} else {
