@@ -34,12 +34,16 @@ var _ = Describe("Volume Driver Lifecycle", func() {
 		machineImagePath := os.Getenv("MACHINE_IMAGE_PATH")
 		Expect(machineImagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
 
+		machineImageFormat := os.Getenv("MACHINE_IMAGE_FORMAT")
+		Expect(machineImageFormat).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
+
 		bucketName := os.Getenv("AWS_BUCKET_NAME")
 		Expect(bucketName).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 
 		createMachineImageDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, creds)
 		machineImageDriverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: machineImagePath,
+			FileFormat:       machineImageFormat,
 			BucketName:       bucketName,
 		}
 
