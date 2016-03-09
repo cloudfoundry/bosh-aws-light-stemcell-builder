@@ -9,6 +9,8 @@ groups:
 
   - name: publishing
     jobs:
+      - convert-centos-stemcell
+      - convert-ubuntu-stemcell
       - publish-centos-hvm
       - publish-centos-pv
       - publish-ubuntu-hvm
