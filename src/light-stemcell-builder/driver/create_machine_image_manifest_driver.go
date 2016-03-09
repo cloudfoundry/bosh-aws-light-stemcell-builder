@@ -105,7 +105,7 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 		volumeSizeGB = int64(math.Ceil(float64(*sizeInBytesPtr) / gbInBytes))
 	}
 
-	m, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr, driverConfig.VolumeSizeGB, driverConfig.FileFormat)
+	m, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr, volumeSizeGB, driverConfig.FileFormat)
 	if err != nil {
 		return resources.MachineImage{}, fmt.Errorf("Failed to generate machine image manifest: %s", err)
 	}
