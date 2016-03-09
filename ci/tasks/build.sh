@@ -71,21 +71,28 @@ if [ "${ami_virtualization_type}" = "hvm" ]; then
   light_stemcell_name="${light_stemcell_name/xen/xen-hvm}"
 fi
 
-# convert raw format to smaller stream optimized format to reduce upload time
-raw_stemcell_image=${PWD}/root.img
-raw_stemcell_volume_size_in_gb=$(BLOCKSIZE=1G du ${raw_stemcell_image} | cut -f 1)
-optimized_stemcell_image=${PWD}/tiny.vmdk
-qemu-img convert -O vmdk -o subformat=streamOptimized ${raw_stemcell_image} ${optimized_stemcell_image}
+# image format can be raw or stream optimized vmdk
+stemcell_image="$(echo ${PWD}/root.*)"
 stemcell_manifest=${extracted_stemcell_dir}/stemcell.MF
+manifest_contents="$(cat ${stemcell_manifest})"
+
+disk_regex="disk: ([0-9]+)"
+format_regex="disk_format: ([a-z]+)"
+
+[[ "${manifest_contents}" =~ ${disk_regex} ]]
+disk_size_gb=$(mb_to_gb "${BASH_REMATCH[1]}")
+
+[[ "${manifest_contents}" =~ ${format_regex} ]]
+disk_format="${BASH_REMATCH[1]}"
 
 pushd ${release_dir} > /dev/null
   . .envrc
   # Make sure we've closed the manifest file before writing to it
   go run src/light-stemcell-builder/main.go \
     -c $CONFIG_PATH \
-    --image ${optimized_stemcell_image} \
-    --format vmdk \
-    --volume-size ${raw_stemcell_volume_size_in_gb} \
+    --image ${stemcell_image} \
+    --format ${disk_format} \
+    --volume-size ${disk_size_gb} \
     --manifest ${stemcell_manifest} \
     | tee tmp-manifest
 
