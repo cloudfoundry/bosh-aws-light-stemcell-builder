@@ -13,7 +13,7 @@ stemcell_name="$(basename ${stemcell_path})"
 
 extracted_stemcell_dir=${PWD}/extracted-stemcell
 mkdir -p ${extracted_stemcell_dir}
-tar -xf ${stemcell_path} -C ${extracted_stemcell_dir}
+time tar -xf ${stemcell_path} -C ${extracted_stemcell_dir}
 
 sed -i'' -e 's/disk_format: raw/disk_format: vmdk/g' ${extracted_stemcell_dir}/stemcell.MF
 
@@ -23,14 +23,14 @@ pushd ${extracted_stemcell_dir}
   optimized_stemcell_image=root.vmdk
   compressed_stemcell_image=image
 
-  tar -xf ${compressed_stemcell_image}
-  qemu-img convert -O vmdk -o subformat=streamOptimized ${raw_stemcell_image} ${optimized_stemcell_image}
+  time tar -xf ${compressed_stemcell_image}
+  time qemu-img convert -p -O vmdk -o subformat=streamOptimized ${raw_stemcell_image} ${optimized_stemcell_image}
 
   rm ${raw_stemcell_image}
-  tar -cf ${compressed_stemcell_image} ${optimized_stemcell_image}
+  time tar -cf ${compressed_stemcell_image} ${optimized_stemcell_image}
   rm ${optimized_stemcell_image}
 
-  tar -cf ${output_stemcell_dir}/${stemcell_name} .
+  time tar -cf ${output_stemcell_dir}/${stemcell_name} .
 popd
 
 tar -tf ${output_stemcell_dir}/${stemcell_name}
