@@ -10,6 +10,7 @@ import (
 	"light-stemcell-builder/driver/manifests"
 	"light-stemcell-builder/resources"
 	"log"
+	"math"
 	"os"
 	"time"
 
@@ -19,6 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
+
+const gbInBytes = 1 << 30
 
 // The SDKCreateMachineImageManifestDriver uploads a machine image to S3 and creates an import volume manifest
 type SDKCreateMachineImageManifestDriver struct {
@@ -94,6 +97,12 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 	sizeInBytesPtr := headReqOutput.ContentLength
 	if sizeInBytesPtr == nil {
 		return resources.MachineImage{}, errors.New("size in bytes nil")
+	}
+
+	volumeSizeGB := driverConfig.VolumeSizeGB
+	if volumeSizeGB == 0 {
+		// default to size of image if VolumeSize is not provided
+		volumeSizeGB = int64(math.Ceil(float64(*sizeInBytesPtr) / gbInBytes))
 	}
 
 	m, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr, driverConfig.VolumeSizeGB, driverConfig.FileFormat)

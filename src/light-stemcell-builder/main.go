@@ -11,6 +11,7 @@ import (
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/manifest"
 	"light-stemcell-builder/publisher"
+	"light-stemcell-builder/resources"
 	"log"
 	"os"
 	"sync"
@@ -32,7 +33,7 @@ func main() {
 
 	configPath := flag.String("c", "", "Path to the JSON configuration file")
 	machineImagePath := flag.String("image", "", "Path to the input machine image (root.img)")
-	machineImageFormat := flag.String("format", "RAW", "Format of the input machine image (RAW or vmdk). Defaults to RAW.")
+	machineImageFormat := flag.String("format", resources.VolumeRawFormat, "Format of the input machine image (RAW or vmdk). Defaults to RAW.")
 	imageVolumeSize := flag.Int("volume-size", 0, "Block device size (in GB) of the input machine image")
 	manifestPath := flag.String("manifest", "", "Path to the input stemcell.MF")
 
@@ -49,8 +50,8 @@ func main() {
 		usage("--manifest flag is required")
 	}
 
-	if *imageVolumeSize == 0 {
-		usage("--volume-size flag is required")
+	if *imageVolumeSize == 0 && *machineImageFormat != resources.VolumeRawFormat {
+		usage("--volume-size flag is required for formats other than RAW")
 	}
 
 	configFile, err := os.Open(*configPath)

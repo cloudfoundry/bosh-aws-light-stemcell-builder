@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/manifest"
+	"light-stemcell-builder/resources"
 	"os"
 	"os/exec"
 	"time"
@@ -27,6 +28,7 @@ var _ = Describe("Main", func() {
 	var manifestPath string
 	var machineImagePath string
 	var machineImageFormat string
+	var machineImageSize string
 	var expectedRegions []string
 
 	BeforeEach(func() {
@@ -54,6 +56,11 @@ var _ = Describe("Main", func() {
 
 		machineImageFormat = os.Getenv("MACHINE_IMAGE_FORMAT")
 		Expect(machineImageFormat).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
+
+		machineImageSize = os.Getenv("MACHINE_IMAGE_VOLUME_SIZE")
+		if machineImageFormat != resources.VolumeRawFormat {
+			Expect(machineImageSize).ToNot(BeEmpty(), "MACHINE_IMAGE_VOLUME_SIZE must be set")
+		}
 
 		// China Region
 		cnAccessKey := os.Getenv("AWS_CN_ACCESS_KEY_ID")
@@ -152,10 +159,12 @@ cloud_properties:
 		args := []string{fmt.Sprintf("-c=%s", configPath),
 			fmt.Sprintf("--image=%s", machineImagePath),
 			fmt.Sprintf("--manifest=%s", manifestPath),
-			fmt.Sprintf("--volume-size=%d", 1),
 		}
 		if machineImageFormat != "RAW" {
-			args = append(args, fmt.Sprintf("--format=%s", machineImageFormat))
+			args = append(args,
+				fmt.Sprintf("--format=%s", machineImageFormat),
+				fmt.Sprintf("--volume-size=%s", machineImageSize),
+			)
 		}
 		command := exec.Command(pathToBinary, args...)
 
