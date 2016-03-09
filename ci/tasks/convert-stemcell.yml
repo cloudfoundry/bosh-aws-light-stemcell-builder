@@ -1,0 +1,10 @@
+---
+platform: linux
+image: docker:///boshcpi/aws-light-stemcell-builder
+inputs:
+- name: builder-src
+- name: input-stemcell
+outputs:
+- name: converted-stemcell
+run:
+  path: builder-src/ci/tasks/convert-stemcell.sh
