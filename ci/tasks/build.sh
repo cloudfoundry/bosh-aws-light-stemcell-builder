@@ -100,6 +100,9 @@ pushd ${release_dir} > /dev/null
 
 popd
 
-> ${extracted_stemcell_dir}/image
-tar -C ${extracted_stemcell_dir} -czf ${output_path}/${light_stemcell_name} .
+pushd ${extracted_stemcell_dir}
+  > image
+  # the bosh cli sees the stemcell as invalid if tar contents have leading ./
+  tar -czf ${output_path}/${light_stemcell_name} *
+popd
 tar -tf ${output_path}/${light_stemcell_name}
