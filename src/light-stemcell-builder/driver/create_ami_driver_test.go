@@ -5,6 +5,7 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
+	"log"
 	"os"
 	"strings"
 
@@ -18,6 +19,9 @@ import (
 
 var _ = Describe("CreateAmiDriver", func() {
 	It("creates a bootable HVM AMI from an existing snapshot", func() {
+
+		logger := log.New(GinkgoWriter, "CreateAmiDriver - Bootable HVM Test: ", log.LstdFlags)
+
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
@@ -76,19 +80,26 @@ var _ = Describe("CreateAmiDriver", func() {
 		})
 		Expect(err).ToNot(HaveOccurred())
 
-		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		instanceID := instanceReservation.Instances[0].InstanceId
+		logger.Printf("Created VM with instance ID: %s", *instanceID)
+
+		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
 		Expect(err).ToNot(HaveOccurred())
 
-		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
 		Expect(err).ToNot(HaveOccurred())
 
-		err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceID}})
+		if err != nil {
+			logger.Printf("Encountered error waiting for VM to boot, retrying once: %s", err)
+			err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceID}})
+			Expect(err).ToNot(HaveOccurred())
+		}
+
+		_, err = ec2Client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: []*string{instanceID}}) // Ignore TerminateInstancesOutput
 		Expect(err).ToNot(HaveOccurred())
 
-		_, err = ec2Client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}}) // Ignore TerminateInstancesOutput
-		Expect(err).ToNot(HaveOccurred())
-
-		err = ec2Client.WaitUntilInstanceTerminated(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		err = ec2Client.WaitUntilInstanceTerminated(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
 		Expect(err).ToNot(HaveOccurred())
 
 		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &ami.ID}) // Ignore DeregisterImageOutput
@@ -96,6 +107,9 @@ var _ = Describe("CreateAmiDriver", func() {
 	})
 
 	It("creates a bootable PV AMI from an existing snapshot", func() {
+
+		logger := log.New(GinkgoWriter, "CreateAmiDriver - Bootable PV Test: ", log.LstdFlags)
+
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
@@ -152,19 +166,26 @@ var _ = Describe("CreateAmiDriver", func() {
 		})
 		Expect(err).ToNot(HaveOccurred())
 
-		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		instanceID := instanceReservation.Instances[0].InstanceId
+		logger.Printf("Created VM with instance ID: %s", *instanceID)
+
+		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
 		Expect(err).ToNot(HaveOccurred())
 
-		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
 		Expect(err).ToNot(HaveOccurred())
 
-		err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceID}})
+		if err != nil {
+			logger.Printf("Encountered error waiting for VM to boot, retrying once: %s", err)
+			err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceID}})
+			Expect(err).ToNot(HaveOccurred())
+		}
+
+		_, err = ec2Client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: []*string{instanceID}}) // Ignore TerminateInstancesOutput
 		Expect(err).ToNot(HaveOccurred())
 
-		_, err = ec2Client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}}) // Ignore TerminateInstancesOutput
-		Expect(err).ToNot(HaveOccurred())
-
-		err = ec2Client.WaitUntilInstanceTerminated(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceReservation.Instances[0].InstanceId}})
+		err = ec2Client.WaitUntilInstanceTerminated(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
 		Expect(err).ToNot(HaveOccurred())
 
 		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &ami.ID}) // Ignore DeregisterImageOutput
