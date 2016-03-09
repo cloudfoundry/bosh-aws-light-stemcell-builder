@@ -109,7 +109,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 		Expect(m.FileFormat).To(Equal(imageFormat))
-		Expect(m.VolumeSizeGB).To(Equal(3))
+		Expect(m.VolumeSizeGB).To(Equal(int64(3)))
 
 		deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
 

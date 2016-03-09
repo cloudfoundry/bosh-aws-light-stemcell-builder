@@ -45,6 +45,7 @@ var _ = Describe("Volume Driver Lifecycle", func() {
 			MachineImagePath: machineImagePath,
 			FileFormat:       machineImageFormat,
 			BucketName:       bucketName,
+			VolumeSizeGB:     3,
 		}
 
 		machineImage, err := createMachineImageDriver.Create(machineImageDriverConfig)
