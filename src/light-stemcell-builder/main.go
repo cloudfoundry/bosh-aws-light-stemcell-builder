@@ -33,6 +33,7 @@ func main() {
 	configPath := flag.String("c", "", "Path to the JSON configuration file")
 	machineImagePath := flag.String("image", "", "Path to the input machine image (root.img)")
 	machineImageFormat := flag.String("format", "RAW", "Format of the input machine image (RAW or vmdk). Defaults to RAW.")
+	imageVolumeSize := flag.Int("volume-size", 0, "Block device size (in GB) of the input machine image")
 	manifestPath := flag.String("manifest", "", "Path to the input stemcell.MF")
 
 	flag.Parse()
@@ -46,6 +47,10 @@ func main() {
 
 	if *manifestPath == "" {
 		usage("--manifest flag is required")
+	}
+
+	if *imageVolumeSize == 0 {
+		usage("--volume-size flag is required")
 	}
 
 	configFile, err := os.Open(*configPath)
@@ -94,8 +99,9 @@ func main() {
 	wg.Add(len(c.AmiRegions))
 
 	imageConfig := publisher.MachineImageConfig{
-		LocalPath:  *machineImagePath,
-		FileFormat: *machineImageFormat,
+		LocalPath:    *machineImagePath,
+		FileFormat:   *machineImageFormat,
+		VolumeSizeGB: int64(*imageVolumeSize),
 	}
 
 	for i := range c.AmiRegions {

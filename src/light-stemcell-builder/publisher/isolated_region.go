@@ -41,6 +41,7 @@ func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, 
 		MachineImagePath: machineImageConfig.LocalPath,
 		BucketName:       p.BucketName,
 		FileFormat:       machineImageConfig.FileFormat,
+		VolumeSizeGB:     machineImageConfig.VolumeSizeGB,
 	}
 
 	machineImageDriver := ds.MachineImageDriver()

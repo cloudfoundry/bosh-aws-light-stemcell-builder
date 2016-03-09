@@ -52,7 +52,6 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
 		driverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: imagePath,
-			FileFormat:       imageFormat,
 			BucketName:       bucketName,
 		}
 
@@ -82,6 +81,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			MachineImagePath: imagePath,
 			FileFormat:       imageFormat,
 			BucketName:       bucketName,
+			VolumeSizeGB:     3,
 		}
 
 		createDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, creds)
@@ -107,6 +107,9 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		defer resp.Body.Close()
 
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+		Expect(m.FileFormat).To(Equal(imageFormat))
+		Expect(m.VolumeSizeGB).To(Equal(3))
 
 		deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
 

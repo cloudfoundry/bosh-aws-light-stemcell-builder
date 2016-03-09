@@ -8,6 +8,7 @@ type Config struct {
 }
 
 type MachineImageConfig struct {
-	LocalPath  string
-	FileFormat string
+	LocalPath    string
+	FileFormat   string
+	VolumeSizeGB int64
 }

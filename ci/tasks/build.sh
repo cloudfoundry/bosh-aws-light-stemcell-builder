@@ -73,6 +73,7 @@ fi
 
 # convert raw format to smaller stream optimized format to reduce upload time
 raw_stemcell_image=${PWD}/root.img
+raw_stemcell_volume_size_in_gb=$(du --apparent-size --block-size=1G raw_stemcell_image | cut -f 1)
 optimized_stemcell_image=${PWD}/tiny.vmdk
 qemu-img convert -O vmdk -o subformat=streamOptimized ${raw_stemcell_image} ${optimized_stemcell_image}
 stemcell_manifest=${extracted_stemcell_dir}/stemcell.MF
@@ -84,6 +85,7 @@ pushd ${release_dir} > /dev/null
     -c $CONFIG_PATH \
     --image ${optimized_stemcell_image} \
     --format vmdk \
+    --volume-size ${raw_stemcell_volume_size_in_gb} \
     --manifest ${stemcell_manifest} \
     | tee tmp-manifest
 

@@ -21,6 +21,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		fakeBucketName       = "fake bucket name"
 		fakeRegion           = "fake region"
 		fakeMachineImagePath = "fake machine image path"
+		fakeVolumeSizeGB     = 3
 	)
 
 	var fakeAmiConfig = config.AmiConfiguration{
@@ -45,8 +46,9 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 			AmiConfiguration: fakeAmiConfig,
 		}
 		machineImageConfig := publisher.MachineImageConfig{
-			LocalPath:  fakeMachineImagePath,
-			FileFormat: resources.VolumeRawFormat,
+			LocalPath:    fakeMachineImagePath,
+			FileFormat:   resources.VolumeRawFormat,
+			VolumeSizeGB: fakeVolumeSizeGB,
 		}
 
 		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
@@ -95,6 +97,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 			MachineImagePath: fakeMachineImagePath,
 			BucketName:       fakeBucketName,
 			FileFormat:       machineImageConfig.FileFormat,
+			VolumeSizeGB:     fakeVolumeSizeGB,
 		}))
 
 		Expect(fakeDs.VolumeDriverCallCount()).To(Equal(1), "Expected Driverset.VolumeDriver to be called once")

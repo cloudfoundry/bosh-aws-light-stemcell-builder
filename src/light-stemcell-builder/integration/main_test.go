@@ -152,6 +152,7 @@ cloud_properties:
 		args := []string{fmt.Sprintf("-c=%s", configPath),
 			fmt.Sprintf("--image=%s", machineImagePath),
 			fmt.Sprintf("--manifest=%s", manifestPath),
+			fmt.Sprintf("--volume-size=%d", 1),
 		}
 		if machineImageFormat != "RAW" {
 			args = append(args, fmt.Sprintf("--format=%s", machineImageFormat))

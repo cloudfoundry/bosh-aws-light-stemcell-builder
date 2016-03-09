@@ -15,4 +15,5 @@ type MachineImageDriverConfig struct {
 	MachineImagePath string
 	BucketName       string
 	FileFormat       string
+	VolumeSizeGB     int64
 }

@@ -1,9 +1,6 @@
 package manifests
 
-import (
-	"encoding/xml"
-	"math"
-)
+import "encoding/xml"
 
 const (
 	importerName    = "aws-light-stemcell-builder"
@@ -12,16 +9,15 @@ const (
 	awsAPIVersion   = "2010-11-15"
 )
 
-const gbInBytes = 1 << 30
-
 // MachineImageProperties contains information needed by AWS to download a machine image from S3
 type MachineImageProperties struct {
-	KeyName    string
-	HeadURL    string
-	GetURL     string
-	DeleteURL  string
-	SizeBytes  int64
-	FileFormat string
+	KeyName      string
+	HeadURL      string
+	GetURL       string
+	DeleteURL    string
+	SizeBytes    int64
+	VolumeSizeGB int64
+	FileFormat   string
 }
 
 // ImportVolumeManifest will produce an Import Volume Manifest when marshalled to XML
@@ -62,8 +58,6 @@ type ByteRange struct {
 
 // New returns an Import Volume Manifest ready for marshalling to XML
 func New(imageProperties MachineImageProperties) *ImportVolumeManifest {
-	roundedSizeGB := int64(math.Ceil(float64(imageProperties.SizeBytes) / gbInBytes))
-
 	m := &ImportVolumeManifest{
 		SizeBytes:       imageProperties.SizeBytes,
 		ImporterVersion: importerVersion,
@@ -71,7 +65,7 @@ func New(imageProperties MachineImageProperties) *ImportVolumeManifest {
 		ImporterName:    importerName,
 		Version:         awsAPIVersion,
 		FileFormat:      imageProperties.FileFormat,
-		VolumeSizeGB:    roundedSizeGB,
+		VolumeSizeGB:    imageProperties.VolumeSizeGB,
 	}
 
 	m.Parts.Count = 1
