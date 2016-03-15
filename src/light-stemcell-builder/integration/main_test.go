@@ -41,13 +41,13 @@ var _ = Describe("Main", func() {
 		Expect(usSecretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
 
 		usRegion := os.Getenv("AWS_REGION")
-		Expect(usRegion).ToNot(BeEmpty(), "US_AMI_REGION must be set")
+		Expect(usRegion).ToNot(BeEmpty(), "AWS_REGION must be set")
 
 		usDestination := os.Getenv("AWS_DESTINATION_REGION")
 		Expect(usDestination).ToNot(BeEmpty(), "AWS_DESTINATION_REGION must be set")
 
 		usBucket := os.Getenv("AWS_BUCKET_NAME")
-		Expect(usBucket).ToNot(BeEmpty(), "US_AMI_BUCKET_NAME must be set")
+		Expect(usBucket).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 
 		usDestinations := []string{usDestination}
 
