@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -83,11 +84,11 @@ var _ = Describe("CreateAmiDriver", func() {
 		instanceID := instanceReservation.Instances[0].InstanceId
 		logger.Printf("Created VM with instance ID: %s", *instanceID)
 
-		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
-		Expect(err).ToNot(HaveOccurred())
+		Eventually(func() error {
+			// there is a bug in the Instance Waiters where the status InvalidInstanceID.NotFound is not properly handled
+			// retry waiting in an Eventually block to work around this problem
+			return ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
+		}, 15*time.Minute, 10*time.Second).Should(BeNil())
 
 		err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceID}})
 		if err != nil {
@@ -169,11 +170,11 @@ var _ = Describe("CreateAmiDriver", func() {
 		instanceID := instanceReservation.Instances[0].InstanceId
 		logger.Printf("Created VM with instance ID: %s", *instanceID)
 
-		err = ec2Client.WaitUntilInstanceExists(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
-		Expect(err).ToNot(HaveOccurred())
+		Eventually(func() error {
+			// there is a bug in the Instance Waiters where the status InvalidInstanceID.NotFound is not properly handled
+			// retry waiting in an Eventually block to work around this problem
+			return ec2Client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput{InstanceIds: []*string{instanceID}})
+		}, 15*time.Minute, 10*time.Second).Should(BeNil())
 
 		err = ec2Client.WaitUntilInstanceStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{instanceID}})
 		if err != nil {
