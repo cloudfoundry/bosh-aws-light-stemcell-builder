@@ -68,7 +68,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(*reqOutput.Images[0].Public).To(BeTrue())
 
 		instanceReservation, err := ec2Client.RunInstances(&ec2.RunInstancesInput{
-			ImageId:      &ami.ID,
+			ImageId:      aws.String(ami.ID),
 			InstanceType: aws.String(ec2.InstanceTypeM3Medium),
 			MinCount:     aws.Int64(1),
 			MaxCount:     aws.Int64(1),
@@ -145,7 +145,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
-		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{&ami.ID}})
+		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(ami.ID)}})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Images)).To(Equal(1))
@@ -154,7 +154,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(*reqOutput.Images[0].Public).To(BeTrue())
 
 		instanceReservation, err := ec2Client.RunInstances(&ec2.RunInstancesInput{
-			ImageId:      &ami.ID,
+			ImageId:      aws.String(ami.ID),
 			InstanceType: aws.String(ec2.InstanceTypeM3Medium),
 			MinCount:     aws.Int64(1),
 			MaxCount:     aws.Int64(1),
