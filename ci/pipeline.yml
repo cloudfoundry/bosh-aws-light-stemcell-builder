@@ -40,17 +40,16 @@ jobs:
         trigger: true
       - task: test
         file: builder-src/ci/tasks/test-drivers.yml
-        config:
-          params:
-            access_key:                 {{test__access_key}}
-            secret_key:                 {{test__secret_key}}
-            bucket_name:                {{test__bucket_name}}
-            region:                     {{test__region}}
-            copy_region:                {{test__copy_region}}
-            ami_fixture_id:             {{test__ami_fixture_id}}
-            existing_volume_id:         {{test__volume_fixture_id}}
-            existing_snapshot_id:       {{test__snapshot_fixture_id}}
-            uploaded_machine_image_url: {{test__machine_image_fixture_url}}
+        params:
+          access_key:                 {{test__access_key}}
+          secret_key:                 {{test__secret_key}}
+          bucket_name:                {{test__bucket_name}}
+          region:                     {{test__region}}
+          copy_region:                {{test__copy_region}}
+          ami_fixture_id:             {{test__ami_fixture_id}}
+          existing_volume_id:         {{test__volume_fixture_id}}
+          existing_snapshot_id:       {{test__snapshot_fixture_id}}
+          uploaded_machine_image_url: {{test__machine_image_fixture_url}}
 
   - name: test-integration
     serial: true
@@ -60,17 +59,16 @@ jobs:
         trigger: true
       - task: test
         file: builder-src/ci/tasks/test-integration.yml
-        config:
-          params:
-            access_key:                 {{test__access_key}}
-            secret_key:                 {{test__secret_key}}
-            bucket_name:                {{test__bucket_name}}
-            region:                     {{test__region}}
-            copy_region:                {{test__copy_region}}
-            cn_access_key:              {{test__cn_access_key}}
-            cn_secret_key:              {{test__cn_secret_key}}
-            cn_bucket_name:             {{test__cn_bucket_name}}
-            cn_region:                  {{test__cn_region}}
+        params:
+          access_key:                 {{test__access_key}}
+          secret_key:                 {{test__secret_key}}
+          bucket_name:                {{test__bucket_name}}
+          region:                     {{test__region}}
+          copy_region:                {{test__copy_region}}
+          cn_access_key:              {{test__cn_access_key}}
+          cn_secret_key:              {{test__cn_secret_key}}
+          cn_bucket_name:             {{test__cn_bucket_name}}
+          cn_region:                  {{test__cn_region}}
 
   - name: promote
     plan:
@@ -130,20 +128,20 @@ jobs:
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
-        config:
-          params:
-            ami_description: {{publish__ami_description}}
-            ami_virtualization_type: hvm
-            ami_visibility: {{publish__ami_visibility}}
-            us_ami_region: {{publish__us_region}}
-            us_ami_access_key: {{publish__us_access_key}}
-            us_ami_secret_key: {{publish__us_secret_key}}
-            us_ami_bucket_name: {{publish__us_bucket}}
-            us_ami_destinations: {{publish__us_destinations}}
-            cn_ami_region: {{publish__cn_region}}
-            cn_ami_access_key: {{publish__cn_access_key}}
-            cn_ami_secret_key: {{publish__cn_secret_key}}
-            cn_ami_bucket_name: {{publish__cn_bucket}}
+        params:
+          ami_description: {{publish__ami_description}}
+          ami_virtualization_type: hvm
+          ami_visibility: {{publish__ami_visibility}}
+          us_ami_region: {{publish__us_region}}
+          us_ami_access_key: {{publish__us_access_key}}
+          us_ami_secret_key: {{publish__us_secret_key}}
+          us_ami_bucket_name: {{publish__us_bucket}}
+          us_ami_destinations: {{publish__us_destinations}}
+          cn_ami_region: {{publish__cn_region}}
+          cn_ami_access_key: {{publish__cn_access_key}}
+          cn_ami_secret_key: {{publish__cn_secret_key}}
+          cn_ami_bucket_name: {{publish__cn_bucket}}
+
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -160,20 +158,20 @@ jobs:
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
-        config:
-          params:
-            ami_description: {{publish__ami_description}}
-            ami_virtualization_type: paravirtual
-            ami_visibility: {{publish__ami_visibility}}
-            us_ami_region: {{publish__us_region}}
-            us_ami_access_key: {{publish__us_access_key}}
-            us_ami_secret_key: {{publish__us_secret_key}}
-            us_ami_bucket_name: {{publish__us_bucket}}
-            us_ami_destinations: {{publish__us_destinations}}
-            cn_ami_region: {{publish__cn_region}}
-            cn_ami_access_key: {{publish__cn_access_key}}
-            cn_ami_secret_key: {{publish__cn_secret_key}}
-            cn_ami_bucket_name: {{publish__cn_bucket}}
+        params:
+          ami_description: {{publish__ami_description}}
+          ami_virtualization_type: paravirtual
+          ami_visibility: {{publish__ami_visibility}}
+          us_ami_region: {{publish__us_region}}
+          us_ami_access_key: {{publish__us_access_key}}
+          us_ami_secret_key: {{publish__us_secret_key}}
+          us_ami_bucket_name: {{publish__us_bucket}}
+          us_ami_destinations: {{publish__us_destinations}}
+          cn_ami_region: {{publish__cn_region}}
+          cn_ami_access_key: {{publish__cn_access_key}}
+          cn_ami_secret_key: {{publish__cn_secret_key}}
+          cn_ami_bucket_name: {{publish__cn_bucket}}
+
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -190,20 +188,20 @@ jobs:
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
-        config:
-          params:
-            ami_description: {{publish__ami_description}}
-            ami_virtualization_type: hvm
-            ami_visibility: {{publish__ami_visibility}}
-            us_ami_region: {{publish__us_region}}
-            us_ami_access_key: {{publish__us_access_key}}
-            us_ami_secret_key: {{publish__us_secret_key}}
-            us_ami_bucket_name: {{publish__us_bucket}}
-            us_ami_destinations: {{publish__us_destinations}}
-            cn_ami_region: {{publish__cn_region}}
-            cn_ami_access_key: {{publish__cn_access_key}}
-            cn_ami_secret_key: {{publish__cn_secret_key}}
-            cn_ami_bucket_name: {{publish__cn_bucket}}
+        params:
+          ami_description: {{publish__ami_description}}
+          ami_virtualization_type: hvm
+          ami_visibility: {{publish__ami_visibility}}
+          us_ami_region: {{publish__us_region}}
+          us_ami_access_key: {{publish__us_access_key}}
+          us_ami_secret_key: {{publish__us_secret_key}}
+          us_ami_bucket_name: {{publish__us_bucket}}
+          us_ami_destinations: {{publish__us_destinations}}
+          cn_ami_region: {{publish__cn_region}}
+          cn_ami_access_key: {{publish__cn_access_key}}
+          cn_ami_secret_key: {{publish__cn_secret_key}}
+          cn_ami_bucket_name: {{publish__cn_bucket}}
+
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
@@ -220,20 +218,20 @@ jobs:
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
-        config:
-          params:
-            ami_description: {{publish__ami_description}}
-            ami_virtualization_type: paravirtual
-            ami_visibility: {{publish__ami_visibility}}
-            us_ami_region: {{publish__us_region}}
-            us_ami_access_key: {{publish__us_access_key}}
-            us_ami_secret_key: {{publish__us_secret_key}}
-            us_ami_bucket_name: {{publish__us_bucket}}
-            us_ami_destinations: {{publish__us_destinations}}
-            cn_ami_region: {{publish__cn_region}}
-            cn_ami_access_key: {{publish__cn_access_key}}
-            cn_ami_secret_key: {{publish__cn_secret_key}}
-            cn_ami_bucket_name: {{publish__cn_bucket}}
+        params:
+          ami_description: {{publish__ami_description}}
+          ami_virtualization_type: paravirtual
+          ami_visibility: {{publish__ami_visibility}}
+          us_ami_region: {{publish__us_region}}
+          us_ami_access_key: {{publish__us_access_key}}
+          us_ami_secret_key: {{publish__us_secret_key}}
+          us_ami_bucket_name: {{publish__us_bucket}}
+          us_ami_destinations: {{publish__us_destinations}}
+          cn_ami_region: {{publish__cn_region}}
+          cn_ami_access_key: {{publish__cn_access_key}}
+          cn_ami_secret_key: {{publish__cn_secret_key}}
+          cn_ami_bucket_name: {{publish__cn_bucket}}
+
       - put: light-stemcell
         params:
           from: light-stemcell/light-bosh-stemcell-(.*).tgz
