@@ -83,7 +83,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 		ImageIds: []*string{amiIDptr},
 	})
 	if err != nil {
-		return resources.Ami{}, fmt.Errorf("waiting for AMI: %s to be available", *amiIDptr)
+		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to be available: %s", *amiIDptr, err)
 	}
 
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
