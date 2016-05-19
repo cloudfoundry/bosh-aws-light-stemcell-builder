@@ -30,7 +30,7 @@ jobs:
     plan:
       - aggregate:
         - get: builder-src
-          passed: test-unit
+          passed: [test-unit]
           resource: builder-src-in
           trigger: true
         - get: version-semver
@@ -120,12 +120,16 @@ resources:
       access_key_id: {{builder__access_key}}
       secret_access_key: {{builder__secret_key}}
       bucket: {{builder__bucket}}
+      region_name: {{s3_region}}
+      endpoint: {{s3_endpoint}}
 
   - name: ubuntu-stemcell
     type: s3
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
       bucket: bosh-jenkins-artifacts
+      region_name: {{s3_region}}
+      endpoint: {{s3_endpoint}}
 
   - name: converted-ubuntu-stemcell
     type: s3
@@ -134,6 +138,8 @@ resources:
       access_key_id: {{converted__bucket_access_key}}
       secret_access_key: {{converted__bucket_secret_key}}
       bucket: {{converted__bucket}}
+      region_name: {{s3_region}}
+      endpoint: {{s3_endpoint}}
 
   - name: light-stemcell
     type: s3
@@ -142,3 +148,5 @@ resources:
       access_key_id: {{output__bucket_access_key}}
       secret_access_key: {{output__bucket_secret_key}}
       bucket: {{output__bucket}}
+      region_name: {{s3_region}}
+      endpoint: {{s3_endpoint}}
