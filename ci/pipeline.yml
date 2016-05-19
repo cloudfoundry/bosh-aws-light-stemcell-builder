@@ -128,8 +128,6 @@ resources:
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
       bucket: bosh-jenkins-artifacts
-      region_name: {{s3_region}}
-      endpoint: {{s3_endpoint}}
 
   - name: converted-ubuntu-stemcell
     type: s3
