@@ -21,10 +21,11 @@ const (
 )
 
 const (
-	IsolatedChinaRegion = "cn-north-1"
+	IsolatedChinaRegion    = "cn-north-1"
+	IsolatedGovCloudRegion = "us-gov-west-1"
 )
 
-var isolated = map[string]bool{IsolatedChinaRegion: true}
+var isolated = map[string]bool{IsolatedChinaRegion: true, IsolatedGovCloudRegion: true}
 
 // Convention:
 // 1. required
