@@ -101,14 +101,14 @@ resources:
   - name: builder-src-in
     type: git
     source:
-      uri: git@github.com:dlapiduz/aws-light-stemcell-builder.git
+      uri: git@github.com:18F/cg-aws-light-stemcell-builder.git
       branch: develop
       private_key: {{builder__github_deployment_key}}
 
   - name: builder-src-out
     type: git
     source:
-      uri: git@github.com:dlapiduz/aws-light-stemcell-builder.git
+      uri: git@github.com:18F/cg-aws-light-stemcell-builder.git
       branch: master
       private_key: {{builder__github_deployment_key}}
 
