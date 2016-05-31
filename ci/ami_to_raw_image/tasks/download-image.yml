@@ -1,6 +1,6 @@
 ---
 platform: linux
-image: docker:///boshcpi/aws-light-stemcell-builder
+image: docker:///lfranklin/aws-copy-ami
 inputs:
 - name: builder-src
 outputs:
