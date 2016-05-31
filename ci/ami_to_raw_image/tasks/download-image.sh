@@ -48,7 +48,7 @@ EOF
 
 cleanup() {
   pushd ${my_dir} > /dev/null
-    # vagrant destroy -f
+    vagrant destroy -f
   popd > /dev/null
 }
 
