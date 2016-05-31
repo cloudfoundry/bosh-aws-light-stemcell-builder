@@ -1,0 +1,20 @@
+---
+platform: linux
+image: docker:///boshcpi/aws-light-stemcell-builder
+inputs:
+- name: builder-src
+outputs:
+- name: light-stemcell
+run:
+  path: builder-src/ci/ami_to_raw_image/tasks/download-image.sh
+params:
+  AWS_ACCESS_KEY_ID:     ""
+  AWS_SECRET_ACCESS_KEY: ""
+  SOURCE_AMI:            ""
+  REGION_NAME:           ""
+  VAGRANT_AMI:           ""
+  VM_USER:               ""
+  SECURITY_GROUP_ID:     ""
+  PRIVATE_KEY_CONTENTS:  ""
+  PUBLIC_KEY_NAME:       ""
+  SUBNET_ID:             ""
