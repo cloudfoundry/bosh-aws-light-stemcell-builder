@@ -94,7 +94,7 @@ Vagrant.configure(2) do |config|
 
       echo "Creating machine image from ${device_name}"
       dd if=${device_name} of=/vagrant/root.img
-      tar czvf /vagrant/image /vagrant/root.img
+      tar czvf /vagrant/image -C /vagrant/ root.img
 
       cat << EOF > /vagrant/metadata.yml
 ---
