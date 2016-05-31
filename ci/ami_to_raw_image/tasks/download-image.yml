@@ -4,7 +4,7 @@ image: docker:///lfranklin/aws-copy-ami
 inputs:
 - name: builder-src
 outputs:
-- name: light-stemcell
+- name: raw-machine-image
 run:
   path: builder-src/ci/ami_to_raw_image/tasks/download-image.sh
 params:

@@ -3,7 +3,7 @@ platform: linux
 image: docker:///lfranklin/aws-copy-ami
 inputs:
 - name: builder-src
-- name: ami-machine-image
+- name: raw-machine-image
 outputs:
 - name: metadata
 run:

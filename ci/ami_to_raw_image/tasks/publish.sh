@@ -18,7 +18,7 @@ source ${release_dir}/ci/tasks/utils.sh
 : ${ami_bucket_name:?}
 
 # inputs
-ami_path=${workspace_dir}/ami-machine-image/*.tgz
+ami_path=${workspace_dir}/raw-machine-image/*.tgz
 
 # outputs
 output_path=${workspace_dir}/metadata
