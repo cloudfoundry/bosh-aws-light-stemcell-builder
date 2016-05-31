@@ -62,7 +62,7 @@ popd > /dev/null
 
 # image format can be raw or stream optimized vmdk
 ami_image="$(echo ${extracted_ami_dir}/root.*)"
-ami_manifest=${extracted_ami_dir}/metadata.yml
+ami_manifest=${extracted_ami_dir}/stemcell.MF
 manifest_contents="$(cat ${ami_manifest})"
 
 disk_regex="disk: ([0-9]+)"
@@ -85,6 +85,6 @@ pushd ${release_dir} > /dev/null
     --manifest ${ami_manifest} \
     | tee tmp-manifest
 
-  mv tmp-manifest ${output_dir}/metadata.yml
-  cat ${output_dir}/metadata.yml
+  mv tmp-manifest ${output_dir}/stemcell.MF
+  cat ${output_dir}/stemcell.MF
 popd
