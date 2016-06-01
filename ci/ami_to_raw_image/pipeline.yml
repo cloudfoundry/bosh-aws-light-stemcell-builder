@@ -18,16 +18,16 @@ jobs:
       - task: compress
         file: builder-src/ci/tasks/convert-stemcell.yml
         input_mapping: {input-stemcell: raw-machine-image}
-      - put: ami-machine-image
+      - put: raw-machine-image
         params:
-          file: compress/converted-stemcell/*.tgz
+          file: converted-stemcell/*.tgz
 
   - name: publish-ami
     serial: true
     plan:
       - get: builder-src
         trigger: false
-      - get: ami-machine-image
+      - get: raw-machine-image
         passed: [convert-machine-image]
         trigger: true
       - task: publish
@@ -36,8 +36,8 @@ jobs:
           ami_description: {{ami_description}}
           ami_virtualization_type: {{ami_virtualization_type}}
           ami_visibility: {{ami_visibility}}
-          ami_region: {{ami_region}}
-          ami_destinations: {{ami_destinations}}
+          ami_initial_region: {{ami_region}}
+          ami_copy_regions: {{ami_destinations}}
           ami_access_key: {{ami_access_key}}
           ami_secret_key: {{ami_secret_key}}
           ami_bucket_name: {{ami_bucket}}
@@ -49,10 +49,11 @@ resources:
       uri: https://github.com/cloudfoundry-incubator/aws-light-stemcell-builder
       branch: develop
 
-  - name: ami-machine-image
+  - name: raw-machine-image
     type: s3
     source:
       versioned_file: ami/vmdk-ami.tgz
       access_key_id: {{ami_access_key}}
       secret_access_key: {{ami_secret_key}}
       bucket: {{ami_bucket}}
+      region_name: {{ami_bucket_region}}

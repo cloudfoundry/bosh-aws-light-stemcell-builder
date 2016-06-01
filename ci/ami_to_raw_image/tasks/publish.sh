@@ -85,6 +85,6 @@ pushd ${release_dir} > /dev/null
     --manifest ${ami_manifest} \
     | tee tmp-manifest
 
-  mv tmp-manifest ${output_dir}/stemcell.MF
-  cat ${output_dir}/stemcell.MF
+  mv tmp-manifest ${output_path}/stemcell.MF
+  cat ${output_path}/stemcell.MF
 popd
