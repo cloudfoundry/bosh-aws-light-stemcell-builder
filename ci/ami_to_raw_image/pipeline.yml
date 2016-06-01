@@ -36,8 +36,8 @@ jobs:
           ami_description: {{ami_description}}
           ami_virtualization_type: {{ami_virtualization_type}}
           ami_visibility: {{ami_visibility}}
-          ami_initial_region: {{ami_region}}
-          ami_copy_regions: {{ami_destinations}}
+          ami_initial_region: {{ami_initial_region}}
+          ami_copy_regions: {{ami_copy_destinations}}
           ami_access_key: {{ami_access_key}}
           ami_secret_key: {{ami_secret_key}}
           ami_bucket_name: {{ami_bucket}}
