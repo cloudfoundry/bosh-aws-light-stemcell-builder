@@ -1,6 +1,6 @@
 ---
 platform: linux
-image: docker:///lfranklin/aws-copy-ami
+image: docker:///boshcpi/aws-copy-ami
 inputs:
 - name: builder-src
 - name: raw-machine-image
