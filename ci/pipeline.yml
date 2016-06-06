@@ -1,26 +1,19 @@
 ---
 groups:
-  - name: builder
+  - name: light-stemcell-builder
     jobs:
       - test-unit
       - test-drivers
       - test-integration
+      - bump-minor
+      - bump-major
       - promote
-
-  - name: publishing
-    jobs:
       - convert-centos-stemcell
       - convert-ubuntu-stemcell
       - publish-centos-hvm
       - publish-centos-pv
       - publish-ubuntu-hvm
       - publish-ubuntu-pv
-
-  - name: versioning
-    jobs:
-      - bump-minor
-      - bump-major
-      - promote
 
 jobs:
   - name: test-unit
