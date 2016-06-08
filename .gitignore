@@ -3,6 +3,7 @@ bin
 pkg
 tmp
 *.iml
+credentials.yml
 
 # Added by Atom
 src/9fans.net/go
