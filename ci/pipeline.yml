@@ -54,7 +54,7 @@ jobs:
         file: builder-src/ci/tasks/convert-stemcell.yml
       - put: converted-ubuntu-stemcell
         params:
-          file: converted-stemcell/bosh-stemcell-(.*).tgz
+          file: converted-stemcell/bosh-stemcell-*.tgz
 
   - name: publish-ubuntu-hvm
     serial: true
@@ -79,7 +79,7 @@ jobs:
 
       - put: light-stemcell
         params:
-          file: light-stemcell/light-bosh-stemcell-(.*).tgz
+          file: light-stemcell/light-bosh-stemcell-*.tgz
 
   - name: bump-minor
     public: true
