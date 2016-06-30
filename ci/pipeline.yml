@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: builder
+  - name: light-stemcell-builder
     jobs:
       - test-unit
       - promote
@@ -9,12 +9,6 @@ groups:
     jobs:
       - convert-ubuntu-stemcell
       - publish-ubuntu-hvm
-
-  - name: versioning
-    jobs:
-      - bump-minor
-      - bump-major
-      - promote
 
 jobs:
   - name: test-unit
@@ -49,12 +43,13 @@ jobs:
           trigger: false
         - get: input-stemcell
           resource: ubuntu-stemcell
+          version: every
           trigger: true
       - task: convert
         file: builder-src/ci/tasks/convert-stemcell.yml
       - put: converted-ubuntu-stemcell
         params:
-          file: converted-stemcell/bosh-stemcell-*.tgz
+          from: converted-stemcell/bosh-stemcell-(.*).tgz
 
   - name: publish-ubuntu-hvm
     serial: true
@@ -65,6 +60,7 @@ jobs:
       - get: input-stemcell
         resource: converted-ubuntu-stemcell
         passed: [convert-ubuntu-stemcell]
+        version: every
         trigger: true
       - task: build
         file: builder-src/ci/tasks/build.yml
@@ -76,10 +72,9 @@ jobs:
           ami_access_key: {{publish__us_access_key}}
           ami_secret_key: {{publish__us_secret_key}}
           ami_bucket_name: {{publish__us_bucket}}
-
       - put: light-stemcell
         params:
-          file: light-stemcell/light-bosh-stemcell-*.tgz
+          from: light-stemcell/light-bosh-stemcell-(.*).tgz
 
   - name: bump-minor
     public: true
@@ -126,13 +121,13 @@ resources:
   - name: ubuntu-stemcell
     type: s3
     source:
-      regexp: bosh-stemcell/aws/bosh-stemcell-([0-9.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
+      regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
       bucket: bosh-jenkins-artifacts
 
   - name: converted-ubuntu-stemcell
     type: s3
     source:
-      regexp: bosh-stemcell-([0-9.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
+      regexp: bosh-stemcell-([0-9\.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
       access_key_id: {{converted__bucket_access_key}}
       secret_access_key: {{converted__bucket_secret_key}}
       bucket: {{converted__bucket}}
@@ -142,7 +137,7 @@ resources:
   - name: light-stemcell
     type: s3
     source:
-      regexp: light-bosh-stemcell.*\.tgz
+      regexp: light-bosh-stemcell-([\d\.]+)-.*\.tgz
       access_key_id: {{output__bucket_access_key}}
       secret_access_key: {{output__bucket_secret_key}}
       bucket: {{output__bucket}}

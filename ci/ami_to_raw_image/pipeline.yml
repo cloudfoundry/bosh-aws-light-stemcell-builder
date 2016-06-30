@@ -1,0 +1,59 @@
+---
+jobs:
+  - name: convert-machine-image
+    serial: true
+    plan:
+      - get: builder-src
+        trigger: false
+      - task: download
+        file: builder-src/ci/ami_to_raw_image/tasks/download-image.yml
+        params:
+          SOURCE_AMI:            {{source_ami}}
+          AWS_ACCESS_KEY_ID:     {{vagrant_access_key}}
+          AWS_SECRET_ACCESS_KEY: {{vagrant_secret_key}}
+          SECURITY_GROUP_ID:     {{vagrant_security_group_id}}
+          PRIVATE_KEY_CONTENTS:  {{vagrant_private_key}}
+          PUBLIC_KEY_NAME:       {{vagrant_public_key}}
+          SUBNET_ID:             {{vagrant_subnet_id}}
+      - task: compress
+        file: builder-src/ci/tasks/convert-stemcell.yml
+        input_mapping: {input-stemcell: raw-machine-image}
+      - put: raw-machine-image
+        params:
+          file: converted-stemcell/*.tgz
+
+  - name: publish-ami
+    serial: true
+    plan:
+      - get: builder-src
+        trigger: false
+      - get: raw-machine-image
+        passed: [convert-machine-image]
+        trigger: true
+      - task: publish
+        file: builder-src/ci/ami_to_raw_image/tasks/publish.yml
+        params:
+          ami_description: {{ami_description}}
+          ami_virtualization_type: {{ami_virtualization_type}}
+          ami_visibility: {{ami_visibility}}
+          ami_initial_region: {{ami_initial_region}}
+          ami_copy_regions: {{ami_copy_destinations}}
+          ami_access_key: {{ami_access_key}}
+          ami_secret_key: {{ami_secret_key}}
+          ami_bucket_name: {{ami_bucket}}
+
+resources:
+  - name: builder-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry-incubator/aws-light-stemcell-builder
+      branch: develop
+
+  - name: raw-machine-image
+    type: s3
+    source:
+      versioned_file: ami/vmdk-ami.tgz
+      access_key_id: {{ami_access_key}}
+      secret_access_key: {{ami_secret_key}}
+      bucket: {{ami_bucket}}
+      region_name: {{ami_bucket_region}}
