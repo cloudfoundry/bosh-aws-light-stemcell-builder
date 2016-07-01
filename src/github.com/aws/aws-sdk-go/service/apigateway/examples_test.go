@@ -47,11 +47,12 @@ func ExampleAPIGateway_CreateAuthorizer() {
 	svc := apigateway.New(session.New())
 
 	params := &apigateway.CreateAuthorizerInput{
-		AuthorizerUri:  aws.String("String"),         // Required
-		IdentitySource: aws.String("String"),         // Required
-		Name:           aws.String("String"),         // Required
-		RestApiId:      aws.String("String"),         // Required
-		Type:           aws.String("AuthorizerType"), // Required
+		AuthorizerUri:                aws.String("String"),         // Required
+		IdentitySource:               aws.String("String"),         // Required
+		Name:                         aws.String("String"),         // Required
+		RestApiId:                    aws.String("String"),         // Required
+		Type:                         aws.String("AuthorizerType"), // Required
+		AuthType:                     aws.String("String"),
 		AuthorizerCredentials:        aws.String("String"),
 		AuthorizerResultTtlInSeconds: aws.Int64(1),
 		IdentityValidationExpression: aws.String("String"),
@@ -505,6 +506,26 @@ func ExampleAPIGateway_DeleteStage() {
 		StageName: aws.String("String"), // Required
 	}
 	resp, err := svc.DeleteStage(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_FlushStageAuthorizersCache() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.FlushStageAuthorizersCacheInput{
+		RestApiId: aws.String("String"), // Required
+		StageName: aws.String("String"), // Required
+	}
+	resp, err := svc.FlushStageAuthorizersCache(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -1132,6 +1153,30 @@ func ExampleAPIGateway_GetStages() {
 	fmt.Println(resp)
 }
 
+func ExampleAPIGateway_ImportRestApi() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.ImportRestApiInput{
+		Body:           []byte("PAYLOAD"), // Required
+		FailOnWarnings: aws.Bool(true),
+		Parameters: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.ImportRestApi(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleAPIGateway_PutIntegration() {
 	svc := apigateway.New(session.New())
 
@@ -1147,6 +1192,7 @@ func ExampleAPIGateway_PutIntegration() {
 		CacheNamespace:        aws.String("String"),
 		Credentials:           aws.String("String"),
 		IntegrationHttpMethod: aws.String("String"),
+		PassthroughBehavior:   aws.String("String"),
 		RequestParameters: map[string]*string{
 			"Key": aws.String("String"), // Required
 			// More values...
@@ -1251,6 +1297,66 @@ func ExampleAPIGateway_PutMethodResponse() {
 		},
 	}
 	resp, err := svc.PutMethodResponse(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_PutRestApi() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.PutRestApiInput{
+		Body:           []byte("PAYLOAD"),    // Required
+		RestApiId:      aws.String("String"), // Required
+		FailOnWarnings: aws.Bool(true),
+		Mode:           aws.String("PutMode"),
+		Parameters: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.PutRestApi(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_TestInvokeAuthorizer() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.TestInvokeAuthorizerInput{
+		AuthorizerId: aws.String("String"), // Required
+		RestApiId:    aws.String("String"), // Required
+		AdditionalContext: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+		Body: aws.String("String"),
+		Headers: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+		PathWithQueryString: aws.String("String"),
+		StageVariables: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.TestInvokeAuthorizer(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and

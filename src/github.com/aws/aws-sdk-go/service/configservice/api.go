@@ -4,6 +4,7 @@
 package configservice
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
@@ -14,7 +15,28 @@ import (
 
 const opDeleteConfigRule = "DeleteConfigRule"
 
-// DeleteConfigRuleRequest generates a request for the DeleteConfigRule operation.
+// DeleteConfigRuleRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteConfigRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteConfigRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteConfigRuleRequest method.
+//    req, resp := client.DeleteConfigRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DeleteConfigRuleRequest(input *DeleteConfigRuleInput) (req *request.Request, output *DeleteConfigRuleOutput) {
 	op := &request.Operation{
 		Name:       opDeleteConfigRule,
@@ -38,7 +60,7 @@ func (c *ConfigService) DeleteConfigRuleRequest(input *DeleteConfigRuleInput) (r
 //
 // AWS Config sets the state of a rule to DELETING until the deletion is complete.
 // You cannot update a rule while it is in this state. If you make a PutConfigRule
-// request for the rule, you will receive a ResourceInUseException.
+// or DeleteConfigRule request for the rule, you will receive a ResourceInUseException.
 //
 // You can check the state of a rule by using the DescribeConfigRules request.
 func (c *ConfigService) DeleteConfigRule(input *DeleteConfigRuleInput) (*DeleteConfigRuleOutput, error) {
@@ -49,7 +71,28 @@ func (c *ConfigService) DeleteConfigRule(input *DeleteConfigRuleInput) (*DeleteC
 
 const opDeleteDeliveryChannel = "DeleteDeliveryChannel"
 
-// DeleteDeliveryChannelRequest generates a request for the DeleteDeliveryChannel operation.
+// DeleteDeliveryChannelRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteDeliveryChannel operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteDeliveryChannel method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteDeliveryChannelRequest method.
+//    req, resp := client.DeleteDeliveryChannelRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DeleteDeliveryChannelRequest(input *DeleteDeliveryChannelInput) (req *request.Request, output *DeleteDeliveryChannelOutput) {
 	op := &request.Operation{
 		Name:       opDeleteDeliveryChannel,
@@ -83,7 +126,28 @@ func (c *ConfigService) DeleteDeliveryChannel(input *DeleteDeliveryChannelInput)
 
 const opDeliverConfigSnapshot = "DeliverConfigSnapshot"
 
-// DeliverConfigSnapshotRequest generates a request for the DeliverConfigSnapshot operation.
+// DeliverConfigSnapshotRequest generates a "aws/request.Request" representing the
+// client's request for the DeliverConfigSnapshot operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeliverConfigSnapshot method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeliverConfigSnapshotRequest method.
+//    req, resp := client.DeliverConfigSnapshotRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DeliverConfigSnapshotRequest(input *DeliverConfigSnapshotInput) (req *request.Request, output *DeliverConfigSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opDeliverConfigSnapshot,
@@ -116,7 +180,28 @@ func (c *ConfigService) DeliverConfigSnapshot(input *DeliverConfigSnapshotInput)
 
 const opDescribeComplianceByConfigRule = "DescribeComplianceByConfigRule"
 
-// DescribeComplianceByConfigRuleRequest generates a request for the DescribeComplianceByConfigRule operation.
+// DescribeComplianceByConfigRuleRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeComplianceByConfigRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeComplianceByConfigRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeComplianceByConfigRuleRequest method.
+//    req, resp := client.DescribeComplianceByConfigRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeComplianceByConfigRuleRequest(input *DescribeComplianceByConfigRuleInput) (req *request.Request, output *DescribeComplianceByConfigRuleOutput) {
 	op := &request.Operation{
 		Name:       opDescribeComplianceByConfigRule,
@@ -160,7 +245,28 @@ func (c *ConfigService) DescribeComplianceByConfigRule(input *DescribeCompliance
 
 const opDescribeComplianceByResource = "DescribeComplianceByResource"
 
-// DescribeComplianceByResourceRequest generates a request for the DescribeComplianceByResource operation.
+// DescribeComplianceByResourceRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeComplianceByResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeComplianceByResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeComplianceByResourceRequest method.
+//    req, resp := client.DescribeComplianceByResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeComplianceByResourceRequest(input *DescribeComplianceByResourceInput) (req *request.Request, output *DescribeComplianceByResourceOutput) {
 	op := &request.Operation{
 		Name:       opDescribeComplianceByResource,
@@ -206,7 +312,28 @@ func (c *ConfigService) DescribeComplianceByResource(input *DescribeComplianceBy
 
 const opDescribeConfigRuleEvaluationStatus = "DescribeConfigRuleEvaluationStatus"
 
-// DescribeConfigRuleEvaluationStatusRequest generates a request for the DescribeConfigRuleEvaluationStatus operation.
+// DescribeConfigRuleEvaluationStatusRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeConfigRuleEvaluationStatus operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeConfigRuleEvaluationStatus method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeConfigRuleEvaluationStatusRequest method.
+//    req, resp := client.DescribeConfigRuleEvaluationStatusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeConfigRuleEvaluationStatusRequest(input *DescribeConfigRuleEvaluationStatusInput) (req *request.Request, output *DescribeConfigRuleEvaluationStatusOutput) {
 	op := &request.Operation{
 		Name:       opDescribeConfigRuleEvaluationStatus,
@@ -236,7 +363,28 @@ func (c *ConfigService) DescribeConfigRuleEvaluationStatus(input *DescribeConfig
 
 const opDescribeConfigRules = "DescribeConfigRules"
 
-// DescribeConfigRulesRequest generates a request for the DescribeConfigRules operation.
+// DescribeConfigRulesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeConfigRules operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeConfigRules method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeConfigRulesRequest method.
+//    req, resp := client.DescribeConfigRulesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeConfigRulesRequest(input *DescribeConfigRulesInput) (req *request.Request, output *DescribeConfigRulesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeConfigRules,
@@ -263,7 +411,28 @@ func (c *ConfigService) DescribeConfigRules(input *DescribeConfigRulesInput) (*D
 
 const opDescribeConfigurationRecorderStatus = "DescribeConfigurationRecorderStatus"
 
-// DescribeConfigurationRecorderStatusRequest generates a request for the DescribeConfigurationRecorderStatus operation.
+// DescribeConfigurationRecorderStatusRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeConfigurationRecorderStatus operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeConfigurationRecorderStatus method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeConfigurationRecorderStatusRequest method.
+//    req, resp := client.DescribeConfigurationRecorderStatusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeConfigurationRecorderStatusRequest(input *DescribeConfigurationRecorderStatusInput) (req *request.Request, output *DescribeConfigurationRecorderStatusOutput) {
 	op := &request.Operation{
 		Name:       opDescribeConfigurationRecorderStatus,
@@ -294,7 +463,28 @@ func (c *ConfigService) DescribeConfigurationRecorderStatus(input *DescribeConfi
 
 const opDescribeConfigurationRecorders = "DescribeConfigurationRecorders"
 
-// DescribeConfigurationRecordersRequest generates a request for the DescribeConfigurationRecorders operation.
+// DescribeConfigurationRecordersRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeConfigurationRecorders operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeConfigurationRecorders method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeConfigurationRecordersRequest method.
+//    req, resp := client.DescribeConfigurationRecordersRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeConfigurationRecordersRequest(input *DescribeConfigurationRecordersInput) (req *request.Request, output *DescribeConfigurationRecordersOutput) {
 	op := &request.Operation{
 		Name:       opDescribeConfigurationRecorders,
@@ -325,7 +515,28 @@ func (c *ConfigService) DescribeConfigurationRecorders(input *DescribeConfigurat
 
 const opDescribeDeliveryChannelStatus = "DescribeDeliveryChannelStatus"
 
-// DescribeDeliveryChannelStatusRequest generates a request for the DescribeDeliveryChannelStatus operation.
+// DescribeDeliveryChannelStatusRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeDeliveryChannelStatus operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeDeliveryChannelStatus method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeDeliveryChannelStatusRequest method.
+//    req, resp := client.DescribeDeliveryChannelStatusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeDeliveryChannelStatusRequest(input *DescribeDeliveryChannelStatusInput) (req *request.Request, output *DescribeDeliveryChannelStatusOutput) {
 	op := &request.Operation{
 		Name:       opDescribeDeliveryChannelStatus,
@@ -356,7 +567,28 @@ func (c *ConfigService) DescribeDeliveryChannelStatus(input *DescribeDeliveryCha
 
 const opDescribeDeliveryChannels = "DescribeDeliveryChannels"
 
-// DescribeDeliveryChannelsRequest generates a request for the DescribeDeliveryChannels operation.
+// DescribeDeliveryChannelsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeDeliveryChannels operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeDeliveryChannels method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeDeliveryChannelsRequest method.
+//    req, resp := client.DescribeDeliveryChannelsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) DescribeDeliveryChannelsRequest(input *DescribeDeliveryChannelsInput) (req *request.Request, output *DescribeDeliveryChannelsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeDeliveryChannels,
@@ -387,7 +619,28 @@ func (c *ConfigService) DescribeDeliveryChannels(input *DescribeDeliveryChannels
 
 const opGetComplianceDetailsByConfigRule = "GetComplianceDetailsByConfigRule"
 
-// GetComplianceDetailsByConfigRuleRequest generates a request for the GetComplianceDetailsByConfigRule operation.
+// GetComplianceDetailsByConfigRuleRequest generates a "aws/request.Request" representing the
+// client's request for the GetComplianceDetailsByConfigRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetComplianceDetailsByConfigRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetComplianceDetailsByConfigRuleRequest method.
+//    req, resp := client.GetComplianceDetailsByConfigRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) GetComplianceDetailsByConfigRuleRequest(input *GetComplianceDetailsByConfigRuleInput) (req *request.Request, output *GetComplianceDetailsByConfigRuleOutput) {
 	op := &request.Operation{
 		Name:       opGetComplianceDetailsByConfigRule,
@@ -416,7 +669,28 @@ func (c *ConfigService) GetComplianceDetailsByConfigRule(input *GetComplianceDet
 
 const opGetComplianceDetailsByResource = "GetComplianceDetailsByResource"
 
-// GetComplianceDetailsByResourceRequest generates a request for the GetComplianceDetailsByResource operation.
+// GetComplianceDetailsByResourceRequest generates a "aws/request.Request" representing the
+// client's request for the GetComplianceDetailsByResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetComplianceDetailsByResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetComplianceDetailsByResourceRequest method.
+//    req, resp := client.GetComplianceDetailsByResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) GetComplianceDetailsByResourceRequest(input *GetComplianceDetailsByResourceInput) (req *request.Request, output *GetComplianceDetailsByResourceOutput) {
 	op := &request.Operation{
 		Name:       opGetComplianceDetailsByResource,
@@ -445,7 +719,28 @@ func (c *ConfigService) GetComplianceDetailsByResource(input *GetComplianceDetai
 
 const opGetComplianceSummaryByConfigRule = "GetComplianceSummaryByConfigRule"
 
-// GetComplianceSummaryByConfigRuleRequest generates a request for the GetComplianceSummaryByConfigRule operation.
+// GetComplianceSummaryByConfigRuleRequest generates a "aws/request.Request" representing the
+// client's request for the GetComplianceSummaryByConfigRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetComplianceSummaryByConfigRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetComplianceSummaryByConfigRuleRequest method.
+//    req, resp := client.GetComplianceSummaryByConfigRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) GetComplianceSummaryByConfigRuleRequest(input *GetComplianceSummaryByConfigRuleInput) (req *request.Request, output *GetComplianceSummaryByConfigRuleOutput) {
 	op := &request.Operation{
 		Name:       opGetComplianceSummaryByConfigRule,
@@ -473,7 +768,28 @@ func (c *ConfigService) GetComplianceSummaryByConfigRule(input *GetComplianceSum
 
 const opGetComplianceSummaryByResourceType = "GetComplianceSummaryByResourceType"
 
-// GetComplianceSummaryByResourceTypeRequest generates a request for the GetComplianceSummaryByResourceType operation.
+// GetComplianceSummaryByResourceTypeRequest generates a "aws/request.Request" representing the
+// client's request for the GetComplianceSummaryByResourceType operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetComplianceSummaryByResourceType method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetComplianceSummaryByResourceTypeRequest method.
+//    req, resp := client.GetComplianceSummaryByResourceTypeRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) GetComplianceSummaryByResourceTypeRequest(input *GetComplianceSummaryByResourceTypeInput) (req *request.Request, output *GetComplianceSummaryByResourceTypeOutput) {
 	op := &request.Operation{
 		Name:       opGetComplianceSummaryByResourceType,
@@ -502,7 +818,28 @@ func (c *ConfigService) GetComplianceSummaryByResourceType(input *GetComplianceS
 
 const opGetResourceConfigHistory = "GetResourceConfigHistory"
 
-// GetResourceConfigHistoryRequest generates a request for the GetResourceConfigHistory operation.
+// GetResourceConfigHistoryRequest generates a "aws/request.Request" representing the
+// client's request for the GetResourceConfigHistory operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetResourceConfigHistory method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetResourceConfigHistoryRequest method.
+//    req, resp := client.GetResourceConfigHistoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) GetResourceConfigHistoryRequest(input *GetResourceConfigHistoryInput) (req *request.Request, output *GetResourceConfigHistoryOutput) {
 	op := &request.Operation{
 		Name:       opGetResourceConfigHistory,
@@ -545,6 +882,23 @@ func (c *ConfigService) GetResourceConfigHistory(input *GetResourceConfigHistory
 	return out, err
 }
 
+// GetResourceConfigHistoryPages iterates over the pages of a GetResourceConfigHistory operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See GetResourceConfigHistory method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a GetResourceConfigHistory operation.
+//    pageNum := 0
+//    err := client.GetResourceConfigHistoryPages(params,
+//        func(page *GetResourceConfigHistoryOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
 func (c *ConfigService) GetResourceConfigHistoryPages(input *GetResourceConfigHistoryInput, fn func(p *GetResourceConfigHistoryOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetResourceConfigHistoryRequest(input)
 	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
@@ -555,7 +909,28 @@ func (c *ConfigService) GetResourceConfigHistoryPages(input *GetResourceConfigHi
 
 const opListDiscoveredResources = "ListDiscoveredResources"
 
-// ListDiscoveredResourcesRequest generates a request for the ListDiscoveredResources operation.
+// ListDiscoveredResourcesRequest generates a "aws/request.Request" representing the
+// client's request for the ListDiscoveredResources operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListDiscoveredResources method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListDiscoveredResourcesRequest method.
+//    req, resp := client.ListDiscoveredResourcesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) ListDiscoveredResourcesRequest(input *ListDiscoveredResourcesInput) (req *request.Request, output *ListDiscoveredResourcesOutput) {
 	op := &request.Operation{
 		Name:       opListDiscoveredResources,
@@ -594,7 +969,28 @@ func (c *ConfigService) ListDiscoveredResources(input *ListDiscoveredResourcesIn
 
 const opPutConfigRule = "PutConfigRule"
 
-// PutConfigRuleRequest generates a request for the PutConfigRule operation.
+// PutConfigRuleRequest generates a "aws/request.Request" representing the
+// client's request for the PutConfigRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutConfigRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutConfigRuleRequest method.
+//    req, resp := client.PutConfigRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) PutConfigRuleRequest(input *PutConfigRuleInput) (req *request.Request, output *PutConfigRuleOutput) {
 	op := &request.Operation{
 		Name:       opPutConfigRule,
@@ -654,7 +1050,28 @@ func (c *ConfigService) PutConfigRule(input *PutConfigRuleInput) (*PutConfigRule
 
 const opPutConfigurationRecorder = "PutConfigurationRecorder"
 
-// PutConfigurationRecorderRequest generates a request for the PutConfigurationRecorder operation.
+// PutConfigurationRecorderRequest generates a "aws/request.Request" representing the
+// client's request for the PutConfigurationRecorder operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutConfigurationRecorder method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutConfigurationRecorderRequest method.
+//    req, resp := client.PutConfigurationRecorderRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) PutConfigurationRecorderRequest(input *PutConfigurationRecorderInput) (req *request.Request, output *PutConfigurationRecorderOutput) {
 	op := &request.Operation{
 		Name:       opPutConfigurationRecorder,
@@ -692,7 +1109,28 @@ func (c *ConfigService) PutConfigurationRecorder(input *PutConfigurationRecorder
 
 const opPutDeliveryChannel = "PutDeliveryChannel"
 
-// PutDeliveryChannelRequest generates a request for the PutDeliveryChannel operation.
+// PutDeliveryChannelRequest generates a "aws/request.Request" representing the
+// client's request for the PutDeliveryChannel operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutDeliveryChannel method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutDeliveryChannelRequest method.
+//    req, resp := client.PutDeliveryChannelRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) PutDeliveryChannelRequest(input *PutDeliveryChannelInput) (req *request.Request, output *PutDeliveryChannelOutput) {
 	op := &request.Operation{
 		Name:       opPutDeliveryChannel,
@@ -731,7 +1169,28 @@ func (c *ConfigService) PutDeliveryChannel(input *PutDeliveryChannelInput) (*Put
 
 const opPutEvaluations = "PutEvaluations"
 
-// PutEvaluationsRequest generates a request for the PutEvaluations operation.
+// PutEvaluationsRequest generates a "aws/request.Request" representing the
+// client's request for the PutEvaluations operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutEvaluations method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutEvaluationsRequest method.
+//    req, resp := client.PutEvaluationsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) PutEvaluationsRequest(input *PutEvaluationsInput) (req *request.Request, output *PutEvaluationsOutput) {
 	op := &request.Operation{
 		Name:       opPutEvaluations,
@@ -760,7 +1219,28 @@ func (c *ConfigService) PutEvaluations(input *PutEvaluationsInput) (*PutEvaluati
 
 const opStartConfigurationRecorder = "StartConfigurationRecorder"
 
-// StartConfigurationRecorderRequest generates a request for the StartConfigurationRecorder operation.
+// StartConfigurationRecorderRequest generates a "aws/request.Request" representing the
+// client's request for the StartConfigurationRecorder operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the StartConfigurationRecorder method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the StartConfigurationRecorderRequest method.
+//    req, resp := client.StartConfigurationRecorderRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) StartConfigurationRecorderRequest(input *StartConfigurationRecorderInput) (req *request.Request, output *StartConfigurationRecorderOutput) {
 	op := &request.Operation{
 		Name:       opStartConfigurationRecorder,
@@ -793,7 +1273,28 @@ func (c *ConfigService) StartConfigurationRecorder(input *StartConfigurationReco
 
 const opStopConfigurationRecorder = "StopConfigurationRecorder"
 
-// StopConfigurationRecorderRequest generates a request for the StopConfigurationRecorder operation.
+// StopConfigurationRecorderRequest generates a "aws/request.Request" representing the
+// client's request for the StopConfigurationRecorder operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the StopConfigurationRecorder method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the StopConfigurationRecorderRequest method.
+//    req, resp := client.StopConfigurationRecorderRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ConfigService) StopConfigurationRecorderRequest(input *StopConfigurationRecorderInput) (req *request.Request, output *StopConfigurationRecorderOutput) {
 	op := &request.Operation{
 		Name:       opStopConfigurationRecorder,
@@ -827,7 +1328,7 @@ type Compliance struct {
 	_ struct{} `type:"structure"`
 
 	// The number of AWS resources or AWS Config rules that cause a result of NON_COMPLIANT,
-	// up to a maximum of 25.
+	// up to a maximum number.
 	ComplianceContributorCount *ComplianceContributorCount `type:"structure"`
 
 	// Indicates whether an AWS resource or AWS Config rule is compliant.
@@ -1018,8 +1519,8 @@ func (s ConfigExportDeliveryInfo) GoString() string {
 
 // An AWS Lambda function that evaluates configuration items to assess whether
 // your AWS resources comply with your desired configurations. This function
-// can run when AWS Config detects a configuration change or delivers a configuration
-// snapshot.
+// can run when AWS Config detects a configuration change to an AWS resource,
+// or when it delivers a configuration snapshot of the resources in the account.
 //
 // For more information about developing and using AWS Config rules, see Evaluating
 // AWS Resource Configurations with AWS Config (http://docs.aws.amazon.com/config/latest/developerguide/evaluate-config.html)
@@ -1087,6 +1588,35 @@ func (s ConfigRule) String() string {
 // GoString returns the string representation
 func (s ConfigRule) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ConfigRule) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ConfigRule"}
+	if s.ConfigRuleName != nil && len(*s.ConfigRuleName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConfigRuleName", 1))
+	}
+	if s.InputParameters != nil && len(*s.InputParameters) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputParameters", 1))
+	}
+	if s.Source == nil {
+		invalidParams.Add(request.NewErrParamRequired("Source"))
+	}
+	if s.Scope != nil {
+		if err := s.Scope.Validate(); err != nil {
+			invalidParams.AddNested("Scope", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Source != nil {
+		if err := s.Source.Validate(); err != nil {
+			invalidParams.AddNested("Source", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Status information for your AWS managed Config rules. The status includes
@@ -1312,6 +1842,19 @@ func (s ConfigurationRecorder) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ConfigurationRecorder) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ConfigurationRecorder"}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The current status of the configuration recorder.
 type ConfigurationRecorderStatus struct {
 	_ struct{} `type:"structure"`
@@ -1368,6 +1911,22 @@ func (s DeleteConfigRuleInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteConfigRuleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteConfigRuleInput"}
+	if s.ConfigRuleName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ConfigRuleName"))
+	}
+	if s.ConfigRuleName != nil && len(*s.ConfigRuleName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConfigRuleName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 type DeleteConfigRuleOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -1401,6 +1960,22 @@ func (s DeleteDeliveryChannelInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteDeliveryChannelInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteDeliveryChannelInput"}
+	if s.DeliveryChannelName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DeliveryChannelName"))
+	}
+	if s.DeliveryChannelName != nil && len(*s.DeliveryChannelName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeliveryChannelName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 type DeleteDeliveryChannelOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -1431,6 +2006,22 @@ func (s DeliverConfigSnapshotInput) String() string {
 // GoString returns the string representation
 func (s DeliverConfigSnapshotInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeliverConfigSnapshotInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeliverConfigSnapshotInput"}
+	if s.DeliveryChannelName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DeliveryChannelName"))
+	}
+	if s.DeliveryChannelName != nil && len(*s.DeliveryChannelName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeliveryChannelName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The output for the DeliverConfigSnapshot action in JSON format.
@@ -1485,6 +2076,19 @@ func (s DeliveryChannel) String() string {
 // GoString returns the string representation
 func (s DeliveryChannel) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeliveryChannel) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeliveryChannel"}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The status of a specified delivery channel.
@@ -1602,6 +2206,22 @@ func (s DescribeComplianceByResourceInput) String() string {
 // GoString returns the string representation
 func (s DescribeComplianceByResourceInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeComplianceByResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeComplianceByResourceInput"}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+	if s.ResourceType != nil && len(*s.ResourceType) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceType", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 type DescribeComplianceByResourceOutput struct {
@@ -1895,6 +2515,37 @@ func (s Evaluation) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Evaluation) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Evaluation"}
+	if s.Annotation != nil && len(*s.Annotation) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Annotation", 1))
+	}
+	if s.ComplianceResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ComplianceResourceId"))
+	}
+	if s.ComplianceResourceId != nil && len(*s.ComplianceResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ComplianceResourceId", 1))
+	}
+	if s.ComplianceResourceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("ComplianceResourceType"))
+	}
+	if s.ComplianceResourceType != nil && len(*s.ComplianceResourceType) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ComplianceResourceType", 1))
+	}
+	if s.ComplianceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("ComplianceType"))
+	}
+	if s.OrderingTimestamp == nil {
+		invalidParams.Add(request.NewErrParamRequired("OrderingTimestamp"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The details of an AWS Config evaluation. Provides the AWS resource that was
 // evaluated, the compliance of the resource, related timestamps, and supplementary
 // information.
@@ -2018,6 +2669,22 @@ func (s GetComplianceDetailsByConfigRuleInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetComplianceDetailsByConfigRuleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetComplianceDetailsByConfigRuleInput"}
+	if s.ConfigRuleName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ConfigRuleName"))
+	}
+	if s.ConfigRuleName != nil && len(*s.ConfigRuleName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConfigRuleName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 type GetComplianceDetailsByConfigRuleOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -2067,6 +2734,28 @@ func (s GetComplianceDetailsByResourceInput) String() string {
 // GoString returns the string representation
 func (s GetComplianceDetailsByResourceInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetComplianceDetailsByResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetComplianceDetailsByResourceInput"}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+	if s.ResourceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceType"))
+	}
+	if s.ResourceType != nil && len(*s.ResourceType) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceType", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 type GetComplianceDetailsByResourceOutput struct {
@@ -2206,6 +2895,22 @@ func (s GetResourceConfigHistoryInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetResourceConfigHistoryInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetResourceConfigHistoryInput"}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceType"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The output for the GetResourceConfigHistory action.
 type GetResourceConfigHistoryOutput struct {
 	_ struct{} `type:"structure"`
@@ -2268,6 +2973,19 @@ func (s ListDiscoveredResourcesInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListDiscoveredResourcesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListDiscoveredResourcesInput"}
+	if s.ResourceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceType"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 type ListDiscoveredResourcesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -2295,8 +3013,8 @@ type PutConfigRuleInput struct {
 
 	// An AWS Lambda function that evaluates configuration items to assess whether
 	// your AWS resources comply with your desired configurations. This function
-	// can run when AWS Config detects a configuration change or delivers a configuration
-	// snapshot.
+	// can run when AWS Config detects a configuration change to an AWS resource,
+	// or when it delivers a configuration snapshot of the resources in the account.
 	//
 	// For more information about developing and using AWS Config rules, see Evaluating
 	// AWS Resource Configurations with AWS Config (http://docs.aws.amazon.com/config/latest/developerguide/evaluate-config.html)
@@ -2312,6 +3030,24 @@ func (s PutConfigRuleInput) String() string {
 // GoString returns the string representation
 func (s PutConfigRuleInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutConfigRuleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutConfigRuleInput"}
+	if s.ConfigRule == nil {
+		invalidParams.Add(request.NewErrParamRequired("ConfigRule"))
+	}
+	if s.ConfigRule != nil {
+		if err := s.ConfigRule.Validate(); err != nil {
+			invalidParams.AddNested("ConfigRule", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 type PutConfigRuleOutput struct {
@@ -2347,6 +3083,24 @@ func (s PutConfigurationRecorderInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutConfigurationRecorderInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutConfigurationRecorderInput"}
+	if s.ConfigurationRecorder == nil {
+		invalidParams.Add(request.NewErrParamRequired("ConfigurationRecorder"))
+	}
+	if s.ConfigurationRecorder != nil {
+		if err := s.ConfigurationRecorder.Validate(); err != nil {
+			invalidParams.AddNested("ConfigurationRecorder", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 type PutConfigurationRecorderOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -2378,6 +3132,24 @@ func (s PutDeliveryChannelInput) String() string {
 // GoString returns the string representation
 func (s PutDeliveryChannelInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutDeliveryChannelInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutDeliveryChannelInput"}
+	if s.DeliveryChannel == nil {
+		invalidParams.Add(request.NewErrParamRequired("DeliveryChannel"))
+	}
+	if s.DeliveryChannel != nil {
+		if err := s.DeliveryChannel.Validate(); err != nil {
+			invalidParams.AddNested("DeliveryChannel", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 type PutDeliveryChannelOutput struct {
@@ -2417,6 +3189,29 @@ func (s PutEvaluationsInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutEvaluationsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutEvaluationsInput"}
+	if s.ResultToken == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResultToken"))
+	}
+	if s.Evaluations != nil {
+		for i, v := range s.Evaluations {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Evaluations", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 type PutEvaluationsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -2447,8 +3242,8 @@ func (s PutEvaluationsOutput) GoString() string {
 // volumes.
 //
 // You can also have AWS Config record configuration changes for supported
-// types of global resources. Global resources are not tied to an individual
-// region and can be used in all regions.
+// types of global resources (for example, IAM resources). Global resources
+// are not tied to an individual region and can be used in all regions.
 //
 // The configuration details for any global resource are the same in all regions.
 // If you customize AWS Config in multiple regions to record global resources,
@@ -2477,13 +3272,17 @@ type RecordingGroup struct {
 	AllSupported *bool `locationName:"allSupported" type:"boolean"`
 
 	// Specifies whether AWS Config includes all supported types of global resources
-	// with the resources that it records.
+	// (for example, IAM resources) with the resources that it records.
 	//
 	// Before you can set this option to true, you must set the allSupported option
 	// to true.
 	//
 	// If you set this option to true, when AWS Config adds support for a new type
 	// of global resource, it automatically starts recording resources of that type.
+	//
+	// The configuration details for any global resource are the same in all regions.
+	// To prevent duplicate configuration items, you should consider customizing
+	// AWS Config in only one region to record global resources.
 	IncludeGlobalResourceTypes *bool `locationName:"includeGlobalResourceTypes" type:"boolean"`
 
 	// A comma-separated list that specifies the types of AWS resources for which
@@ -2606,6 +3405,25 @@ func (s Scope) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Scope) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Scope"}
+	if s.ComplianceResourceId != nil && len(*s.ComplianceResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ComplianceResourceId", 1))
+	}
+	if s.TagKey != nil && len(*s.TagKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TagKey", 1))
+	}
+	if s.TagValue != nil && len(*s.TagValue) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TagValue", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // Provides the AWS Config rule owner (AWS or customer), the rule identifier,
 // and the events that trigger the evaluation of your AWS resources.
 type Source struct {
@@ -2634,6 +3452,19 @@ func (s Source) String() string {
 // GoString returns the string representation
 func (s Source) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Source) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Source"}
+	if s.SourceIdentifier != nil && len(*s.SourceIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SourceIdentifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Provides the source and type of the event that triggers AWS Config to evaluate
@@ -2682,6 +3513,22 @@ func (s StartConfigurationRecorderInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StartConfigurationRecorderInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StartConfigurationRecorderInput"}
+	if s.ConfigurationRecorderName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ConfigurationRecorderName"))
+	}
+	if s.ConfigurationRecorderName != nil && len(*s.ConfigurationRecorderName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConfigurationRecorderName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 type StartConfigurationRecorderOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -2713,6 +3560,22 @@ func (s StopConfigurationRecorderInput) String() string {
 // GoString returns the string representation
 func (s StopConfigurationRecorderInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopConfigurationRecorderInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopConfigurationRecorderInput"}
+	if s.ConfigurationRecorderName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ConfigurationRecorderName"))
+	}
+	if s.ConfigurationRecorderName != nil && len(*s.ConfigurationRecorderName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConfigurationRecorderName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 type StopConfigurationRecorderOutput struct {

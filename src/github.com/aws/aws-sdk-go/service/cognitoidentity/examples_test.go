@@ -21,8 +21,19 @@ func ExampleCognitoIdentity_CreateIdentityPool() {
 	params := &cognitoidentity.CreateIdentityPoolInput{
 		AllowUnauthenticatedIdentities: aws.Bool(true),                 // Required
 		IdentityPoolName:               aws.String("IdentityPoolName"), // Required
-		DeveloperProviderName:          aws.String("DeveloperProviderName"),
+		CognitoIdentityProviders: []*cognitoidentity.Provider{
+			{ // Required
+				ClientId:     aws.String("ProviderClientId"),
+				ProviderName: aws.String("ProviderName"),
+			},
+			// More values...
+		},
+		DeveloperProviderName: aws.String("DeveloperProviderName"),
 		OpenIdConnectProviderARNs: []*string{
+			aws.String("ARNString"), // Required
+			// More values...
+		},
+		SamlProviderARNs: []*string{
 			aws.String("ARNString"), // Required
 			// More values...
 		},
@@ -127,7 +138,8 @@ func ExampleCognitoIdentity_GetCredentialsForIdentity() {
 	svc := cognitoidentity.New(session.New())
 
 	params := &cognitoidentity.GetCredentialsForIdentityInput{
-		IdentityId: aws.String("IdentityId"), // Required
+		IdentityId:    aws.String("IdentityId"), // Required
+		CustomRoleArn: aws.String("ARNString"),
 		Logins: map[string]*string{
 			"Key": aws.String("IdentityProviderToken"), // Required
 			// More values...
@@ -403,8 +415,19 @@ func ExampleCognitoIdentity_UpdateIdentityPool() {
 		AllowUnauthenticatedIdentities: aws.Bool(true),                 // Required
 		IdentityPoolId:                 aws.String("IdentityPoolId"),   // Required
 		IdentityPoolName:               aws.String("IdentityPoolName"), // Required
-		DeveloperProviderName:          aws.String("DeveloperProviderName"),
+		CognitoIdentityProviders: []*cognitoidentity.Provider{
+			{ // Required
+				ClientId:     aws.String("ProviderClientId"),
+				ProviderName: aws.String("ProviderName"),
+			},
+			// More values...
+		},
+		DeveloperProviderName: aws.String("DeveloperProviderName"),
 		OpenIdConnectProviderARNs: []*string{
+			aws.String("ARNString"), // Required
+			// More values...
+		},
+		SamlProviderARNs: []*string{
 			aws.String("ARNString"), // Required
 			// More values...
 		},

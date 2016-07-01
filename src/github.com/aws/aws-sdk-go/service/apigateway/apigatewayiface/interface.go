@@ -102,6 +102,10 @@ type APIGatewayAPI interface {
 
 	DeleteStage(*apigateway.DeleteStageInput) (*apigateway.DeleteStageOutput, error)
 
+	FlushStageAuthorizersCacheRequest(*apigateway.FlushStageAuthorizersCacheInput) (*request.Request, *apigateway.FlushStageAuthorizersCacheOutput)
+
+	FlushStageAuthorizersCache(*apigateway.FlushStageAuthorizersCacheInput) (*apigateway.FlushStageAuthorizersCacheOutput, error)
+
 	FlushStageCacheRequest(*apigateway.FlushStageCacheInput) (*request.Request, *apigateway.FlushStageCacheOutput)
 
 	FlushStageCache(*apigateway.FlushStageCacheInput) (*apigateway.FlushStageCacheOutput, error)
@@ -238,6 +242,10 @@ type APIGatewayAPI interface {
 
 	GetStages(*apigateway.GetStagesInput) (*apigateway.GetStagesOutput, error)
 
+	ImportRestApiRequest(*apigateway.ImportRestApiInput) (*request.Request, *apigateway.RestApi)
+
+	ImportRestApi(*apigateway.ImportRestApiInput) (*apigateway.RestApi, error)
+
 	PutIntegrationRequest(*apigateway.PutIntegrationInput) (*request.Request, *apigateway.Integration)
 
 	PutIntegration(*apigateway.PutIntegrationInput) (*apigateway.Integration, error)
@@ -253,6 +261,14 @@ type APIGatewayAPI interface {
 	PutMethodResponseRequest(*apigateway.PutMethodResponseInput) (*request.Request, *apigateway.MethodResponse)
 
 	PutMethodResponse(*apigateway.PutMethodResponseInput) (*apigateway.MethodResponse, error)
+
+	PutRestApiRequest(*apigateway.PutRestApiInput) (*request.Request, *apigateway.RestApi)
+
+	PutRestApi(*apigateway.PutRestApiInput) (*apigateway.RestApi, error)
+
+	TestInvokeAuthorizerRequest(*apigateway.TestInvokeAuthorizerInput) (*request.Request, *apigateway.TestInvokeAuthorizerOutput)
+
+	TestInvokeAuthorizer(*apigateway.TestInvokeAuthorizerInput) (*apigateway.TestInvokeAuthorizerOutput, error)
 
 	TestInvokeMethodRequest(*apigateway.TestInvokeMethodInput) (*request.Request, *apigateway.TestInvokeMethodOutput)
 

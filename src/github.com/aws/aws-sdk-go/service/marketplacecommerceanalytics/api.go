@@ -12,7 +12,28 @@ import (
 
 const opGenerateDataSet = "GenerateDataSet"
 
-// GenerateDataSetRequest generates a request for the GenerateDataSet operation.
+// GenerateDataSetRequest generates a "aws/request.Request" representing the
+// client's request for the GenerateDataSet operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GenerateDataSet method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GenerateDataSetRequest method.
+//    req, resp := client.GenerateDataSetRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *MarketplaceCommerceAnalytics) GenerateDataSetRequest(input *GenerateDataSetInput) (req *request.Request, output *GenerateDataSetOutput) {
 	op := &request.Operation{
 		Name:       opGenerateDataSet,
@@ -77,9 +98,13 @@ type GenerateDataSetInput struct {
 	// - Available monthly on the 4th day of the month by 5:00 PM Pacific Time since
 	// 2015-02. monthly_revenue_annual_subscriptions - Available monthly on the
 	// 4th day of the month by 5:00 PM Pacific Time since 2015-02. disbursed_amount_by_product
-	// - Available every 30 days by 5:00 PM Pacific Time since 2012-04. disbursed_amount_by_customer_geo
-	// - Available every 30 days by 5:00 PM Pacific Time since 2012-04. disbursed_amount_by_age_of_uncollected_funds
-	// - Available every 30 days by 5:00 PM Pacific Time since 2015-01-26. disbursed_amount_by_age_of_disbursed_funds
+	// - Available every 30 days by 5:00 PM Pacific Time since 2015-01-26. disbursed_amount_by_product_with_uncollected_funds
+	// -This data set is only available from 2012-04-19 until 2015-01-25. After
+	// 2015-01-25, this data set was split into three data sets: disbursed_amount_by_product,
+	// disbursed_amount_by_age_of_uncollected_funds, and disbursed_amount_by_age_of_disbursed_funds.
+	//  disbursed_amount_by_customer_geo - Available every 30 days by 5:00 PM Pacific
+	// Time since 2012-04-19. disbursed_amount_by_age_of_uncollected_funds - Available
+	// every 30 days by 5:00 PM Pacific Time since 2015-01-26. disbursed_amount_by_age_of_disbursed_funds
 	// - Available every 30 days by 5:00 PM Pacific Time since 2015-01-26. customer_profile_by_industry
 	// - Available daily by 5:00 PM Pacific Time since 2015-10-01. customer_profile_by_revenue
 	// - Available daily by 5:00 PM Pacific Time since 2015-10-01. customer_profile_by_geography
@@ -114,6 +139,46 @@ func (s GenerateDataSetInput) String() string {
 // GoString returns the string representation
 func (s GenerateDataSetInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GenerateDataSetInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GenerateDataSetInput"}
+	if s.CustomerDefinedValues != nil && len(s.CustomerDefinedValues) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CustomerDefinedValues", 1))
+	}
+	if s.DataSetPublicationDate == nil {
+		invalidParams.Add(request.NewErrParamRequired("DataSetPublicationDate"))
+	}
+	if s.DataSetType == nil {
+		invalidParams.Add(request.NewErrParamRequired("DataSetType"))
+	}
+	if s.DataSetType != nil && len(*s.DataSetType) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DataSetType", 1))
+	}
+	if s.DestinationS3BucketName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationS3BucketName"))
+	}
+	if s.DestinationS3BucketName != nil && len(*s.DestinationS3BucketName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationS3BucketName", 1))
+	}
+	if s.RoleNameArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleNameArn"))
+	}
+	if s.RoleNameArn != nil && len(*s.RoleNameArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleNameArn", 1))
+	}
+	if s.SnsTopicArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("SnsTopicArn"))
+	}
+	if s.SnsTopicArn != nil && len(*s.SnsTopicArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SnsTopicArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Container for the result of the GenerateDataSet operation.
@@ -159,6 +224,8 @@ const (
 	DataSetTypeMonthlyRevenueAnnualSubscriptions = "monthly_revenue_annual_subscriptions"
 	// @enum DataSetType
 	DataSetTypeDisbursedAmountByProduct = "disbursed_amount_by_product"
+	// @enum DataSetType
+	DataSetTypeDisbursedAmountByProductWithUncollectedFunds = "disbursed_amount_by_product_with_uncollected_funds"
 	// @enum DataSetType
 	DataSetTypeDisbursedAmountByCustomerGeo = "disbursed_amount_by_customer_geo"
 	// @enum DataSetType

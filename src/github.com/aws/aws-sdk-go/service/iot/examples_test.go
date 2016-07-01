@@ -207,14 +207,38 @@ func ExampleIoT_CreateTopicRule() {
 		TopicRulePayload: &iot.TopicRulePayload{ // Required
 			Actions: []*iot.Action{ // Required
 				{ // Required
+					CloudwatchAlarm: &iot.CloudwatchAlarmAction{
+						AlarmName:   aws.String("AlarmName"),   // Required
+						RoleArn:     aws.String("AwsArn"),      // Required
+						StateReason: aws.String("StateReason"), // Required
+						StateValue:  aws.String("StateValue"),  // Required
+					},
+					CloudwatchMetric: &iot.CloudwatchMetricAction{
+						MetricName:      aws.String("MetricName"),      // Required
+						MetricNamespace: aws.String("MetricNamespace"), // Required
+						MetricUnit:      aws.String("MetricUnit"),      // Required
+						MetricValue:     aws.String("MetricValue"),     // Required
+						RoleArn:         aws.String("AwsArn"),          // Required
+						MetricTimestamp: aws.String("MetricTimestamp"),
+					},
 					DynamoDB: &iot.DynamoDBAction{
-						HashKeyField:  aws.String("HashKeyField"),  // Required
-						HashKeyValue:  aws.String("HashKeyValue"),  // Required
-						RangeKeyField: aws.String("RangeKeyField"), // Required
-						RangeKeyValue: aws.String("RangeKeyValue"), // Required
-						RoleArn:       aws.String("AwsArn"),        // Required
-						TableName:     aws.String("TableName"),     // Required
+						HashKeyField:  aws.String("HashKeyField"), // Required
+						HashKeyValue:  aws.String("HashKeyValue"), // Required
+						RoleArn:       aws.String("AwsArn"),       // Required
+						TableName:     aws.String("TableName"),    // Required
+						HashKeyType:   aws.String("DynamoKeyType"),
+						Operation:     aws.String("DynamoOperation"),
 						PayloadField:  aws.String("PayloadField"),
+						RangeKeyField: aws.String("RangeKeyField"),
+						RangeKeyType:  aws.String("DynamoKeyType"),
+						RangeKeyValue: aws.String("RangeKeyValue"),
+					},
+					Elasticsearch: &iot.ElasticsearchAction{
+						Endpoint: aws.String("ElasticsearchEndpoint"), // Required
+						Id:       aws.String("ElasticsearchId"),       // Required
+						Index:    aws.String("ElasticsearchIndex"),    // Required
+						RoleArn:  aws.String("AwsArn"),                // Required
+						Type:     aws.String("ElasticsearchType"),     // Required
 					},
 					Firehose: &iot.FirehoseAction{
 						DeliveryStreamName: aws.String("DeliveryStreamName"), // Required
@@ -238,8 +262,9 @@ func ExampleIoT_CreateTopicRule() {
 						RoleArn:    aws.String("AwsArn"),     // Required
 					},
 					Sns: &iot.SnsAction{
-						RoleArn:   aws.String("AwsArn"), // Required
-						TargetArn: aws.String("AwsArn"), // Required
+						RoleArn:       aws.String("AwsArn"), // Required
+						TargetArn:     aws.String("AwsArn"), // Required
+						MessageFormat: aws.String("MessageFormat"),
 					},
 					Sqs: &iot.SqsAction{
 						QueueUrl:  aws.String("QueueUrl"), // Required
@@ -249,12 +274,32 @@ func ExampleIoT_CreateTopicRule() {
 				},
 				// More values...
 			},
-			Sql:          aws.String("SQL"), // Required
-			Description:  aws.String("Description"),
-			RuleDisabled: aws.Bool(true),
+			Sql:              aws.String("SQL"), // Required
+			AwsIotSqlVersion: aws.String("AwsIotSqlVersion"),
+			Description:      aws.String("Description"),
+			RuleDisabled:     aws.Bool(true),
 		},
 	}
 	resp, err := svc.CreateTopicRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleIoT_DeleteCACertificate() {
+	svc := iot.New(session.New())
+
+	params := &iot.DeleteCACertificateInput{
+		CertificateId: aws.String("CertificateId"), // Required
+	}
+	resp, err := svc.DeleteCACertificate(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -325,6 +370,23 @@ func ExampleIoT_DeletePolicyVersion() {
 	fmt.Println(resp)
 }
 
+func ExampleIoT_DeleteRegistrationCode() {
+	svc := iot.New(session.New())
+
+	var params *iot.DeleteRegistrationCodeInput
+	resp, err := svc.DeleteRegistrationCode(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleIoT_DeleteThing() {
 	svc := iot.New(session.New())
 
@@ -351,6 +413,25 @@ func ExampleIoT_DeleteTopicRule() {
 		RuleName: aws.String("RuleName"), // Required
 	}
 	resp, err := svc.DeleteTopicRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleIoT_DescribeCACertificate() {
+	svc := iot.New(session.New())
+
+	params := &iot.DescribeCACertificateInput{
+		CertificateId: aws.String("CertificateId"), // Required
+	}
+	resp, err := svc.DescribeCACertificate(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -552,6 +633,23 @@ func ExampleIoT_GetPolicyVersion() {
 	fmt.Println(resp)
 }
 
+func ExampleIoT_GetRegistrationCode() {
+	svc := iot.New(session.New())
+
+	var params *iot.GetRegistrationCodeInput
+	resp, err := svc.GetRegistrationCode(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleIoT_GetTopicRule() {
 	svc := iot.New(session.New())
 
@@ -559,6 +657,27 @@ func ExampleIoT_GetTopicRule() {
 		RuleName: aws.String("RuleName"), // Required
 	}
 	resp, err := svc.GetTopicRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleIoT_ListCACertificates() {
+	svc := iot.New(session.New())
+
+	params := &iot.ListCACertificatesInput{
+		AscendingOrder: aws.Bool(true),
+		Marker:         aws.String("Marker"),
+		PageSize:       aws.Int64(1),
+	}
+	resp, err := svc.ListCACertificates(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -592,6 +711,28 @@ func ExampleIoT_ListCertificates() {
 	fmt.Println(resp)
 }
 
+func ExampleIoT_ListCertificatesByCA() {
+	svc := iot.New(session.New())
+
+	params := &iot.ListCertificatesByCAInput{
+		CaCertificateId: aws.String("CertificateId"), // Required
+		AscendingOrder:  aws.Bool(true),
+		Marker:          aws.String("Marker"),
+		PageSize:        aws.Int64(1),
+	}
+	resp, err := svc.ListCertificatesByCA(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleIoT_ListPolicies() {
 	svc := iot.New(session.New())
 
@@ -601,6 +742,28 @@ func ExampleIoT_ListPolicies() {
 		PageSize:       aws.Int64(1),
 	}
 	resp, err := svc.ListPolicies(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleIoT_ListPolicyPrincipals() {
+	svc := iot.New(session.New())
+
+	params := &iot.ListPolicyPrincipalsInput{
+		PolicyName:     aws.String("PolicyName"), // Required
+		AscendingOrder: aws.Bool(true),
+		Marker:         aws.String("Marker"),
+		PageSize:       aws.Int64(1),
+	}
+	resp, err := svc.ListPolicyPrincipals(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -738,11 +901,54 @@ func ExampleIoT_ListTopicRules() {
 	fmt.Println(resp)
 }
 
+func ExampleIoT_RegisterCACertificate() {
+	svc := iot.New(session.New())
+
+	params := &iot.RegisterCACertificateInput{
+		CaCertificate:           aws.String("CertificatePem"), // Required
+		VerificationCertificate: aws.String("CertificatePem"), // Required
+		SetAsActive:             aws.Bool(true),
+	}
+	resp, err := svc.RegisterCACertificate(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleIoT_RegisterCertificate() {
+	svc := iot.New(session.New())
+
+	params := &iot.RegisterCertificateInput{
+		CertificatePem:   aws.String("CertificatePem"), // Required
+		CaCertificatePem: aws.String("CertificatePem"),
+		SetAsActive:      aws.Bool(true),
+	}
+	resp, err := svc.RegisterCertificate(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleIoT_RejectCertificateTransfer() {
 	svc := iot.New(session.New())
 
 	params := &iot.RejectCertificateTransferInput{
 		CertificateId: aws.String("CertificateId"), // Required
+		RejectReason:  aws.String("Message"),
 	}
 	resp, err := svc.RejectCertificateTransfer(params)
 
@@ -765,14 +971,38 @@ func ExampleIoT_ReplaceTopicRule() {
 		TopicRulePayload: &iot.TopicRulePayload{ // Required
 			Actions: []*iot.Action{ // Required
 				{ // Required
+					CloudwatchAlarm: &iot.CloudwatchAlarmAction{
+						AlarmName:   aws.String("AlarmName"),   // Required
+						RoleArn:     aws.String("AwsArn"),      // Required
+						StateReason: aws.String("StateReason"), // Required
+						StateValue:  aws.String("StateValue"),  // Required
+					},
+					CloudwatchMetric: &iot.CloudwatchMetricAction{
+						MetricName:      aws.String("MetricName"),      // Required
+						MetricNamespace: aws.String("MetricNamespace"), // Required
+						MetricUnit:      aws.String("MetricUnit"),      // Required
+						MetricValue:     aws.String("MetricValue"),     // Required
+						RoleArn:         aws.String("AwsArn"),          // Required
+						MetricTimestamp: aws.String("MetricTimestamp"),
+					},
 					DynamoDB: &iot.DynamoDBAction{
-						HashKeyField:  aws.String("HashKeyField"),  // Required
-						HashKeyValue:  aws.String("HashKeyValue"),  // Required
-						RangeKeyField: aws.String("RangeKeyField"), // Required
-						RangeKeyValue: aws.String("RangeKeyValue"), // Required
-						RoleArn:       aws.String("AwsArn"),        // Required
-						TableName:     aws.String("TableName"),     // Required
+						HashKeyField:  aws.String("HashKeyField"), // Required
+						HashKeyValue:  aws.String("HashKeyValue"), // Required
+						RoleArn:       aws.String("AwsArn"),       // Required
+						TableName:     aws.String("TableName"),    // Required
+						HashKeyType:   aws.String("DynamoKeyType"),
+						Operation:     aws.String("DynamoOperation"),
 						PayloadField:  aws.String("PayloadField"),
+						RangeKeyField: aws.String("RangeKeyField"),
+						RangeKeyType:  aws.String("DynamoKeyType"),
+						RangeKeyValue: aws.String("RangeKeyValue"),
+					},
+					Elasticsearch: &iot.ElasticsearchAction{
+						Endpoint: aws.String("ElasticsearchEndpoint"), // Required
+						Id:       aws.String("ElasticsearchId"),       // Required
+						Index:    aws.String("ElasticsearchIndex"),    // Required
+						RoleArn:  aws.String("AwsArn"),                // Required
+						Type:     aws.String("ElasticsearchType"),     // Required
 					},
 					Firehose: &iot.FirehoseAction{
 						DeliveryStreamName: aws.String("DeliveryStreamName"), // Required
@@ -796,8 +1026,9 @@ func ExampleIoT_ReplaceTopicRule() {
 						RoleArn:    aws.String("AwsArn"),     // Required
 					},
 					Sns: &iot.SnsAction{
-						RoleArn:   aws.String("AwsArn"), // Required
-						TargetArn: aws.String("AwsArn"), // Required
+						RoleArn:       aws.String("AwsArn"), // Required
+						TargetArn:     aws.String("AwsArn"), // Required
+						MessageFormat: aws.String("MessageFormat"),
 					},
 					Sqs: &iot.SqsAction{
 						QueueUrl:  aws.String("QueueUrl"), // Required
@@ -807,9 +1038,10 @@ func ExampleIoT_ReplaceTopicRule() {
 				},
 				// More values...
 			},
-			Sql:          aws.String("SQL"), // Required
-			Description:  aws.String("Description"),
-			RuleDisabled: aws.Bool(true),
+			Sql:              aws.String("SQL"), // Required
+			AwsIotSqlVersion: aws.String("AwsIotSqlVersion"),
+			Description:      aws.String("Description"),
+			RuleDisabled:     aws.Bool(true),
 		},
 	}
 	resp, err := svc.ReplaceTopicRule(params)
@@ -873,8 +1105,29 @@ func ExampleIoT_TransferCertificate() {
 	params := &iot.TransferCertificateInput{
 		CertificateId:    aws.String("CertificateId"), // Required
 		TargetAwsAccount: aws.String("AwsAccountId"),  // Required
+		TransferMessage:  aws.String("Message"),
 	}
 	resp, err := svc.TransferCertificate(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleIoT_UpdateCACertificate() {
+	svc := iot.New(session.New())
+
+	params := &iot.UpdateCACertificateInput{
+		CertificateId: aws.String("CertificateId"),       // Required
+		NewStatus:     aws.String("CACertificateStatus"), // Required
+	}
+	resp, err := svc.UpdateCACertificate(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and

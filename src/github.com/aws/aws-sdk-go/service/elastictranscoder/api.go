@@ -4,13 +4,36 @@
 package elastictranscoder
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opCancelJob = "CancelJob"
 
-// CancelJobRequest generates a request for the CancelJob operation.
+// CancelJobRequest generates a "aws/request.Request" representing the
+// client's request for the CancelJob operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CancelJob method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CancelJobRequest method.
+//    req, resp := client.CancelJobRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) CancelJobRequest(input *CancelJobInput) (req *request.Request, output *CancelJobOutput) {
 	op := &request.Operation{
 		Name:       opCancelJob,
@@ -41,7 +64,28 @@ func (c *ElasticTranscoder) CancelJob(input *CancelJobInput) (*CancelJobOutput, 
 
 const opCreateJob = "CreateJob"
 
-// CreateJobRequest generates a request for the CreateJob operation.
+// CreateJobRequest generates a "aws/request.Request" representing the
+// client's request for the CreateJob operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateJob method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateJobRequest method.
+//    req, resp := client.CreateJobRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) CreateJobRequest(input *CreateJobInput) (req *request.Request, output *CreateJobResponse) {
 	op := &request.Operation{
 		Name:       opCreateJob,
@@ -74,7 +118,28 @@ func (c *ElasticTranscoder) CreateJob(input *CreateJobInput) (*CreateJobResponse
 
 const opCreatePipeline = "CreatePipeline"
 
-// CreatePipelineRequest generates a request for the CreatePipeline operation.
+// CreatePipelineRequest generates a "aws/request.Request" representing the
+// client's request for the CreatePipeline operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreatePipeline method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreatePipelineRequest method.
+//    req, resp := client.CreatePipelineRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) CreatePipelineRequest(input *CreatePipelineInput) (req *request.Request, output *CreatePipelineOutput) {
 	op := &request.Operation{
 		Name:       opCreatePipeline,
@@ -101,7 +166,28 @@ func (c *ElasticTranscoder) CreatePipeline(input *CreatePipelineInput) (*CreateP
 
 const opCreatePreset = "CreatePreset"
 
-// CreatePresetRequest generates a request for the CreatePreset operation.
+// CreatePresetRequest generates a "aws/request.Request" representing the
+// client's request for the CreatePreset operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreatePreset method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreatePresetRequest method.
+//    req, resp := client.CreatePresetRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) CreatePresetRequest(input *CreatePresetInput) (req *request.Request, output *CreatePresetOutput) {
 	op := &request.Operation{
 		Name:       opCreatePreset,
@@ -142,7 +228,28 @@ func (c *ElasticTranscoder) CreatePreset(input *CreatePresetInput) (*CreatePrese
 
 const opDeletePipeline = "DeletePipeline"
 
-// DeletePipelineRequest generates a request for the DeletePipeline operation.
+// DeletePipelineRequest generates a "aws/request.Request" representing the
+// client's request for the DeletePipeline operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeletePipeline method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeletePipelineRequest method.
+//    req, resp := client.DeletePipelineRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) DeletePipelineRequest(input *DeletePipelineInput) (req *request.Request, output *DeletePipelineOutput) {
 	op := &request.Operation{
 		Name:       opDeletePipeline,
@@ -173,7 +280,28 @@ func (c *ElasticTranscoder) DeletePipeline(input *DeletePipelineInput) (*DeleteP
 
 const opDeletePreset = "DeletePreset"
 
-// DeletePresetRequest generates a request for the DeletePreset operation.
+// DeletePresetRequest generates a "aws/request.Request" representing the
+// client's request for the DeletePreset operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeletePreset method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeletePresetRequest method.
+//    req, resp := client.DeletePresetRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) DeletePresetRequest(input *DeletePresetInput) (req *request.Request, output *DeletePresetOutput) {
 	op := &request.Operation{
 		Name:       opDeletePreset,
@@ -202,7 +330,28 @@ func (c *ElasticTranscoder) DeletePreset(input *DeletePresetInput) (*DeletePrese
 
 const opListJobsByPipeline = "ListJobsByPipeline"
 
-// ListJobsByPipelineRequest generates a request for the ListJobsByPipeline operation.
+// ListJobsByPipelineRequest generates a "aws/request.Request" representing the
+// client's request for the ListJobsByPipeline operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListJobsByPipeline method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListJobsByPipelineRequest method.
+//    req, resp := client.ListJobsByPipelineRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) ListJobsByPipelineRequest(input *ListJobsByPipelineInput) (req *request.Request, output *ListJobsByPipelineOutput) {
 	op := &request.Operation{
 		Name:       opListJobsByPipeline,
@@ -237,6 +386,23 @@ func (c *ElasticTranscoder) ListJobsByPipeline(input *ListJobsByPipelineInput) (
 	return out, err
 }
 
+// ListJobsByPipelinePages iterates over the pages of a ListJobsByPipeline operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJobsByPipeline method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJobsByPipeline operation.
+//    pageNum := 0
+//    err := client.ListJobsByPipelinePages(params,
+//        func(page *ListJobsByPipelineOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
 func (c *ElasticTranscoder) ListJobsByPipelinePages(input *ListJobsByPipelineInput, fn func(p *ListJobsByPipelineOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.ListJobsByPipelineRequest(input)
 	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
@@ -247,7 +413,28 @@ func (c *ElasticTranscoder) ListJobsByPipelinePages(input *ListJobsByPipelineInp
 
 const opListJobsByStatus = "ListJobsByStatus"
 
-// ListJobsByStatusRequest generates a request for the ListJobsByStatus operation.
+// ListJobsByStatusRequest generates a "aws/request.Request" representing the
+// client's request for the ListJobsByStatus operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListJobsByStatus method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListJobsByStatusRequest method.
+//    req, resp := client.ListJobsByStatusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) ListJobsByStatusRequest(input *ListJobsByStatusInput) (req *request.Request, output *ListJobsByStatusOutput) {
 	op := &request.Operation{
 		Name:       opListJobsByStatus,
@@ -280,6 +467,23 @@ func (c *ElasticTranscoder) ListJobsByStatus(input *ListJobsByStatusInput) (*Lis
 	return out, err
 }
 
+// ListJobsByStatusPages iterates over the pages of a ListJobsByStatus operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJobsByStatus method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJobsByStatus operation.
+//    pageNum := 0
+//    err := client.ListJobsByStatusPages(params,
+//        func(page *ListJobsByStatusOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
 func (c *ElasticTranscoder) ListJobsByStatusPages(input *ListJobsByStatusInput, fn func(p *ListJobsByStatusOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.ListJobsByStatusRequest(input)
 	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
@@ -290,7 +494,28 @@ func (c *ElasticTranscoder) ListJobsByStatusPages(input *ListJobsByStatusInput, 
 
 const opListPipelines = "ListPipelines"
 
-// ListPipelinesRequest generates a request for the ListPipelines operation.
+// ListPipelinesRequest generates a "aws/request.Request" representing the
+// client's request for the ListPipelines operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListPipelines method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListPipelinesRequest method.
+//    req, resp := client.ListPipelinesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) ListPipelinesRequest(input *ListPipelinesInput) (req *request.Request, output *ListPipelinesOutput) {
 	op := &request.Operation{
 		Name:       opListPipelines,
@@ -322,6 +547,23 @@ func (c *ElasticTranscoder) ListPipelines(input *ListPipelinesInput) (*ListPipel
 	return out, err
 }
 
+// ListPipelinesPages iterates over the pages of a ListPipelines operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPipelines method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPipelines operation.
+//    pageNum := 0
+//    err := client.ListPipelinesPages(params,
+//        func(page *ListPipelinesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
 func (c *ElasticTranscoder) ListPipelinesPages(input *ListPipelinesInput, fn func(p *ListPipelinesOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.ListPipelinesRequest(input)
 	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
@@ -332,7 +574,28 @@ func (c *ElasticTranscoder) ListPipelinesPages(input *ListPipelinesInput, fn fun
 
 const opListPresets = "ListPresets"
 
-// ListPresetsRequest generates a request for the ListPresets operation.
+// ListPresetsRequest generates a "aws/request.Request" representing the
+// client's request for the ListPresets operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListPresets method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListPresetsRequest method.
+//    req, resp := client.ListPresetsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) ListPresetsRequest(input *ListPresetsInput) (req *request.Request, output *ListPresetsOutput) {
 	op := &request.Operation{
 		Name:       opListPresets,
@@ -364,6 +627,23 @@ func (c *ElasticTranscoder) ListPresets(input *ListPresetsInput) (*ListPresetsOu
 	return out, err
 }
 
+// ListPresetsPages iterates over the pages of a ListPresets operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPresets method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPresets operation.
+//    pageNum := 0
+//    err := client.ListPresetsPages(params,
+//        func(page *ListPresetsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
 func (c *ElasticTranscoder) ListPresetsPages(input *ListPresetsInput, fn func(p *ListPresetsOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.ListPresetsRequest(input)
 	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
@@ -374,7 +654,28 @@ func (c *ElasticTranscoder) ListPresetsPages(input *ListPresetsInput, fn func(p 
 
 const opReadJob = "ReadJob"
 
-// ReadJobRequest generates a request for the ReadJob operation.
+// ReadJobRequest generates a "aws/request.Request" representing the
+// client's request for the ReadJob operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ReadJob method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ReadJobRequest method.
+//    req, resp := client.ReadJobRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) ReadJobRequest(input *ReadJobInput) (req *request.Request, output *ReadJobOutput) {
 	op := &request.Operation{
 		Name:       opReadJob,
@@ -401,7 +702,28 @@ func (c *ElasticTranscoder) ReadJob(input *ReadJobInput) (*ReadJobOutput, error)
 
 const opReadPipeline = "ReadPipeline"
 
-// ReadPipelineRequest generates a request for the ReadPipeline operation.
+// ReadPipelineRequest generates a "aws/request.Request" representing the
+// client's request for the ReadPipeline operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ReadPipeline method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ReadPipelineRequest method.
+//    req, resp := client.ReadPipelineRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) ReadPipelineRequest(input *ReadPipelineInput) (req *request.Request, output *ReadPipelineOutput) {
 	op := &request.Operation{
 		Name:       opReadPipeline,
@@ -428,7 +750,28 @@ func (c *ElasticTranscoder) ReadPipeline(input *ReadPipelineInput) (*ReadPipelin
 
 const opReadPreset = "ReadPreset"
 
-// ReadPresetRequest generates a request for the ReadPreset operation.
+// ReadPresetRequest generates a "aws/request.Request" representing the
+// client's request for the ReadPreset operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ReadPreset method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ReadPresetRequest method.
+//    req, resp := client.ReadPresetRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) ReadPresetRequest(input *ReadPresetInput) (req *request.Request, output *ReadPresetOutput) {
 	op := &request.Operation{
 		Name:       opReadPreset,
@@ -455,7 +798,28 @@ func (c *ElasticTranscoder) ReadPreset(input *ReadPresetInput) (*ReadPresetOutpu
 
 const opTestRole = "TestRole"
 
-// TestRoleRequest generates a request for the TestRole operation.
+// TestRoleRequest generates a "aws/request.Request" representing the
+// client's request for the TestRole operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the TestRole method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the TestRoleRequest method.
+//    req, resp := client.TestRoleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) TestRoleRequest(input *TestRoleInput) (req *request.Request, output *TestRoleOutput) {
 	op := &request.Operation{
 		Name:       opTestRole,
@@ -488,7 +852,28 @@ func (c *ElasticTranscoder) TestRole(input *TestRoleInput) (*TestRoleOutput, err
 
 const opUpdatePipeline = "UpdatePipeline"
 
-// UpdatePipelineRequest generates a request for the UpdatePipeline operation.
+// UpdatePipelineRequest generates a "aws/request.Request" representing the
+// client's request for the UpdatePipeline operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdatePipeline method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdatePipelineRequest method.
+//    req, resp := client.UpdatePipelineRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) UpdatePipelineRequest(input *UpdatePipelineInput) (req *request.Request, output *UpdatePipelineOutput) {
 	op := &request.Operation{
 		Name:       opUpdatePipeline,
@@ -519,7 +904,28 @@ func (c *ElasticTranscoder) UpdatePipeline(input *UpdatePipelineInput) (*UpdateP
 
 const opUpdatePipelineNotifications = "UpdatePipelineNotifications"
 
-// UpdatePipelineNotificationsRequest generates a request for the UpdatePipelineNotifications operation.
+// UpdatePipelineNotificationsRequest generates a "aws/request.Request" representing the
+// client's request for the UpdatePipelineNotifications operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdatePipelineNotifications method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdatePipelineNotificationsRequest method.
+//    req, resp := client.UpdatePipelineNotificationsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) UpdatePipelineNotificationsRequest(input *UpdatePipelineNotificationsInput) (req *request.Request, output *UpdatePipelineNotificationsOutput) {
 	op := &request.Operation{
 		Name:       opUpdatePipelineNotifications,
@@ -550,7 +956,28 @@ func (c *ElasticTranscoder) UpdatePipelineNotifications(input *UpdatePipelineNot
 
 const opUpdatePipelineStatus = "UpdatePipelineStatus"
 
-// UpdatePipelineStatusRequest generates a request for the UpdatePipelineStatus operation.
+// UpdatePipelineStatusRequest generates a "aws/request.Request" representing the
+// client's request for the UpdatePipelineStatus operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdatePipelineStatus method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdatePipelineStatusRequest method.
+//    req, resp := client.UpdatePipelineStatusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *ElasticTranscoder) UpdatePipelineStatusRequest(input *UpdatePipelineStatusInput) (req *request.Request, output *UpdatePipelineStatusOutput) {
 	op := &request.Operation{
 		Name:       opUpdatePipelineStatus,
@@ -659,6 +1086,19 @@ func (s Artwork) String() string {
 // GoString returns the string representation
 func (s Artwork) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Artwork) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Artwork"}
+	if s.InputKey != nil && len(*s.InputKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputKey", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Options associated with your audio codec.
@@ -872,6 +1312,19 @@ func (s CancelJobInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CancelJobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CancelJobInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The response body contains a JSON object. If the job is successfully canceled,
 // the value of Success is true.
 type CancelJobOutput struct {
@@ -997,6 +1450,25 @@ func (s CaptionSource) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CaptionSource) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CaptionSource"}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Label != nil && len(*s.Label) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Label", 1))
+	}
+	if s.Language != nil && len(*s.Language) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Language", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The captions to be created, if any.
 type Captions struct {
 	_ struct{} `type:"structure"`
@@ -1038,6 +1510,26 @@ func (s Captions) String() string {
 // GoString returns the string representation
 func (s Captions) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Captions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Captions"}
+	if s.CaptionSources != nil {
+		for i, v := range s.CaptionSources {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CaptionSources", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Settings for one clip in a composition. All jobs in a playlist must have
@@ -1108,6 +1600,55 @@ func (s CreateJobInput) String() string {
 // GoString returns the string representation
 func (s CreateJobInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateJobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateJobInput"}
+	if s.Input == nil {
+		invalidParams.Add(request.NewErrParamRequired("Input"))
+	}
+	if s.OutputKeyPrefix != nil && len(*s.OutputKeyPrefix) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OutputKeyPrefix", 1))
+	}
+	if s.PipelineId == nil {
+		invalidParams.Add(request.NewErrParamRequired("PipelineId"))
+	}
+	if s.Input != nil {
+		if err := s.Input.Validate(); err != nil {
+			invalidParams.AddNested("Input", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Output != nil {
+		if err := s.Output.Validate(); err != nil {
+			invalidParams.AddNested("Output", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Outputs != nil {
+		for i, v := range s.Outputs {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Outputs", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Playlists != nil {
+		for i, v := range s.Playlists {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Playlists", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The CreateJobOutput structure.
@@ -1263,6 +1804,39 @@ func (s CreateJobOutput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateJobOutput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateJobOutput"}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.AlbumArt != nil {
+		if err := s.AlbumArt.Validate(); err != nil {
+			invalidParams.AddNested("AlbumArt", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Captions != nil {
+		if err := s.Captions.Validate(); err != nil {
+			invalidParams.AddNested("Captions", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Watermarks != nil {
+		for i, v := range s.Watermarks {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Watermarks", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // Information about the master playlist.
 type CreateJobPlaylist struct {
 	_ struct{} `type:"structure"`
@@ -1339,6 +1913,24 @@ func (s CreateJobPlaylist) String() string {
 // GoString returns the string representation
 func (s CreateJobPlaylist) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateJobPlaylist) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateJobPlaylist"}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.PlayReadyDrm != nil {
+		if err := s.PlayReadyDrm.Validate(); err != nil {
+			invalidParams.AddNested("PlayReadyDrm", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The CreateJobResponse structure.
@@ -1526,6 +2118,38 @@ func (s CreatePipelineInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreatePipelineInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreatePipelineInput"}
+	if s.InputBucket == nil {
+		invalidParams.Add(request.NewErrParamRequired("InputBucket"))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Role == nil {
+		invalidParams.Add(request.NewErrParamRequired("Role"))
+	}
+	if s.ContentConfig != nil {
+		if err := s.ContentConfig.Validate(); err != nil {
+			invalidParams.AddNested("ContentConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ThumbnailConfig != nil {
+		if err := s.ThumbnailConfig.Validate(); err != nil {
+			invalidParams.AddNested("ThumbnailConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // When you create a pipeline, Elastic Transcoder returns the values that you
 // specified in the request.
 type CreatePipelineOutput struct {
@@ -1590,6 +2214,30 @@ func (s CreatePresetInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreatePresetInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreatePresetInput"}
+	if s.Container == nil {
+		invalidParams.Add(request.NewErrParamRequired("Container"))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Video != nil {
+		if err := s.Video.Validate(); err != nil {
+			invalidParams.AddNested("Video", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The CreatePresetResponse structure.
 type CreatePresetOutput struct {
 	_ struct{} `type:"structure"`
@@ -1633,6 +2281,19 @@ func (s DeletePipelineInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeletePipelineInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeletePipelineInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The DeletePipelineResponse structure.
 type DeletePipelineOutput struct {
 	_ struct{} `type:"structure"`
@@ -1664,6 +2325,19 @@ func (s DeletePresetInput) String() string {
 // GoString returns the string representation
 func (s DeletePresetInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeletePresetInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeletePresetInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The DeletePresetResponse structure.
@@ -1969,6 +2643,26 @@ func (s JobAlbumArt) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *JobAlbumArt) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "JobAlbumArt"}
+	if s.Artwork != nil {
+		for i, v := range s.Artwork {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Artwork", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // Information about the file that you're transcoding.
 type JobInput struct {
 	_ struct{} `type:"structure"`
@@ -2044,6 +2738,19 @@ func (s JobInput) String() string {
 // GoString returns the string representation
 func (s JobInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *JobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "JobInput"}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Outputs recommended instead.If you specified one output for a job, information
@@ -2297,6 +3004,22 @@ func (s JobWatermark) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *JobWatermark) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "JobWatermark"}
+	if s.InputKey != nil && len(*s.InputKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputKey", 1))
+	}
+	if s.PresetWatermarkId != nil && len(*s.PresetWatermarkId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PresetWatermarkId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The ListJobsByPipelineRequest structure.
 type ListJobsByPipelineInput struct {
 	_ struct{} `type:"structure"`
@@ -2321,6 +3044,19 @@ func (s ListJobsByPipelineInput) String() string {
 // GoString returns the string representation
 func (s ListJobsByPipelineInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListJobsByPipelineInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListJobsByPipelineInput"}
+	if s.PipelineId == nil {
+		invalidParams.Add(request.NewErrParamRequired("PipelineId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The ListJobsByPipelineResponse structure.
@@ -2372,6 +3108,19 @@ func (s ListJobsByStatusInput) String() string {
 // GoString returns the string representation
 func (s ListJobsByStatusInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListJobsByStatusInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListJobsByStatusInput"}
+	if s.Status == nil {
+		invalidParams.Add(request.NewErrParamRequired("Status"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The ListJobsByStatusResponse structure.
@@ -2566,6 +3315,19 @@ func (s Permission) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Permission) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Permission"}
+	if s.Grantee != nil && len(*s.Grantee) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Grantee", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The pipeline (queue) that is used to manage jobs.
 type Pipeline struct {
 	_ struct{} `type:"structure"`
@@ -2741,6 +3503,26 @@ func (s PipelineOutputConfig) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PipelineOutputConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PipelineOutputConfig"}
+	if s.Permissions != nil {
+		for i, v := range s.Permissions {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Permissions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The PlayReady DRM settings, if any, that you want Elastic Transcoder to apply
 // to the output files associated with this playlist.
 //
@@ -2801,6 +3583,19 @@ func (s PlayReadyDrm) String() string {
 // GoString returns the string representation
 func (s PlayReadyDrm) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PlayReadyDrm) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PlayReadyDrm"}
+	if s.LicenseAcquisitionUrl != nil && len(*s.LicenseAcquisitionUrl) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LicenseAcquisitionUrl", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Use Only for Fragmented MP4 or MPEG-TS Outputs. If you specify a preset for
@@ -3083,6 +3878,19 @@ func (s PresetWatermark) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PresetWatermark) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PresetWatermark"}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The ReadJobRequest structure.
 type ReadJobInput struct {
 	_ struct{} `type:"structure"`
@@ -3099,6 +3907,19 @@ func (s ReadJobInput) String() string {
 // GoString returns the string representation
 func (s ReadJobInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ReadJobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ReadJobInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The ReadJobResponse structure.
@@ -3135,6 +3956,19 @@ func (s ReadPipelineInput) String() string {
 // GoString returns the string representation
 func (s ReadPipelineInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ReadPipelineInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ReadPipelineInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The ReadPipelineResponse structure.
@@ -3179,6 +4013,19 @@ func (s ReadPresetInput) String() string {
 // GoString returns the string representation
 func (s ReadPresetInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ReadPresetInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ReadPresetInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The ReadPresetResponse structure.
@@ -3228,6 +4075,28 @@ func (s TestRoleInput) String() string {
 // GoString returns the string representation
 func (s TestRoleInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TestRoleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TestRoleInput"}
+	if s.InputBucket == nil {
+		invalidParams.Add(request.NewErrParamRequired("InputBucket"))
+	}
+	if s.OutputBucket == nil {
+		invalidParams.Add(request.NewErrParamRequired("OutputBucket"))
+	}
+	if s.Role == nil {
+		invalidParams.Add(request.NewErrParamRequired("Role"))
+	}
+	if s.Topics == nil {
+		invalidParams.Add(request.NewErrParamRequired("Topics"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The TestRoleResponse structure.
@@ -3532,6 +4401,32 @@ func (s UpdatePipelineInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdatePipelineInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdatePipelineInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.ContentConfig != nil {
+		if err := s.ContentConfig.Validate(); err != nil {
+			invalidParams.AddNested("ContentConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ThumbnailConfig != nil {
+		if err := s.ThumbnailConfig.Validate(); err != nil {
+			invalidParams.AddNested("ThumbnailConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // The UpdatePipelineNotificationsRequest structure.
 type UpdatePipelineNotificationsInput struct {
 	_ struct{} `type:"structure"`
@@ -3567,6 +4462,22 @@ func (s UpdatePipelineNotificationsInput) String() string {
 // GoString returns the string representation
 func (s UpdatePipelineNotificationsInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdatePipelineNotificationsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdatePipelineNotificationsInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Notifications == nil {
+		invalidParams.Add(request.NewErrParamRequired("Notifications"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // The UpdatePipelineNotificationsResponse structure.
@@ -3636,6 +4547,22 @@ func (s UpdatePipelineStatusInput) String() string {
 // GoString returns the string representation
 func (s UpdatePipelineStatusInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdatePipelineStatusInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdatePipelineStatusInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Status == nil {
+		invalidParams.Add(request.NewErrParamRequired("Status"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // When you update status for a pipeline, Elastic Transcoder returns the values
@@ -3965,6 +4892,26 @@ func (s VideoParameters) String() string {
 // GoString returns the string representation
 func (s VideoParameters) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VideoParameters) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VideoParameters"}
+	if s.Watermarks != nil {
+		for i, v := range s.Watermarks {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Watermarks", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // Elastic Transcoder returns a warning if the resources used by your pipeline

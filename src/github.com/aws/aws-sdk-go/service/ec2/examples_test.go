@@ -308,9 +308,12 @@ func ExampleEC2_AuthorizeSecurityGroupEgress() {
 				ToPort: aws.Int64(1),
 				UserIdGroupPairs: []*ec2.UserIdGroupPair{
 					{ // Required
-						GroupId:   aws.String("String"),
-						GroupName: aws.String("String"),
-						UserId:    aws.String("String"),
+						GroupId:       aws.String("String"),
+						GroupName:     aws.String("String"),
+						PeeringStatus: aws.String("String"),
+						UserId:        aws.String("String"),
+						VpcId:         aws.String("String"),
+						VpcPeeringConnectionId: aws.String("String"),
 					},
 					// More values...
 				},
@@ -363,9 +366,12 @@ func ExampleEC2_AuthorizeSecurityGroupIngress() {
 				ToPort: aws.Int64(1),
 				UserIdGroupPairs: []*ec2.UserIdGroupPair{
 					{ // Required
-						GroupId:   aws.String("String"),
-						GroupName: aws.String("String"),
-						UserId:    aws.String("String"),
+						GroupId:       aws.String("String"),
+						GroupName:     aws.String("String"),
+						PeeringStatus: aws.String("String"),
+						UserId:        aws.String("String"),
+						VpcId:         aws.String("String"),
+						VpcPeeringConnectionId: aws.String("String"),
 					},
 					// More values...
 				},
@@ -2190,6 +2196,26 @@ func ExampleEC2_DescribeIdFormat() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_DescribeIdentityIdFormat() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.DescribeIdentityIdFormatInput{
+		PrincipalArn: aws.String("String"), // Required
+		Resource:     aws.String("String"),
+	}
+	resp, err := svc.DescribeIdentityIdFormat(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_DescribeImageAttribute() {
 	svc := ec2.New(session.New())
 
@@ -2997,6 +3023,29 @@ func ExampleEC2_DescribeScheduledInstances() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_DescribeSecurityGroupReferences() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.DescribeSecurityGroupReferencesInput{
+		GroupId: []*string{ // Required
+			aws.String("String"), // Required
+			// More values...
+		},
+		DryRun: aws.Bool(true),
+	}
+	resp, err := svc.DescribeSecurityGroupReferences(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_DescribeSecurityGroups() {
 	svc := ec2.New(session.New())
 
@@ -3251,6 +3300,28 @@ func ExampleEC2_DescribeSpotPriceHistory() {
 		StartTime: aws.Time(time.Now()),
 	}
 	resp, err := svc.DescribeSpotPriceHistory(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleEC2_DescribeStaleSecurityGroups() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.DescribeStaleSecurityGroupsInput{
+		VpcId:      aws.String("String"), // Required
+		DryRun:     aws.Bool(true),
+		MaxResults: aws.Int64(1),
+		NextToken:  aws.String("NextToken"),
+	}
+	resp, err := svc.DescribeStaleSecurityGroups(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -3990,6 +4061,27 @@ func ExampleEC2_GetConsoleOutput() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_GetConsoleScreenshot() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.GetConsoleScreenshotInput{
+		InstanceId: aws.String("String"), // Required
+		DryRun:     aws.Bool(true),
+		WakeUp:     aws.Bool(true),
+	}
+	resp, err := svc.GetConsoleScreenshot(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_GetPasswordData() {
 	svc := ec2.New(session.New())
 
@@ -4248,6 +4340,27 @@ func ExampleEC2_ModifyIdFormat() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_ModifyIdentityIdFormat() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.ModifyIdentityIdFormatInput{
+		PrincipalArn: aws.String("String"), // Required
+		Resource:     aws.String("String"), // Required
+		UseLongIds:   aws.Bool(true),       // Required
+	}
+	resp, err := svc.ModifyIdentityIdFormat(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_ModifyImageAttribute() {
 	svc := ec2.New(session.New())
 
@@ -4325,6 +4438,9 @@ func ExampleEC2_ModifyInstanceAttribute() {
 		},
 		DryRun: aws.Bool(true),
 		EbsOptimized: &ec2.AttributeBooleanValue{
+			Value: aws.Bool(true),
+		},
+		EnaSupport: &ec2.AttributeBooleanValue{
 			Value: aws.Bool(true),
 		},
 		Groups: []*string{
@@ -4622,6 +4738,34 @@ func ExampleEC2_ModifyVpcEndpoint() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_ModifyVpcPeeringConnectionOptions() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.ModifyVpcPeeringConnectionOptionsInput{
+		VpcPeeringConnectionId: aws.String("String"), // Required
+		AccepterPeeringConnectionOptions: &ec2.PeeringConnectionOptionsRequest{
+			AllowEgressFromLocalClassicLinkToRemoteVpc: aws.Bool(true), // Required
+			AllowEgressFromLocalVpcToRemoteClassicLink: aws.Bool(true), // Required
+		},
+		DryRun: aws.Bool(true),
+		RequesterPeeringConnectionOptions: &ec2.PeeringConnectionOptionsRequest{
+			AllowEgressFromLocalClassicLinkToRemoteVpc: aws.Bool(true), // Required
+			AllowEgressFromLocalVpcToRemoteClassicLink: aws.Bool(true), // Required
+		},
+	}
+	resp, err := svc.ModifyVpcPeeringConnectionOptions(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_MonitorInstances() {
 	svc := ec2.New(session.New())
 
@@ -4696,8 +4840,8 @@ func ExampleEC2_PurchaseScheduledInstances() {
 	params := &ec2.PurchaseScheduledInstancesInput{
 		PurchaseRequests: []*ec2.PurchaseRequest{ // Required
 			{ // Required
-				InstanceCount: aws.Int64(1),
-				PurchaseToken: aws.String("String"),
+				InstanceCount: aws.Int64(1),         // Required
+				PurchaseToken: aws.String("String"), // Required
 			},
 			// More values...
 		},
@@ -4764,6 +4908,7 @@ func ExampleEC2_RegisterImage() {
 		},
 		Description:        aws.String("String"),
 		DryRun:             aws.Bool(true),
+		EnaSupport:         aws.Bool(true),
 		ImageLocation:      aws.String("String"),
 		KernelId:           aws.String("String"),
 		RamdiskId:          aws.String("String"),
@@ -5064,9 +5209,11 @@ func ExampleEC2_RequestSpotFleet() {
 			AllocationStrategy:               aws.String("AllocationStrategy"),
 			ClientToken:                      aws.String("String"),
 			ExcessCapacityTerminationPolicy:  aws.String("ExcessCapacityTerminationPolicy"),
+			FulfilledCapacity:                aws.Float64(1.0),
 			TerminateInstancesWithExpiration: aws.Bool(true),
-			ValidFrom:                        aws.Time(time.Now()),
-			ValidUntil:                       aws.Time(time.Now()),
+			Type:       aws.String("FleetType"),
+			ValidFrom:  aws.Time(time.Now()),
+			ValidUntil: aws.Time(time.Now()),
 		},
 		DryRun: aws.Bool(true),
 	}
@@ -5312,9 +5459,12 @@ func ExampleEC2_RevokeSecurityGroupEgress() {
 				ToPort: aws.Int64(1),
 				UserIdGroupPairs: []*ec2.UserIdGroupPair{
 					{ // Required
-						GroupId:   aws.String("String"),
-						GroupName: aws.String("String"),
-						UserId:    aws.String("String"),
+						GroupId:       aws.String("String"),
+						GroupName:     aws.String("String"),
+						PeeringStatus: aws.String("String"),
+						UserId:        aws.String("String"),
+						VpcId:         aws.String("String"),
+						VpcPeeringConnectionId: aws.String("String"),
 					},
 					// More values...
 				},
@@ -5367,9 +5517,12 @@ func ExampleEC2_RevokeSecurityGroupIngress() {
 				ToPort: aws.Int64(1),
 				UserIdGroupPairs: []*ec2.UserIdGroupPair{
 					{ // Required
-						GroupId:   aws.String("String"),
-						GroupName: aws.String("String"),
-						UserId:    aws.String("String"),
+						GroupId:       aws.String("String"),
+						GroupName:     aws.String("String"),
+						PeeringStatus: aws.String("String"),
+						UserId:        aws.String("String"),
+						VpcId:         aws.String("String"),
+						VpcPeeringConnectionId: aws.String("String"),
 					},
 					// More values...
 				},
