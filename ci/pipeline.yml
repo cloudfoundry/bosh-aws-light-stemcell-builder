@@ -103,7 +103,7 @@ jobs:
 
       - put: light-stemcell
         params:
-          from: light-stemcell/light-bosh-stemcell-(.*).tgz
+          file: light-stemcell/light-bosh-stemcell-*.tgz
 
   - name: publish-centos-pv
     serial: true
@@ -133,7 +133,7 @@ jobs:
 
       - put: light-stemcell
         params:
-          from: light-stemcell/light-bosh-stemcell-(.*).tgz
+          file: light-stemcell/light-bosh-stemcell-*.tgz
 
   - name: publish-ubuntu-hvm
     serial: true
@@ -163,7 +163,7 @@ jobs:
 
       - put: light-stemcell
         params:
-          from: light-stemcell/light-bosh-stemcell-(.*).tgz
+          file: light-stemcell/light-bosh-stemcell-*.tgz
 
   - name: publish-ubuntu-pv
     serial: true
@@ -193,7 +193,7 @@ jobs:
 
       - put: light-stemcell
         params:
-          from: light-stemcell/light-bosh-stemcell-(.*).tgz
+          file: light-stemcell/light-bosh-stemcell-*.tgz
 
   - name: bump-minor
     public: true
