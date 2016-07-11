@@ -234,18 +234,21 @@ resources:
       access_key_id: {{builder__access_key}}
       secret_access_key: {{builder__secret_key}}
       bucket: {{builder__bucket}}
+      region_name: {{builder__region}}
 
   - name: centos-stemcell
     type: s3
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-centos-7-go_agent\.tgz
       bucket: bosh-jenkins-artifacts
+      region_name: {{jenkins__region}}
 
   - name: ubuntu-stemcell
     type: s3
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
       bucket: bosh-jenkins-artifacts
+      region_name: {{jenkins__region}}
 
   - name: light-stemcell
     type: s3
@@ -254,3 +257,4 @@ resources:
       access_key_id: {{output__bucket_access_key}}
       secret_access_key: {{output__bucket_secret_key}}
       bucket: {{output__bucket}}
+      region_name: {{output__region}}
