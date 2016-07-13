@@ -240,14 +240,14 @@ resources:
     type: s3
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-centos-7-go_agent\.tgz
-      bucket: bosh-jenkins-artifacts
+      bucket: {{jenkins__bucket}}
       region_name: {{jenkins__region}}
 
   - name: ubuntu-stemcell
     type: s3
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
-      bucket: bosh-jenkins-artifacts
+      bucket: {{jenkins__bucket}}
       region_name: {{jenkins__region}}
 
   - name: light-stemcell
