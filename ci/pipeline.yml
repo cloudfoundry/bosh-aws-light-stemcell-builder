@@ -81,12 +81,15 @@ jobs:
       - get: builder-src
         resource: builder-src-out
         trigger: false
+        tags: [aws-cn]
       - get: input-stemcell
         resource: centos-stemcell
         version: every
         trigger: true
+        tags: [aws-cn]
       - task: build
         file: builder-src/ci/tasks/build.yml
+        tags: [aws-cn]
         params:
           ami_description: {{publish__ami_description}}
           ami_virtualization_type: hvm
@@ -111,12 +114,15 @@ jobs:
       - get: builder-src
         resource: builder-src-out
         trigger: false
+        tags: [aws-cn]
       - get: input-stemcell
         resource: centos-stemcell
         version: every
         trigger: true
+        tags: [aws-cn]
       - task: build
         file: builder-src/ci/tasks/build.yml
+        tags: [aws-cn]
         params:
           ami_description: {{publish__ami_description}}
           ami_virtualization_type: paravirtual
@@ -141,12 +147,15 @@ jobs:
       - get: builder-src
         resource: builder-src-out
         trigger: false
+        tags: [aws-cn]
       - get: input-stemcell
         resource: ubuntu-stemcell
         version: every
         trigger: true
+        tags: [aws-cn]
       - task: build
         file: builder-src/ci/tasks/build.yml
+        tags: [aws-cn]
         params:
           ami_description: {{publish__ami_description}}
           ami_virtualization_type: hvm
@@ -171,12 +180,15 @@ jobs:
       - get: builder-src
         resource: builder-src-out
         trigger: false
+        tags: [aws-cn]
       - get: input-stemcell
         resource: ubuntu-stemcell
         version: every
         trigger: true
+        tags: [aws-cn]
       - task: build
         file: builder-src/ci/tasks/build.yml
+        tags: [aws-cn]
         params:
           ami_description: {{publish__ami_description}}
           ami_virtualization_type: paravirtual
@@ -211,6 +223,14 @@ jobs:
       - put: version-semver
         params: { file: version-semver/number }
 
+# FIXME: revert to `s3` resource when PR has been merged
+# https://www.pivotaltracker.com/story/show/129711651
+resource_types:
+  - name: s3-pr
+    type: docker-image
+    source:
+      repository: ljfranklin/s3-resource-pr
+
 resources:
   - name: builder-src-in
     type: git
@@ -237,18 +257,20 @@ resources:
       region_name: {{builder__region}}
 
   - name: centos-stemcell
-    type: s3
+    type: s3-pr
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-centos-7-go_agent\.tgz
-      bucket: {{jenkins__bucket}}
-      region_name: {{jenkins__region}}
+      cloudfront_url: https://d26ekeud912fhb.cloudfront.net
+      bucket: bosh-jenkins-artifacts
+      region_name: us-east-1
 
   - name: ubuntu-stemcell
-    type: s3
+    type: s3-pr
     source:
       regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
-      bucket: {{jenkins__bucket}}
-      region_name: {{jenkins__region}}
+      cloudfront_url: https://d26ekeud912fhb.cloudfront.net
+      bucket: bosh-jenkins-artifacts
+      region_name: us-east-1
 
   - name: light-stemcell
     type: s3
