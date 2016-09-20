@@ -20,12 +20,10 @@ const (
 	Paravirtualization             = "paravirtual"
 )
 
-const (
-	IsolatedChinaRegion    = "cn-north-1"
-	IsolatedGovCloudRegion = "us-gov-west-1"
-)
-
-var isolated = map[string]bool{IsolatedChinaRegion: true, IsolatedGovCloudRegion: true}
+var isolated = map[string]bool{
+	"cn-north-1":    true,
+	"us-gov-west-1": true,
+}
 
 // Convention:
 // 1. required

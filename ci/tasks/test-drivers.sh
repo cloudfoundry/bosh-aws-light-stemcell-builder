@@ -38,7 +38,7 @@ export AMI_FIXTURE_ID=${ami_fixture_id}
 echo "Downloading machine image"
 export MACHINE_IMAGE_PATH=${tmp_dir}/image.iso
 export MACHINE_IMAGE_FORMAT="RAW"
-wget -O ${MACHINE_IMAGE_PATH} http://tinycorelinux.net/7.x/x86_64/release/TinyCorePure64-7.1.iso
+wget -O ${MACHINE_IMAGE_PATH} http://tinycorelinux.net/7.x/x86_64/archive/7.1/TinyCorePure64-7.1.iso
 
 echo "Running driver tests"
 

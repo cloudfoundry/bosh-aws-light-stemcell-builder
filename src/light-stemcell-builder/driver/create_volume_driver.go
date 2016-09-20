@@ -140,7 +140,7 @@ func (d *SDKCreateVolumeDriver) waitUntilImageConversionTaskCompleted(input *ec2
 	waiterCfg := waiter.Config{
 		Operation:   "DescribeConversionTasks",
 		Delay:       15,
-		MaxAttempts: 40,
+		MaxAttempts: 60,
 		Acceptors: []waiter.WaitAcceptor{
 			{
 				State:    "success",

@@ -141,23 +141,39 @@ var _ = Describe("Config", func() {
 			})
 		})
 
-		Context("when China is involved", func() {
+		Context("when given a standard region", func() {
+			It("sets IsolatedRegion to false", func() {
+				standardRegions := []string{"us-east-1", "eu-central-1", "ap-northeast-1"}
+				for _, region := range standardRegions {
+					c, err := parseConfig(baseJSON, func(c *config.Config) {
+						c.AmiRegions[0].RegionName = region
+					})
+					Expect(err).ToNot(HaveOccurred())
+					Expect(c.AmiRegions[0].IsolatedRegion).To(BeFalse())
+				}
+			})
+		})
+
+		Context("when given an isolated region", func() {
 			It("sets IsolatedRegion to true", func() {
-				c, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.AmiRegions[0].RegionName = "cn-north-1"
-				})
-				Expect(err).ToNot(HaveOccurred())
-				Expect(c.AmiRegions[0].IsolatedRegion).To(BeTrue())
+				isolatedRegions := []string{"cn-north-1", "us-gov-west-1"}
+				for _, region := range isolatedRegions {
+					c, err := parseConfig(baseJSON, func(c *config.Config) {
+						c.AmiRegions[0].RegionName = region
+					})
+					Expect(err).ToNot(HaveOccurred())
+					Expect(c.AmiRegions[0].IsolatedRegion).To(BeTrue())
+				}
 			})
 
-			It("returns an error if a China region is specified in copy destinations", func() {
+			It("returns an error if an isolated region is specified in copy destinations", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "cn-north-1")
 				})
 				Expect(err).To(MatchError("cn-north-1 is an isolated region and cannot be specified as a copy destination"))
 			})
 
-			It("returns an error if copy destinations are specified for a China region", func() {
+			It("returns an error if copy destinations are specified for an isolated region", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
 					c.AmiRegions[0].RegionName = "cn-north-1"
 					c.AmiRegions[0].Destinations = append(c.AmiRegions[0].Destinations, "anything")

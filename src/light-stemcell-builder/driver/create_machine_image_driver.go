@@ -64,7 +64,6 @@ func (d *SDKCreateMachineImageDriver) Create(driverConfig resources.MachineImage
 
 	uploadStartTime := time.Now()
 	uploader := s3manager.NewUploaderWithClient(d.s3Client)
-	uploader.PartSize = 10 * 1024 * 1024
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Body:   f,
 		Bucket: aws.String(driverConfig.BucketName),
