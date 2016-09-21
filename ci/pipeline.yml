@@ -223,13 +223,13 @@ jobs:
       - put: version-semver
         params: { file: version-semver/number }
 
-# FIXME: revert to `s3` resource when PR has been merged
-# https://www.pivotaltracker.com/story/show/129711651
 resource_types:
-  - name: s3-pr
+  # TODO: remove custom type after PR is merged
+  # https://www.pivotaltracker.com/story/show/130877947
+  - name: bosh-io-pr-force-regular
     type: docker-image
     source:
-      repository: ljfranklin/s3-resource-pr
+      repository: boshcpi/bosh-io-pr-force-regular
 
 resources:
   - name: builder-src-in
@@ -257,20 +257,16 @@ resources:
       region_name: {{builder__region}}
 
   - name: centos-stemcell
-    type: s3-pr
+    type: bosh-io-pr-force-regular
     source:
-      regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-centos-7-go_agent\.tgz
-      cloudfront_url: https://d26ekeud912fhb.cloudfront.net
-      bucket: bosh-jenkins-artifacts
-      region_name: us-east-1
+      name: bosh-aws-xen-centos-7-go_agent
+      force_regular: true
 
   - name: ubuntu-stemcell
-    type: s3-pr
+    type: bosh-io-pr-force-regular
     source:
-      regexp: bosh-stemcell/aws/bosh-stemcell-([0-9\.]+)-aws-xen-ubuntu-trusty-go_agent\.tgz
-      cloudfront_url: https://d26ekeud912fhb.cloudfront.net
-      bucket: bosh-jenkins-artifacts
-      region_name: us-east-1
+      name: bosh-aws-xen-ubuntu-trusty-go_agent
+      force_regular: true
 
   - name: light-stemcell
     type: s3
