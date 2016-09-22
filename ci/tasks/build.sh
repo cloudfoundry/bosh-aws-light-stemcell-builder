@@ -36,15 +36,6 @@ cat > $CONFIG_PATH << EOF
   },
   "ami_regions": [
     {
-      "name":               "$us_ami_region",
-      "credentials": {
-        "access_key":       "$us_ami_access_key",
-        "secret_key":       "$us_ami_secret_key"
-      },
-      "bucket_name":        "$us_ami_bucket_name",
-      "destinations":       $us_ami_destinations
-    },
-    {
       "name":               "$cn_ami_region",
       "credentials": {
         "access_key":       "$cn_ami_access_key",
