@@ -7,7 +7,7 @@ Any AWS region including China is supported.
 
 1. Create an AWS IAM user with privileges to create EC2 volumes, snapshots, and AMIs.
 1. Create an S3 bucket and give this user full privileges on the bucket contents.
-1. Create the `vmimport` AWS role as detailed [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/VMImportPrerequisites.html#vmimport-service-role), specifying the previously created bucket in place of `<disk-image-file-bucket>`.
+1. Create the `vmimport` AWS role as detailed [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/VMImportPrerequisites.html#iam-permissions-image), specifying the previously created bucket in place of `<disk-image-file-bucket>`; see [example IAM policy](iam-policy.json).
 1. Replicate these steps in a separate AWS China account if publishing to China.
 
 #### Example Usage
