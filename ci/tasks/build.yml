@@ -11,15 +11,11 @@ outputs:
 run:
   path: builder-src/ci/tasks/build.sh
 params:
-  ami_description: replace-me
-  ami_virtualization_type: replace-me
-  ami_visibility: replace-me
-  us_ami_region: replace-me
-  us_ami_access_key: replace-me
-  us_ami_secret_key: replace-me
-  us_ami_bucket_name: replace-me
-  us_ami_destinations: replace-me
-  cn_ami_region: replace-me
-  cn_ami_access_key: replace-me
-  cn_ami_secret_key: replace-me
-  cn_ami_bucket_name: replace-me
+  ami_description:         ""
+  ami_virtualization_type: ""
+  ami_visibility:          ""
+  ami_region:              ""
+  ami_access_key:          ""
+  ami_secret_key:          ""
+  ami_bucket_name:         ""
+  ami_destinations:        ""

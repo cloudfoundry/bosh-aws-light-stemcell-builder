@@ -10,15 +10,11 @@ source ${release_dir}/ci/tasks/utils.sh
 : ${ami_description:?}
 : ${ami_virtualization_type:?}
 : ${ami_visibility:?}
-: ${us_ami_region:?}
-: ${us_ami_access_key:?}
-: ${us_ami_secret_key:?}
-: ${us_ami_bucket_name:?}
-: ${us_ami_destinations:?}
-: ${cn_ami_region:?}
-: ${cn_ami_access_key:?}
-: ${cn_ami_secret_key:?}
-: ${cn_ami_bucket_name:?}
+: ${ami_region:?}
+: ${ami_access_key:?}
+: ${ami_secret_key:?}
+: ${ami_bucket_name:?}
+: ${ami_destinations:?}
 
 stemcell_path=${PWD}/input-stemcell/*.tgz
 output_path=${PWD}/light-stemcell/
@@ -36,21 +32,13 @@ cat > $CONFIG_PATH << EOF
   },
   "ami_regions": [
     {
-      "name":               "$us_ami_region",
+      "name":               "$ami_region",
       "credentials": {
-        "access_key":       "$us_ami_access_key",
-        "secret_key":       "$us_ami_secret_key"
+        "access_key":       "$ami_access_key",
+        "secret_key":       "$ami_secret_key"
       },
-      "bucket_name":        "$us_ami_bucket_name",
-      "destinations":       $us_ami_destinations
-    },
-    {
-      "name":               "$cn_ami_region",
-      "credentials": {
-        "access_key":       "$cn_ami_access_key",
-        "secret_key":       "$cn_ami_secret_key"
-      },
-      "bucket_name":        "$cn_ami_bucket_name"
+      "bucket_name":        "$ami_bucket_name",
+      "destinations":       $ami_destinations
     }
   ]
 }
