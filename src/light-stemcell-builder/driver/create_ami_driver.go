@@ -78,6 +78,14 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 		return resources.Ami{}, errors.New("AMI id nil")
 	}
 
+	d.logger.Printf("waiting for AMI: %s to exist\n", *amiIDptr)
+	err = d.ec2Client.WaitUntilImageExists(&ec2.DescribeImagesInput{
+		ImageIds: []*string{amiIDptr},
+	})
+	if err != nil {
+		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to exist: %s", *amiIDptr, err)
+	}
+
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
 	err = d.ec2Client.WaitUntilImageAvailable(&ec2.DescribeImagesInput{
 		ImageIds: []*string{amiIDptr},
