@@ -13,6 +13,70 @@ groups:
       - publish-ubuntu-hvm
       - publish-ubuntu-pv
 
+shared:
+  - &get-china-stemcell
+    get: cn-input-stemcell
+    version: every
+    tags: [aws-cn]
+    trigger: true
+    attempts: 5
+    params:
+      preserve_filename: true
+  - &get-us-stemcell
+    get: us-input-stemcell
+    version: every
+    trigger: true
+    attempts: 5
+    params:
+      preserve_filename: true
+  - &get-china-builder-src
+    get: cn-builder-src
+    tags: [aws-cn]
+    resource: builder-src-out
+  - &get-us-builder-src
+    get: us-builder-src
+    resource: builder-src-out
+  - &build-china-stemcell-task
+    task: build-china-stemcell
+    file: cn-builder-src/ci/tasks/build.yml
+    tags: [aws-cn]
+    input_mapping:
+      input-stemcell: cn-input-stemcell
+      builder-src: cn-builder-src
+    output_mapping: {light-stemcell: cn-light-stemcell}
+    params: &build-china-stemcell-params
+      ami_description: {{publish__ami_description}}
+      ami_visibility: {{publish__ami_visibility}}
+      ami_region: {{publish__cn_region}}
+      ami_access_key: {{publish__cn_access_key}}
+      ami_secret_key: {{publish__cn_secret_key}}
+      ami_bucket_name: {{publish__cn_bucket}}
+      ami_destinations: []
+  - &build-us-stemcell-task
+    task: build-us-stemcell
+    file: us-builder-src/ci/tasks/build.yml
+    input_mapping:
+      input-stemcell: us-input-stemcell
+      builder-src: us-builder-src
+    output_mapping: {light-stemcell: us-light-stemcell}
+    params: &build-us-stemcell-params
+      ami_description: {{publish__ami_description}}
+      ami_visibility: {{publish__ami_visibility}}
+      ami_region: {{publish__us_region}}
+      ami_access_key: {{publish__us_access_key}}
+      ami_secret_key: {{publish__us_secret_key}}
+      ami_bucket_name: {{publish__us_bucket}}
+      ami_destinations: {{publish__us_destinations}}
+  - &merge-builds-task
+    task: merge-builds
+    file: us-builder-src/ci/tasks/merge-builds.yml
+    input_mapping:
+      builder-src: us-builder-src
+  - &put-light-stemcell
+    put: light-stemcell
+    params:
+      file: light-stemcell/light-bosh-stemcell-*.tgz
+
 jobs:
   - name: test-unit
     serial: true
@@ -75,137 +139,105 @@ jobs:
       - put: builder-src-out
         params: { repository: builder-src }
 
-  - name: publish-centos-hvm
-    serial: true
-    plan:
-      - get: builder-src
-        resource: builder-src-out
-        trigger: false
-        tags: [aws-cn]
-      - get: input-stemcell
-        resource: centos-stemcell
-        version: every
-        trigger: true
-        tags: [aws-cn]
-      - task: build
-        file: builder-src/ci/tasks/build.yml
-        tags: [aws-cn]
-        params:
-          ami_description: {{publish__ami_description}}
-          ami_virtualization_type: hvm
-          ami_visibility: {{publish__ami_visibility}}
-          us_ami_region: {{publish__us_region}}
-          us_ami_access_key: {{publish__us_access_key}}
-          us_ami_secret_key: {{publish__us_secret_key}}
-          us_ami_bucket_name: {{publish__us_bucket}}
-          us_ami_destinations: {{publish__us_destinations}}
-          cn_ami_region: {{publish__cn_region}}
-          cn_ami_access_key: {{publish__cn_access_key}}
-          cn_ami_secret_key: {{publish__cn_secret_key}}
-          cn_ami_bucket_name: {{publish__cn_bucket}}
-
-      - put: light-stemcell
-        params:
-          file: light-stemcell/light-bosh-stemcell-*.tgz
-
-  - name: publish-centos-pv
-    serial: true
-    plan:
-      - get: builder-src
-        resource: builder-src-out
-        trigger: false
-        tags: [aws-cn]
-      - get: input-stemcell
-        resource: centos-stemcell
-        version: every
-        trigger: true
-        tags: [aws-cn]
-      - task: build
-        file: builder-src/ci/tasks/build.yml
-        tags: [aws-cn]
-        params:
-          ami_description: {{publish__ami_description}}
-          ami_virtualization_type: paravirtual
-          ami_visibility: {{publish__ami_visibility}}
-          us_ami_region: {{publish__us_region}}
-          us_ami_access_key: {{publish__us_access_key}}
-          us_ami_secret_key: {{publish__us_secret_key}}
-          us_ami_bucket_name: {{publish__us_bucket}}
-          us_ami_destinations: {{publish__us_destinations}}
-          cn_ami_region: {{publish__cn_region}}
-          cn_ami_access_key: {{publish__cn_access_key}}
-          cn_ami_secret_key: {{publish__cn_secret_key}}
-          cn_ami_bucket_name: {{publish__cn_bucket}}
-
-      - put: light-stemcell
-        params:
-          file: light-stemcell/light-bosh-stemcell-*.tgz
-
   - name: publish-ubuntu-hvm
     serial: true
     plan:
-      - get: builder-src
-        resource: builder-src-out
-        trigger: false
-        tags: [aws-cn]
-      - get: input-stemcell
-        resource: ubuntu-stemcell
-        version: every
-        trigger: true
-        tags: [aws-cn]
-      - task: build
-        file: builder-src/ci/tasks/build.yml
-        tags: [aws-cn]
-        params:
-          ami_description: {{publish__ami_description}}
-          ami_virtualization_type: hvm
-          ami_visibility: {{publish__ami_visibility}}
-          us_ami_region: {{publish__us_region}}
-          us_ami_access_key: {{publish__us_access_key}}
-          us_ami_secret_key: {{publish__us_secret_key}}
-          us_ami_bucket_name: {{publish__us_bucket}}
-          us_ami_destinations: {{publish__us_destinations}}
-          cn_ami_region: {{publish__cn_region}}
-          cn_ami_access_key: {{publish__cn_access_key}}
-          cn_ami_secret_key: {{publish__cn_secret_key}}
-          cn_ami_bucket_name: {{publish__cn_bucket}}
-
-      - put: light-stemcell
-        params:
-          file: light-stemcell/light-bosh-stemcell-*.tgz
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell
+            - *get-china-builder-src
+          - <<: *build-china-stemcell-task
+            params:
+              <<: *build-china-stemcell-params
+              ami_virtualization_type: hvm
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: ubuntu-stemcell
+            - *get-us-builder-src
+          - <<: *build-us-stemcell-task
+            params:
+              <<: *build-us-stemcell-params
+              ami_virtualization_type: hvm
+      - *merge-builds-task
+      - *put-light-stemcell
 
   - name: publish-ubuntu-pv
     serial: true
     plan:
-      - get: builder-src
-        resource: builder-src-out
-        trigger: false
-        tags: [aws-cn]
-      - get: input-stemcell
-        resource: ubuntu-stemcell
-        version: every
-        trigger: true
-        tags: [aws-cn]
-      - task: build
-        file: builder-src/ci/tasks/build.yml
-        tags: [aws-cn]
-        params:
-          ami_description: {{publish__ami_description}}
-          ami_virtualization_type: paravirtual
-          ami_visibility: {{publish__ami_visibility}}
-          us_ami_region: {{publish__us_region}}
-          us_ami_access_key: {{publish__us_access_key}}
-          us_ami_secret_key: {{publish__us_secret_key}}
-          us_ami_bucket_name: {{publish__us_bucket}}
-          us_ami_destinations: {{publish__us_destinations}}
-          cn_ami_region: {{publish__cn_region}}
-          cn_ami_access_key: {{publish__cn_access_key}}
-          cn_ami_secret_key: {{publish__cn_secret_key}}
-          cn_ami_bucket_name: {{publish__cn_bucket}}
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell
+            - *get-china-builder-src
+          - <<: *build-china-stemcell-task
+            params:
+              <<: *build-china-stemcell-params
+              ami_virtualization_type: paravirtual
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: ubuntu-stemcell
+            - *get-us-builder-src
+          - <<: *build-us-stemcell-task
+            params:
+              <<: *build-us-stemcell-params
+              ami_virtualization_type: paravirtual
+      - *merge-builds-task
+      - *put-light-stemcell
 
-      - put: light-stemcell
-        params:
-          file: light-stemcell/light-bosh-stemcell-*.tgz
+  - name: publish-centos-hvm
+    serial: true
+    plan:
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell
+            - *get-china-builder-src
+          - <<: *build-china-stemcell-task
+            params:
+              <<: *build-china-stemcell-params
+              ami_virtualization_type: hvm
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: centos-stemcell
+            - *get-us-builder-src
+          - <<: *build-us-stemcell-task
+            params:
+              <<: *build-us-stemcell-params
+              ami_virtualization_type: hvm
+      - *merge-builds-task
+      - *put-light-stemcell
+
+  - name: publish-centos-pv
+    serial: true
+    plan:
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell
+            - *get-china-builder-src
+          - <<: *build-china-stemcell-task
+            params:
+              <<: *build-china-stemcell-params
+              ami_virtualization_type: paravirtual
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: centos-stemcell
+            - *get-us-builder-src
+          - <<: *build-us-stemcell-task
+            params:
+              <<: *build-us-stemcell-params
+              ami_virtualization_type: paravirtual
+      - *merge-builds-task
+      - *put-light-stemcell
 
   - name: bump-minor
     public: true
