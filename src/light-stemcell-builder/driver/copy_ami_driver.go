@@ -90,7 +90,7 @@ func (d *SDKCopyAmiDriver) waitUntilImageAvailable(input *ec2.DescribeImagesInpu
 	waiterCfg := waiter.Config{
 		Operation:   "DescribeImages",
 		Delay:       15,
-		MaxAttempts: 60,
+		MaxAttempts: 240,
 		Acceptors: []waiter.WaitAcceptor{
 			{
 				State:    "success",
