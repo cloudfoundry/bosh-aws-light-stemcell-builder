@@ -33,13 +33,16 @@ shared:
     get: cn-builder-src
     tags: [aws-cn]
     resource: builder-src-out
+    attempts: 5
   - &get-us-builder-src
     get: us-builder-src
     resource: builder-src-out
+    attempts: 5
   - &build-china-stemcell-task
     task: build-china-stemcell
     file: cn-builder-src/ci/tasks/build.yml
     tags: [aws-cn]
+    attempts: 5
     input_mapping:
       input-stemcell: cn-input-stemcell
       builder-src: cn-builder-src
@@ -55,6 +58,7 @@ shared:
   - &build-us-stemcell-task
     task: build-us-stemcell
     file: us-builder-src/ci/tasks/build.yml
+    attempts: 5
     input_mapping:
       input-stemcell: us-input-stemcell
       builder-src: us-builder-src
@@ -69,11 +73,13 @@ shared:
       ami_destinations: {{publish__us_destinations}}
   - &merge-builds-task
     task: merge-builds
+    attempts: 5
     file: us-builder-src/ci/tasks/merge-builds.yml
     input_mapping:
       builder-src: us-builder-src
   - &put-light-stemcell
     put: light-stemcell
+    attempts: 5
     params:
       file: light-stemcell/light-bosh-stemcell-*.tgz
 
