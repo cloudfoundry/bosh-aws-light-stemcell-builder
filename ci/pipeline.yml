@@ -154,6 +154,8 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-stemcell
             - *get-china-builder-src
+            - get: every-4-hours
+              trigger: true
           - <<: *build-china-stemcell-task
             params:
               <<: *build-china-stemcell-params
@@ -179,6 +181,8 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-stemcell
             - *get-china-builder-src
+            - get: every-4-hours
+              trigger: true
           - <<: *build-china-stemcell-task
             params:
               <<: *build-china-stemcell-params
@@ -204,6 +208,8 @@ jobs:
             - <<: *get-china-stemcell
               resource: centos-stemcell
             - *get-china-builder-src
+            - get: every-4-hours
+              trigger: true
           - <<: *build-china-stemcell-task
             params:
               <<: *build-china-stemcell-params
@@ -229,6 +235,8 @@ jobs:
             - <<: *get-china-stemcell
               resource: centos-stemcell
             - *get-china-builder-src
+            - get: every-4-hours
+              trigger: true
           - <<: *build-china-stemcell-task
             params:
               <<: *build-china-stemcell-params
@@ -270,6 +278,11 @@ resource_types:
       repository: boshcpi/bosh-io-pr-force-regular
 
 resources:
+  - name: every-4-hours
+    type: time
+    source:
+      interval: 4h
+
   - name: builder-src-in
     type: git
     source:
