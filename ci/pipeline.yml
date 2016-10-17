@@ -263,14 +263,6 @@ jobs:
       - put: version-semver
         params: { file: version-semver/number }
 
-resource_types:
-  # TODO: remove custom type after PR is merged
-  # https://www.pivotaltracker.com/story/show/130877947
-  - name: bosh-io-pr-force-regular
-    type: docker-image
-    source:
-      repository: boshcpi/bosh-io-pr-force-regular
-
 resources:
   - name: builder-src-in
     type: git
@@ -297,13 +289,13 @@ resources:
       region_name: {{builder__region}}
 
   - name: centos-stemcell
-    type: bosh-io-pr-force-regular
+    type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-centos-7-go_agent
       force_regular: true
 
   - name: ubuntu-stemcell
-    type: bosh-io-pr-force-regular
+    type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
