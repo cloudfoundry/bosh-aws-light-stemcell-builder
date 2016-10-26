@@ -8,10 +8,10 @@ groups:
       - bump-minor
       - bump-major
       - promote
-      - publish-centos-hvm
-      - publish-centos-pv
-      - publish-ubuntu-hvm
-      - publish-ubuntu-pv
+      - publish-centos-3263
+      - publish-ubuntu-3263
+      - publish-ubuntu-3233
+      - publish-ubuntu-3151
 
 shared:
   - &get-china-stemcell
@@ -42,7 +42,7 @@ shared:
       input-stemcell: cn-input-stemcell
       builder-src: cn-builder-src
     output_mapping: {light-stemcell: cn-light-stemcell}
-    params: &build-china-stemcell-params
+    params:
       ami_description: {{publish__ami_description}}
       ami_visibility: {{publish__ami_visibility}}
       ami_region: {{publish__cn_region}}
@@ -50,6 +50,7 @@ shared:
       ami_secret_key: {{publish__cn_secret_key}}
       ami_bucket_name: {{publish__cn_bucket}}
       ami_destinations: []
+      ami_virtualization_type: hvm
   - &build-us-stemcell-task
     task: build-us-stemcell
     file: us-builder-src/ci/tasks/build.yml
@@ -57,7 +58,7 @@ shared:
       input-stemcell: us-input-stemcell
       builder-src: us-builder-src
     output_mapping: {light-stemcell: us-light-stemcell}
-    params: &build-us-stemcell-params
+    params:
       ami_description: {{publish__ami_description}}
       ami_visibility: {{publish__ami_visibility}}
       ami_region: {{publish__us_region}}
@@ -65,6 +66,7 @@ shared:
       ami_secret_key: {{publish__us_secret_key}}
       ami_bucket_name: {{publish__us_bucket}}
       ami_destinations: {{publish__us_destinations}}
+      ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds
     attempts: 5
@@ -139,110 +141,86 @@ jobs:
       - put: builder-src-out
         params: { repository: builder-src }
 
-  - name: publish-ubuntu-hvm
+  - name: publish-ubuntu-3263
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell
+              resource: ubuntu-stemcell-3263
             - *get-china-builder-src
-          - <<: *build-china-stemcell-task
-            params:
-              <<: *build-china-stemcell-params
-              ami_virtualization_type: hvm
+          - *build-china-stemcell-task
           attempts: 5
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell
+              resource: ubuntu-stemcell-3263
             - *get-us-builder-src
-          - <<: *build-us-stemcell-task
-            params:
-              <<: *build-us-stemcell-params
-              ami_virtualization_type: hvm
+          - *build-us-stemcell-task
           attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
 
-  - name: publish-ubuntu-pv
+  - name: publish-ubuntu-3233
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell
+              resource: ubuntu-stemcell-3233
             - *get-china-builder-src
-          - <<: *build-china-stemcell-task
-            params:
-              <<: *build-china-stemcell-params
-              ami_virtualization_type: paravirtual
+          - *build-china-stemcell-task
           attempts: 5
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell
+              resource: ubuntu-stemcell-3233
             - *get-us-builder-src
-          - <<: *build-us-stemcell-task
-            params:
-              <<: *build-us-stemcell-params
-              ami_virtualization_type: paravirtual
+          - *build-us-stemcell-task
           attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
 
-  - name: publish-centos-hvm
+  - name: publish-ubuntu-3151
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: centos-stemcell
+              resource: ubuntu-stemcell-3151
             - *get-china-builder-src
-          - <<: *build-china-stemcell-task
-            params:
-              <<: *build-china-stemcell-params
-              ami_virtualization_type: hvm
+          - *build-china-stemcell-task
           attempts: 5
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: centos-stemcell
+              resource: ubuntu-stemcell-3151
             - *get-us-builder-src
-          - <<: *build-us-stemcell-task
-            params:
-              <<: *build-us-stemcell-params
-              ami_virtualization_type: hvm
+          - *build-us-stemcell-task
           attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
 
-  - name: publish-centos-pv
+  - name: publish-centos-3263
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: centos-stemcell
+              resource: centos-stemcell-3263
             - *get-china-builder-src
-          - <<: *build-china-stemcell-task
-            params:
-              <<: *build-china-stemcell-params
-              ami_virtualization_type: paravirtual
+          - *build-china-stemcell-task
           attempts: 5
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: centos-stemcell
+              resource: centos-stemcell-3263
             - *get-us-builder-src
-          - <<: *build-us-stemcell-task
-            params:
-              <<: *build-us-stemcell-params
-              ami_virtualization_type: paravirtual
+          - *build-us-stemcell-task
           attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
@@ -262,6 +240,14 @@ jobs:
         params: { bump: major }
       - put: version-semver
         params: { file: version-semver/number }
+
+# TODO: switch back to using canonical resource after PR is merged #133222913
+resource_types:
+  - name: bosh-io-stemcell-version-family
+    type: docker-image
+    source:
+      repository: boshcpi/bosh-io-stemcell-resource
+      tag: PR-version-family
 
 resources:
   - name: builder-src-in
@@ -288,17 +274,33 @@ resources:
       bucket: {{builder__bucket}}
       region_name: {{builder__region}}
 
-  - name: centos-stemcell
-    type: bosh-io-stemcell
+  - name: centos-stemcell-3263
+    type: bosh-io-stemcell-version-family
     source:
       name: bosh-aws-xen-centos-7-go_agent
       force_regular: true
+      version_family: "3263"
 
-  - name: ubuntu-stemcell
-    type: bosh-io-stemcell
+  - name: ubuntu-stemcell-3263
+    type: bosh-io-stemcell-version-family
     source:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
+      version_family: "3263"
+
+  - name: ubuntu-stemcell-3233
+    type: bosh-io-stemcell-version-family
+    source:
+      name: bosh-aws-xen-ubuntu-trusty-go_agent
+      force_regular: true
+      version_family: "3233"
+
+  - name: ubuntu-stemcell-3151
+    type: bosh-io-stemcell-version-family
+    source:
+      name: bosh-aws-xen-ubuntu-trusty-go_agent
+      force_regular: true
+      version_family: "3151"
 
   - name: light-stemcell
     type: s3
