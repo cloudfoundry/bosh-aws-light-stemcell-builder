@@ -144,84 +144,80 @@ jobs:
   - name: publish-ubuntu-3263
     serial: true
     plan:
-      - aggregate:
-        - do:
-          - aggregate:
-            - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3263
-            - *get-china-builder-src
-          - *build-china-stemcell-task
-          attempts: 5
-        - do:
-          - aggregate:
-            - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3263
-            - *get-us-builder-src
-          - *build-us-stemcell-task
-          attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-3263
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+        attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-stemcell-3263
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+        attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
 
   - name: publish-ubuntu-3233
     serial: true
     plan:
-      - aggregate:
-        - do:
-          - aggregate:
-            - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3233
-            - *get-china-builder-src
-          - *build-china-stemcell-task
-          attempts: 5
-        - do:
-          - aggregate:
-            - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3233
-            - *get-us-builder-src
-          - *build-us-stemcell-task
-          attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-3233
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+        attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-stemcell-3233
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+        attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
 
   - name: publish-ubuntu-3151
     serial: true
     plan:
-      - aggregate:
-        - do:
-          - aggregate:
-            - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3151
-            - *get-china-builder-src
-          - *build-china-stemcell-task
-          attempts: 5
-        - do:
-          - aggregate:
-            - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3151
-            - *get-us-builder-src
-          - *build-us-stemcell-task
-          attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-3151
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+        attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-stemcell-3151
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+        attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
 
   - name: publish-centos-3263
     serial: true
     plan:
-      - aggregate:
-        - do:
-          - aggregate:
-            - <<: *get-china-stemcell
-              resource: centos-stemcell-3263
-            - *get-china-builder-src
-          - *build-china-stemcell-task
-          attempts: 5
-        - do:
-          - aggregate:
-            - <<: *get-us-stemcell
-              resource: centos-stemcell-3263
-            - *get-us-builder-src
-          - *build-us-stemcell-task
-          attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: centos-stemcell-3263
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+        attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: centos-stemcell-3263
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+        attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
 
