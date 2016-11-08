@@ -8,10 +8,10 @@ groups:
       - bump-minor
       - bump-major
       - promote
-      - publish-centos-3263
+      - publish-centos-latest
+      - publish-ubuntu-latest
       - publish-ubuntu-3263
       - publish-ubuntu-3233
-      - publish-ubuntu-3151
 
 shared:
   - &get-china-stemcell
@@ -141,6 +141,26 @@ jobs:
       - put: builder-src-out
         params: { repository: builder-src }
 
+  - name: publish-ubuntu-latest
+    serial: true
+    plan:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-latest
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+        attempts: 5
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-stemcell-latest
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+        attempts: 5
+      - *merge-builds-task
+      - *put-light-stemcell
+
   - name: publish-ubuntu-3263
     serial: true
     plan:
@@ -181,40 +201,20 @@ jobs:
       - *merge-builds-task
       - *put-light-stemcell
 
-  - name: publish-ubuntu-3151
+  - name: publish-centos-latest
     serial: true
     plan:
       - do:
         - aggregate:
           - <<: *get-china-stemcell
-            resource: ubuntu-stemcell-3151
+            resource: centos-stemcell-latest
           - *get-china-builder-src
         - *build-china-stemcell-task
         attempts: 5
       - do:
         - aggregate:
           - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-3151
-          - *get-us-builder-src
-        - *build-us-stemcell-task
-        attempts: 5
-      - *merge-builds-task
-      - *put-light-stemcell
-
-  - name: publish-centos-3263
-    serial: true
-    plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: centos-stemcell-3263
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-        attempts: 5
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: centos-stemcell-3263
+            resource: centos-stemcell-latest
           - *get-us-builder-src
         - *build-us-stemcell-task
         attempts: 5
@@ -270,12 +270,17 @@ resources:
       bucket: {{builder__bucket}}
       region_name: {{builder__region}}
 
-  - name: centos-stemcell-3263
+  - name: centos-stemcell-latest
     type: bosh-io-stemcell-version-family
     source:
       name: bosh-aws-xen-centos-7-go_agent
       force_regular: true
-      version_family: "3263"
+
+  - name: ubuntu-stemcell-latest
+    type: bosh-io-stemcell-version-family
+    source:
+      name: bosh-aws-xen-ubuntu-trusty-go_agent
+      force_regular: true
 
   - name: ubuntu-stemcell-3263
     type: bosh-io-stemcell-version-family
@@ -290,13 +295,6 @@ resources:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3233"
-
-  - name: ubuntu-stemcell-3151
-    type: bosh-io-stemcell-version-family
-    source:
-      name: bosh-aws-xen-ubuntu-trusty-go_agent
-      force_regular: true
-      version_family: "3151"
 
   - name: light-stemcell
     type: s3
