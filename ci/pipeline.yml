@@ -13,43 +13,43 @@ groups:
       - publish-ubuntu-3312
 
 shared:
-  - &get-china-stemcell
-    get: cn-input-stemcell
-    version: every
-    tags: [aws-cn]
-    trigger: true
-    params:
-      preserve_filename: true
+  # - &get-china-stemcell
+  #   get: cn-input-stemcell
+  #   version: every
+  #   tags: [aws-cn]
+  #   trigger: true
+  #   params:
+  #     preserve_filename: true
   - &get-us-stemcell
     get: us-input-stemcell
     version: every
     trigger: true
     params:
       preserve_filename: true
-  - &get-china-builder-src
-    get: cn-builder-src
-    tags: [aws-cn]
+  # - &get-china-builder-src
+  #   get: cn-builder-src
+  #   tags: [aws-cn]
     resource: builder-src-out
   - &get-us-builder-src
     get: us-builder-src
     resource: builder-src-out
-  - &build-china-stemcell-task
-    task: build-china-stemcell
-    file: cn-builder-src/ci/tasks/build.yml
-    tags: [aws-cn]
-    input_mapping:
-      input-stemcell: cn-input-stemcell
-      builder-src: cn-builder-src
-    output_mapping: {light-stemcell: cn-light-stemcell}
-    params:
-      ami_description: {{publish__ami_description}}
-      ami_visibility: {{publish__ami_visibility}}
-      ami_region: {{publish__cn_region}}
-      ami_access_key: {{publish__cn_access_key}}
-      ami_secret_key: {{publish__cn_secret_key}}
-      ami_bucket_name: {{publish__cn_bucket}}
-      ami_destinations: []
-      ami_virtualization_type: hvm
+  # - &build-china-stemcell-task
+  #   task: build-china-stemcell
+  #   file: cn-builder-src/ci/tasks/build.yml
+  #   tags: [aws-cn]
+  #   input_mapping:
+  #     input-stemcell: cn-input-stemcell
+  #     builder-src: cn-builder-src
+  #   output_mapping: {light-stemcell: cn-light-stemcell}
+  #   params:
+  #     ami_description: {{publish__ami_description}}
+  #     ami_visibility: {{publish__ami_visibility}}
+  #     ami_region: {{publish__cn_region}}
+  #     ami_access_key: {{publish__cn_access_key}}
+  #     ami_secret_key: {{publish__cn_secret_key}}
+  #     ami_bucket_name: {{publish__cn_bucket}}
+  #     ami_destinations: []
+  #     ami_virtualization_type: hvm
   - &build-us-stemcell-task
     task: build-us-stemcell
     file: us-builder-src/ci/tasks/build.yml
@@ -66,12 +66,12 @@ shared:
       ami_bucket_name: {{publish__us_bucket}}
       ami_destinations: {{publish__us_destinations}}
       ami_virtualization_type: hvm
-  - &merge-builds-task
-    task: merge-builds
-    attempts: 5
-    file: us-builder-src/ci/tasks/merge-builds.yml
-    input_mapping:
-      builder-src: us-builder-src
+  # - &merge-builds-task
+  #   task: merge-builds
+  #   attempts: 5
+  #   file: us-builder-src/ci/tasks/merge-builds.yml
+  #   input_mapping:
+  #     builder-src: us-builder-src
   - &publish-stemcell-and-checksum
     task: publish-stemcell-and-checksum
     file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
@@ -150,6 +150,13 @@ jobs:
   - name: publish-ubuntu-latest
     serial: true
     plan:
+      # - do:
+      #   - aggregate:
+      #     - <<: *get-china-stemcell
+      #       resource: ubuntu-stemcell-latest
+      #     - *get-china-builder-src
+      #   - *build-china-stemcell-task
+      #   attempts: 5
       - do:
         - aggregate:
           - <<: *get-us-stemcell
@@ -169,11 +176,19 @@ jobs:
           - *get-us-builder-src
         - *build-us-stemcell-task
         attempts: 5
+      # - *merge-builds-task
       - *publish-stemcell-and-checksum
 
   - name: publish-centos-latest
     serial: true
     plan:
+      # - do:
+      #   - aggregate:
+      #     - <<: *get-china-stemcell
+      #       resource: centos-stemcell-latest
+      #     - *get-china-builder-src
+      #   - *build-china-stemcell-task
+      #   attempts: 5
       - do:
         - aggregate:
           - <<: *get-us-stemcell
@@ -181,6 +196,7 @@ jobs:
           - *get-us-builder-src
         - *build-us-stemcell-task
         attempts: 5
+      # - *merge-builds-task
       - *publish-stemcell-and-checksum
 
   - name: bump-minor
