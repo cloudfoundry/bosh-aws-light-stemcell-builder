@@ -160,6 +160,12 @@ jobs:
         attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
+      - task: publish-boshio-checksum
+        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        input_mapping:
+          builder-src: us-builder-src
+        params:
+          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
 
   - name: publish-ubuntu-3263
     serial: true
@@ -180,6 +186,12 @@ jobs:
         attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
+      - task: publish-boshio-checksum
+        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        input_mapping:
+          builder-src: us-builder-src
+        params:
+          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
 
   - name: publish-ubuntu-3233
     serial: true
@@ -200,6 +212,12 @@ jobs:
         attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
+      - task: publish-boshio-checksum
+        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        input_mapping:
+          builder-src: us-builder-src
+        params:
+          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
 
   - name: publish-centos-latest
     serial: true
@@ -220,6 +238,12 @@ jobs:
         attempts: 5
       - *merge-builds-task
       - *put-light-stemcell
+      - task: publish-boshio-checksum
+        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        input_mapping:
+          builder-src: us-builder-src
+        params:
+          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
 
   - name: bump-minor
     public: true
