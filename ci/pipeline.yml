@@ -161,7 +161,7 @@ jobs:
       - *merge-builds-task
       - *put-light-stemcell
       - task: publish-boshio-checksum
-        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
         input_mapping:
           builder-src: us-builder-src
         params:
@@ -187,7 +187,7 @@ jobs:
       - *merge-builds-task
       - *put-light-stemcell
       - task: publish-boshio-checksum
-        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
         input_mapping:
           builder-src: us-builder-src
         params:
@@ -213,7 +213,7 @@ jobs:
       - *merge-builds-task
       - *put-light-stemcell
       - task: publish-boshio-checksum
-        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
         input_mapping:
           builder-src: us-builder-src
         params:
@@ -239,7 +239,7 @@ jobs:
       - *merge-builds-task
       - *put-light-stemcell
       - task: publish-boshio-checksum
-        file: bosh-cpi-src/ci/tasks/publish-boshio-checksum.yml
+        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
         input_mapping:
           builder-src: us-builder-src
         params:

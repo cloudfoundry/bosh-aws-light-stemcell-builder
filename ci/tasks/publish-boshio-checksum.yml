@@ -7,10 +7,10 @@ image_resource:
 
 inputs:
   - name: light-stemcell
-  - name: bosh-cpi-src
+  - name: builder-src
 
 run:
-  path: bosh-cpi-src/ci/tasks/publish-boshio-checksum.sh
+  path: builder-src/ci/tasks/publish-boshio-checksum.sh
 
 params:
   BOSHIO_TOKEN: ""
