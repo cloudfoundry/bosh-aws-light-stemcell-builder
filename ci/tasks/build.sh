@@ -44,9 +44,6 @@ cat > $CONFIG_PATH << EOF
 }
 EOF
 
-echo "Configuration:"
-cat $CONFIG_PATH
-
 extracted_stemcell_dir=${PWD}/extracted-stemcell
 mkdir -p ${extracted_stemcell_dir}
 tar -C ${extracted_stemcell_dir} -xf ${stemcell_path}
