@@ -6,8 +6,10 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
-RUN apt-get install -y git tar curl wget make ruby unzip; apt-get clean
-RUN apt-get install -y qemu-utils; apt-get clean
+RUN apt-get install -y \
+  git tar curl wget make ruby unzip qemu-utils python python-pip && \
+  apt-get clean
+RUN pip install awscli
 
 RUN cd /tmp && \
     curl -O -L https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz && \

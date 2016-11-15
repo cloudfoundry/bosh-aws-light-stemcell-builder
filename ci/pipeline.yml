@@ -73,11 +73,17 @@ shared:
     file: us-builder-src/ci/tasks/merge-builds.yml
     input_mapping:
       builder-src: us-builder-src
-  - &put-light-stemcell
-    put: light-stemcell
-    attempts: 5
+  - &publish-stemcell-and-checksum
+    task: publish-stemcell-and-checksum
+    file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
+    input_mapping:
+      builder-src: us-builder-src
     params:
-      file: light-stemcell/light-bosh-stemcell-*.tgz
+      BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
+      AWS_ACCESS_KEY_ID: {{output__bucket_access_key}}
+      AWS_SECRET_ACCESS_KEY: {{output__bucket_secret_key}}
+      AWS_DEFAULT_REGION: {{output__region}}
+      OUTPUT_BUCKET: {{output__bucket}}
 
 jobs:
   - name: test-unit
@@ -159,13 +165,7 @@ jobs:
         - *build-us-stemcell-task
         attempts: 5
       - *merge-builds-task
-      - *put-light-stemcell
-      - task: publish-boshio-checksum
-        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
-        input_mapping:
-          builder-src: us-builder-src
-        params:
-          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
+      - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3263
     serial: true
@@ -185,13 +185,7 @@ jobs:
         - *build-us-stemcell-task
         attempts: 5
       - *merge-builds-task
-      - *put-light-stemcell
-      - task: publish-boshio-checksum
-        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
-        input_mapping:
-          builder-src: us-builder-src
-        params:
-          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
+      - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3233
     serial: true
@@ -211,13 +205,7 @@ jobs:
         - *build-us-stemcell-task
         attempts: 5
       - *merge-builds-task
-      - *put-light-stemcell
-      - task: publish-boshio-checksum
-        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
-        input_mapping:
-          builder-src: us-builder-src
-        params:
-          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
+      - *publish-stemcell-and-checksum
 
   - name: publish-centos-latest
     serial: true
@@ -237,13 +225,7 @@ jobs:
         - *build-us-stemcell-task
         attempts: 5
       - *merge-builds-task
-      - *put-light-stemcell
-      - task: publish-boshio-checksum
-        file: us-builder-src/ci/tasks/publish-boshio-checksum.yml
-        input_mapping:
-          builder-src: us-builder-src
-        params:
-          BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
+      - *publish-stemcell-and-checksum
 
   - name: bump-minor
     public: true
@@ -319,12 +301,3 @@ resources:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3233"
-
-  - name: light-stemcell
-    type: s3
-    source:
-      regexp: light-bosh-stemcell-([\d\.]+)-.*\.tgz
-      access_key_id: {{output__bucket_access_key}}
-      secret_access_key: {{output__bucket_secret_key}}
-      bucket: {{output__bucket}}
-      region_name: {{output__region}}
