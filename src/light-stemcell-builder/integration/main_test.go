@@ -181,7 +181,7 @@ cloud_properties:
 		Expect(m.Name).To(Equal("bosh-aws-xen-hvm-ubuntu-trusty-go_agent"))
 		Expect(m.Version).To(Equal("9999"))
 		Expect(m.BoshProtocol).To(Equal("1"))
-		Expect(m.Sha1).To(Equal("123456789"))
+		Expect(m.Sha1).To(Equal("da39a3ee5e6b4b0d3255bfef95601890afd80709"))
 		Expect(m.OperatingSystem).To(Equal("ubuntu-trusty"))
 
 		amis := m.CloudProperties.Amis

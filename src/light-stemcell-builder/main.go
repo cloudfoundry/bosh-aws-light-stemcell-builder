@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"flag"
 	"fmt"
 	"io"
@@ -149,11 +150,21 @@ func main() {
 	}
 
 	m.PublishedAmis = amiCollection.GetAll()
+
+	m.Sha1 = shasum([]byte{})
+
 	err = m.Write(os.Stdout)
 	if err != nil {
 		logger.Fatalf("writing manifest: %s", err)
 	}
 	logger.Println("Publishing finished successfully")
+}
+
+func shasum(content []byte) string {
+	h := sha1.New()
+	h.Write(content)
+	bs := h.Sum(nil)
+	return fmt.Sprintf("%x", bs)
 }
 
 type logWriter struct {
