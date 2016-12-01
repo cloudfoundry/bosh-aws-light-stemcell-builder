@@ -10,6 +10,7 @@ groups:
       - promote
       - publish-centos-latest
       - publish-ubuntu-latest
+      - publish-ubuntu-3312
       - publish-ubuntu-3263
       - publish-ubuntu-3233
 
@@ -160,6 +161,18 @@ jobs:
         attempts: 5
       - *publish-stemcell-and-checksum
 
+  - name: publish-ubuntu-3312
+    serial: true
+    plan:
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-stemcell-3312
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+        attempts: 5
+      - *publish-stemcell-and-checksum
+
   - name: publish-ubuntu-3263
     serial: true
     plan:
@@ -256,6 +269,13 @@ resources:
     source:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
+
+  - name: ubuntu-stemcell-3312
+    type: bosh-io-stemcell-version-family
+    source:
+      name: bosh-aws-xen-ubuntu-trusty-go_agent
+      force_regular: true
+      version_family: "3312"
 
   - name: ubuntu-stemcell-3263
     type: bosh-io-stemcell-version-family
