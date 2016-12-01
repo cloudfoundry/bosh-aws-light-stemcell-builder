@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux -o pipefail
+set -eu -o pipefail
 
 my_dir="$( cd $(dirname $0) && pwd )"
 workspace_dir="$( cd ${my_dir} && cd ../../../.. && pwd )"
