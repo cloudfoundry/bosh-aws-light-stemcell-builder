@@ -16,6 +16,7 @@ const (
 // NewHVMAmiRequestInput builds the required input to create an HVM AMI
 func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID string) *ec2.RegisterImageInput {
 	return &ec2.RegisterImageInput{
+		SriovNetSupport:    aws.String("simple"),
 		Architecture:       aws.String(resources.AmiArchitecture),
 		Description:        aws.String(amiDescription),
 		VirtualizationType: aws.String(resources.HvmAmiVirtualization),
