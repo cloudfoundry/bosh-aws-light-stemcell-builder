@@ -171,7 +171,7 @@ cloud_properties:
 		gexecSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())
 
-		gexecSession.Wait(30 * time.Minute)
+		gexecSession.Wait(60 * time.Minute)
 		Expect(gexecSession.ExitCode()).To(BeZero())
 
 		stdout := bytes.NewReader(gexecSession.Out.Contents())
