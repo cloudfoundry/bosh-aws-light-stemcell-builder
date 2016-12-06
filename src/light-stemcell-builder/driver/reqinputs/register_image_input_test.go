@@ -14,6 +14,7 @@ var _ = Describe("building inputs for register image", func() {
 		It("builds valid request input for building an HVM AMI", func() {
 			input := reqinputs.NewHVMAmiRequestInput("some-ami-name", "some-ami-description", "some-snapshot-id")
 			Expect(input).To(BeAssignableToTypeOf(&ec2.RegisterImageInput{}))
+			Expect(*input.SriovNetSupport).To(Equal("simple"))
 			Expect(*input.Architecture).To(Equal(resources.AmiArchitecture))
 			Expect(*input.Description).To(Equal("some-ami-description"))
 			Expect(*input.VirtualizationType).To(Equal(resources.HvmAmiVirtualization))
@@ -30,6 +31,7 @@ var _ = Describe("building inputs for register image", func() {
 		It("builds valid request input for building an PV AMI", func() {
 			input := reqinputs.NewPVAmiRequest("some-ami-name", "some-ami-description", "some-snapshot-id", "some-kernel-id")
 			Expect(input).To(BeAssignableToTypeOf(&ec2.RegisterImageInput{}))
+			Expect(input.SriovNetSupport).To(BeNil())
 			Expect(*input.Architecture).To(Equal(resources.AmiArchitecture))
 			Expect(*input.Description).To(Equal("some-ami-description"))
 			Expect(*input.VirtualizationType).To(Equal(resources.PvAmiVirtualization))
