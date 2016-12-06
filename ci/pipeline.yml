@@ -11,8 +11,6 @@ groups:
       - publish-centos-latest
       - publish-ubuntu-latest
       - publish-ubuntu-3312
-      - publish-ubuntu-3263
-      - publish-ubuntu-3233
 
 shared:
   - &get-china-stemcell
@@ -173,30 +171,6 @@ jobs:
         attempts: 5
       - *publish-stemcell-and-checksum
 
-  - name: publish-ubuntu-3263
-    serial: true
-    plan:
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-3263
-          - *get-us-builder-src
-        - *build-us-stemcell-task
-        attempts: 5
-      - *publish-stemcell-and-checksum
-
-  - name: publish-ubuntu-3233
-    serial: true
-    plan:
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-3233
-          - *get-us-builder-src
-        - *build-us-stemcell-task
-        attempts: 5
-      - *publish-stemcell-and-checksum
-
   - name: publish-centos-latest
     serial: true
     plan:
@@ -276,17 +250,3 @@ resources:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3312"
-
-  - name: ubuntu-stemcell-3263
-    type: bosh-io-stemcell-version-family
-    source:
-      name: bosh-aws-xen-ubuntu-trusty-go_agent
-      force_regular: true
-      version_family: "3263"
-
-  - name: ubuntu-stemcell-3233
-    type: bosh-io-stemcell-version-family
-    source:
-      name: bosh-aws-xen-ubuntu-trusty-go_agent
-      force_regular: true
-      version_family: "3233"
