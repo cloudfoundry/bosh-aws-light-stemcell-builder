@@ -2,6 +2,7 @@
 groups:
   - name: light-stemcell-builder
     jobs:
+      - discover-aws-regions
       - test-unit
       - test-drivers
       - test-integration
@@ -64,7 +65,6 @@ shared:
       ami_access_key: {{publish__us_access_key}}
       ami_secret_key: {{publish__us_secret_key}}
       ami_bucket_name: {{publish__us_bucket}}
-      ami_destinations: {{publish__us_destinations}}
       ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds
@@ -86,6 +86,37 @@ shared:
       OUTPUT_BUCKET: {{output__bucket}}
 
 jobs:
+  - name: discover-aws-regions
+    serial: true
+    plan:
+      - aggregate:
+        - get: builder-src
+          resource: builder-src-in-wip
+        - get: midday
+          trigger: true
+      - task: discover-aws-regions
+        file: builder-src/ci/tasks/discover-aws-regions.yml
+        params:
+          AWS_DEFAULT_REGION: {{publish__us_region}}
+          AWS_ACCESS_KEY_ID: {{aws_region_discovery_access_key}}
+          AWS_SECRET_ACCESS_KEY: {{aws_region_discovery_access_secret}}
+        output_mapping:
+          updated-builder-src: builder-src
+      - task: commit
+        file: builder-src/ci/tasks/git-commit.yml
+        params:
+          GIT_ADD_ARGS: ci/config/aws-regions.json
+          GIT_COMMIT_MSG: "New region added."
+          GIT_COMMIT_USERNAME: {{cpi_bot_username}}
+          GIT_COMMIT_EMAIL: {{cpi_bot_email}}
+          GIT_SUCCEED_ON_NO_CHANGES: true
+        input_mapping:
+          input-src: builder-src
+        output_mapping:
+          output-src: builder-src-out-wip
+      - put: builder-src-out-wip
+        params: { repository: builder-src }
+
   - name: test-unit
     serial: true
     plan:
@@ -208,6 +239,20 @@ resource_types:
       tag: PR-version-family
 
 resources:
+  - name: builder-src-in-wip
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
+      branch: wip-aws-region-discovery
+      private_key: {{builder__github_deployment_key}}
+
+  - name: builder-src-out-wip
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
+      branch: wip-aws-region-discovery
+      private_key: {{builder__github_deployment_key}}
+
   - name: builder-src-in
     type: git
     source:
@@ -221,6 +266,11 @@ resources:
       uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
       branch: master
       private_key: {{builder__github_deployment_key}}
+
+  - name: midday
+    type: time
+    source:
+      interval: 24h
 
   - name: version-semver
     type: semver

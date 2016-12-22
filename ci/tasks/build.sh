@@ -7,6 +7,8 @@ release_dir="$( cd ${my_dir} && cd ../.. && pwd )"
 
 source ${release_dir}/ci/tasks/utils.sh
 
+saved_ami_destinations="$( cat ${release_dir}/ci/config/aws-regions.json )"
+
 : ${ami_description:?}
 : ${ami_virtualization_type:?}
 : ${ami_visibility:?}
@@ -14,7 +16,7 @@ source ${release_dir}/ci/tasks/utils.sh
 : ${ami_access_key:?}
 : ${ami_secret_key:?}
 : ${ami_bucket_name:?}
-: ${ami_destinations:?}
+: ${ami_destinations:saved_ami_destinations}
 
 stemcell_path=${PWD}/input-stemcell/*.tgz
 output_path=${PWD}/light-stemcell/
