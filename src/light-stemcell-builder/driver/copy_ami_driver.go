@@ -46,12 +46,17 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	}(createStartTime)
 
 	d.logger.Printf("copying AMI from source AMI: %s\n", driverConfig.ExistingAmiID)
-	output, err := ec2Client.CopyImage(&ec2.CopyImageInput{
+	input := &ec2.CopyImageInput{
 		Description:   &driverConfig.Description,
 		Name:          &driverConfig.Name,
 		SourceImageId: &driverConfig.ExistingAmiID,
 		SourceRegion:  &srcRegion,
-	})
+		Encrypted:     &driverConfig.Encrypted,
+	}
+	if driverConfig.KmsKeyId != "" {
+		input.KmsKeyId = &driverConfig.KmsKeyId
+	}
+	output, err := ec2Client.CopyImage(input)
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("copying AMI: %s", err)
 	}

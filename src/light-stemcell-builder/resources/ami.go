@@ -28,6 +28,8 @@ type AmiProperties struct {
 	Description        string
 	Name               string
 	VirtualizationType string
+	Encrypted          bool
+	KmsKeyId           string
 }
 
 // AmiDriverConfig allows an AmiDriver to create an AMI from either a snapshot ID or an existing AMI (copy)
