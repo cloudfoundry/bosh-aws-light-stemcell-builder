@@ -33,6 +33,8 @@ type AmiConfiguration struct {
 	AmiName            string `json:"name"`
 	Description        string `json:"description"`
 	VirtualizationType string `json:"virtualization_type"`
+	Encrypted          bool   `json:"encrypted"`
+	KmsKeyId           string `json:"kms_key_id"`
 	Visibility         string `json:"visibility"`
 }
 
