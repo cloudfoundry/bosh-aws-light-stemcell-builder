@@ -45,6 +45,8 @@ shared:
     output_mapping: {light-stemcell: cn-light-stemcell}
     params:
       ami_description: {{publish__ami_description}}
+      ami_encrypted: {{publish__ami_encrypted}}
+      ami_kms_key_id: {{publish__ami_kms_key_id}}
       ami_visibility: {{publish__ami_visibility}}
       ami_region: {{publish__cn_region}}
       ami_access_key: {{publish__cn_access_key}}
@@ -61,6 +63,8 @@ shared:
     output_mapping: {light-stemcell: us-light-stemcell}
     params:
       ami_description: {{publish__ami_description}}
+      ami_encrypted: {{publish__ami_encrypted}}
+      ami_kms_key_id: {{publish__ami_kms_key_id}}
       ami_visibility: {{publish__ami_visibility}}
       ami_region: {{publish__us_region}}
       ami_access_key: {{publish__us_access_key}}
