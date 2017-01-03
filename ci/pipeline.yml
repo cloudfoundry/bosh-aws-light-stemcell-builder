@@ -64,7 +64,6 @@ shared:
       ami_access_key: {{publish__us_access_key}}
       ami_secret_key: {{publish__us_secret_key}}
       ami_bucket_name: {{publish__us_bucket}}
-      ami_destinations: {{publish__us_destinations}}
       ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds

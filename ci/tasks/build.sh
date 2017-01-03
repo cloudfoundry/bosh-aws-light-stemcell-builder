@@ -14,7 +14,12 @@ source ${release_dir}/ci/tasks/utils.sh
 : ${ami_access_key:?}
 : ${ami_secret_key:?}
 : ${ami_bucket_name:?}
-: ${ami_destinations:?}
+
+saved_ami_destinations="$( aws ec2 describe-regions \
+  --query "Regions[?RegionName != '${ami_region}'][].RegionName" \
+  | jq 'sort' -c )"
+
+: ${ami_destinations:saved_ami_destinations}
 
 stemcell_path=${PWD}/input-stemcell/*.tgz
 output_path=${PWD}/light-stemcell/

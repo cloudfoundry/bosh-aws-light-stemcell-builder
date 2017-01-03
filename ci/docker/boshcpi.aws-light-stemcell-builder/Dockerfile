@@ -7,7 +7,7 @@ ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
 RUN apt-get install -y \
-  git tar curl wget make ruby unzip qemu-utils python python-pip && \
+  git tar curl wget make ruby unzip qemu-utils python python-pip jq && \
   apt-get clean
 RUN pip install awscli
 
