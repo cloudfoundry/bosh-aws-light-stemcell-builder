@@ -15,16 +15,21 @@ source ${release_dir}/ci/tasks/utils.sh
 : ${ami_secret_key:?}
 : ${ami_bucket_name:?}
 
+export AWS_ACCESS_KEY_ID=$ami_access_key
+export AWS_SECRET_ACCESS_KEY=$ami_secret_key
+
 saved_ami_destinations="$( aws ec2 describe-regions \
   --query "Regions[?RegionName != '${ami_region}'][].RegionName" \
   | jq 'sort' -c )"
 
-: ${ami_destinations:saved_ami_destinations}
+: ${ami_destinations:=$saved_ami_destinations}
 
 stemcell_path=${PWD}/input-stemcell/*.tgz
 output_path=${PWD}/light-stemcell/
 
-echo "Building light stemcell"
+echo "Building light stemcell..."
+echo "  Starting region: ${ami_region}"
+echo "  Copy regions: ${ami_destinations}"
 
 export CONFIG_PATH=${PWD}/config.json
 
