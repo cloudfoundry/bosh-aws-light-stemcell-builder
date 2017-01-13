@@ -17,6 +17,7 @@ source ${release_dir}/ci/tasks/utils.sh
 
 export AWS_ACCESS_KEY_ID=$ami_access_key
 export AWS_SECRET_ACCESS_KEY=$ami_secret_key
+export AWS_DEFAULT_REGION=$ami_region
 
 saved_ami_destinations="$( aws ec2 describe-regions \
   --query "Regions[?RegionName != '${ami_region}'][].RegionName" \
