@@ -147,6 +147,7 @@ jobs:
         params: { repository: builder-src }
 
   - name: publish-ubuntu-latest
+    disable_manual_trigger: true
     serial: true
     plan:
       - do:
@@ -159,6 +160,7 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3312
+    disable_manual_trigger: true
     serial: true
     plan:
       - do:
@@ -171,6 +173,7 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-centos-latest
+    disable_manual_trigger: true
     serial: true
     plan:
       - do:
