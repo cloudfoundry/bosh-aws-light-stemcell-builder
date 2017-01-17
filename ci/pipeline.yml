@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: light-stemcell-builder
+  - name: light-aws-stemcells
     jobs:
       - test-unit
       - test-drivers
