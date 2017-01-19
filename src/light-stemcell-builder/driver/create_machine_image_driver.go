@@ -64,11 +64,15 @@ func (d *SDKCreateMachineImageDriver) Create(driverConfig resources.MachineImage
 
 	uploadStartTime := time.Now()
 	uploader := s3manager.NewUploaderWithClient(d.s3Client)
-	_, err = uploader.Upload(&s3manager.UploadInput{
+	input := &s3manager.UploadInput{
 		Body:   f,
 		Bucket: aws.String(driverConfig.BucketName),
 		Key:    aws.String(keyName),
-	})
+	}
+	if driverConfig.ServerSideEncryption != "" {
+		input.ServerSideEncryption = aws.String(driverConfig.ServerSideEncryption)
+	}
+	_, err = uploader.Upload(input)
 
 	if err != nil {
 		return resources.MachineImage{}, fmt.Errorf("uploading machine image to S3: %s", err)

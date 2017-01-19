@@ -12,8 +12,9 @@ type MachineImage struct {
 }
 
 type MachineImageDriverConfig struct {
-	MachineImagePath string
-	BucketName       string
-	FileFormat       string
-	VolumeSizeGB     int64
+	MachineImagePath     string
+	BucketName           string
+	ServerSideEncryption string
+	FileFormat           string
+	VolumeSizeGB         int64
 }

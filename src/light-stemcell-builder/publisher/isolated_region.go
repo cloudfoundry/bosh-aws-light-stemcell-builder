@@ -11,16 +11,18 @@ import (
 )
 
 type IsolatedRegionPublisher struct {
-	Region        string
-	BucketName    string
-	AmiProperties resources.AmiProperties
-	logger        *log.Logger
+	Region               string
+	BucketName           string
+	ServerSideEncryption string
+	AmiProperties        resources.AmiProperties
+	logger               *log.Logger
 }
 
 func NewIsolatedRegionPublisher(logDest io.Writer, c Config) *IsolatedRegionPublisher {
 	return &IsolatedRegionPublisher{
-		Region:     c.RegionName,
-		BucketName: c.BucketName,
+		Region:               c.RegionName,
+		BucketName:           c.BucketName,
+		ServerSideEncryption: c.ServerSideEncryption,
 		AmiProperties: resources.AmiProperties{
 			Name:               c.AmiName,
 			Description:        c.Description,
@@ -38,10 +40,11 @@ func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, 
 	}(createStartTime)
 
 	machineImageDriverConfig := resources.MachineImageDriverConfig{
-		MachineImagePath: machineImageConfig.LocalPath,
-		BucketName:       p.BucketName,
-		FileFormat:       machineImageConfig.FileFormat,
-		VolumeSizeGB:     machineImageConfig.VolumeSizeGB,
+		MachineImagePath:     machineImageConfig.LocalPath,
+		BucketName:           p.BucketName,
+		ServerSideEncryption: p.ServerSideEncryption,
+		FileFormat:           machineImageConfig.FileFormat,
+		VolumeSizeGB:         machineImageConfig.VolumeSizeGB,
 	}
 
 	machineImageDriver := ds.MachineImageDriver()

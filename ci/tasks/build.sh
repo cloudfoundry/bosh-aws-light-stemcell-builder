@@ -14,6 +14,7 @@ source ${release_dir}/ci/tasks/utils.sh
 : ${ami_access_key:?}
 : ${ami_secret_key:?}
 : ${ami_bucket_name:?}
+: ${ami_server_side_encryption:?}
 
 export AWS_ACCESS_KEY_ID=$ami_access_key
 export AWS_SECRET_ACCESS_KEY=$ami_secret_key
@@ -49,6 +50,7 @@ cat > $CONFIG_PATH << EOF
         "secret_key":       "$ami_secret_key"
       },
       "bucket_name":        "$ami_bucket_name",
+      "server_side_encryption": "$ami_server_side_encryption",
       "destinations":       $ami_destinations
     }
   ]

@@ -48,6 +48,7 @@ shared:
       ami_access_key: {{publish__cn_access_key}}
       ami_secret_key: {{publish__cn_secret_key}}
       ami_bucket_name: {{publish__cn_bucket}}
+      ami_server_side_encryption: {{publish__cn_server_side_encryption}}
       ami_destinations: []
       ami_virtualization_type: hvm
   - &build-us-stemcell-task
@@ -64,6 +65,7 @@ shared:
       ami_access_key: {{publish__us_access_key}}
       ami_secret_key: {{publish__us_secret_key}}
       ami_bucket_name: {{publish__us_bucket}}
+      ami_server_side_encryption: {{publish__us_server_side_encryption}}
       ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds
