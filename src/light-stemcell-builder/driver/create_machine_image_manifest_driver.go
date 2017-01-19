@@ -72,11 +72,15 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 
 	uploadStartTime := time.Now()
 	uploader := s3manager.NewUploaderWithClient(d.s3Client)
-	_, err = uploader.Upload(&s3manager.UploadInput{
+	input := &s3manager.UploadInput{
 		Body:   f,
 		Bucket: aws.String(driverConfig.BucketName),
 		Key:    aws.String(keyName),
-	})
+	}
+	if driverConfig.ServerSideEncryption != "" {
+		input.ServerSideEncryption = aws.String(driverConfig.ServerSideEncryption)
+	}
+	_, err = uploader.Upload(input)
 
 	if err != nil {
 		return resources.MachineImage{}, fmt.Errorf("uploading machine image to S3: %s", err)
@@ -109,7 +113,7 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 		return resources.MachineImage{}, fmt.Errorf("Failed to generate machine image manifest: %s", err)
 	}
 
-	manifestURL, err := d.uploadManifest(driverConfig.BucketName, m)
+	manifestURL, err := d.uploadManifest(driverConfig.BucketName, driverConfig.ServerSideEncryption, m)
 
 	machineImage := resources.MachineImage{
 		GetURL:     manifestURL,
@@ -172,7 +176,7 @@ func (d *SDKCreateMachineImageManifestDriver) generateManifest(bucketName string
 	return manifests.New(imageProps), nil
 }
 
-func (d *SDKCreateMachineImageManifestDriver) uploadManifest(bucketName string, m *manifests.ImportVolumeManifest) (string, error) {
+func (d *SDKCreateMachineImageManifestDriver) uploadManifest(bucketName, serverSideEncryption string, m *manifests.ImportVolumeManifest) (string, error) {
 
 	manifestKey := fmt.Sprintf("bosh-machine-image-manifest-%d", time.Now().UnixNano())
 
@@ -213,11 +217,15 @@ func (d *SDKCreateMachineImageManifestDriver) uploadManifest(bucketName string, 
 
 	uploadStartTime := time.Now()
 	uploader := s3manager.NewUploaderWithClient(d.s3Client)
-	_, err = uploader.Upload(&s3manager.UploadInput{
+	input := &s3manager.UploadInput{
 		Body:   manifestReader,
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(manifestKey),
-	})
+	}
+	if serverSideEncryption != "" {
+		input.ServerSideEncryption = aws.String(serverSideEncryption)
+	}
+	_, err = uploader.Upload(input)
 
 	if err != nil {
 		return "", fmt.Errorf("uploading machine image manifest to S3: %s", err)

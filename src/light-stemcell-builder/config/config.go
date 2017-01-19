@@ -21,7 +21,7 @@ const (
 )
 
 var isolated = map[string]bool{
-	"cn-north-1": true,
+	"cn-north-1":    true,
 	"us-gov-west-1": true,
 }
 
@@ -37,11 +37,12 @@ type AmiConfiguration struct {
 }
 
 type AmiRegion struct {
-	RegionName     string      `json:"name"`
-	Credentials    Credentials `json:"credentials"`
-	BucketName     string      `json:"bucket_name"`
-	Destinations   []string    `json:"destinations"`
-	IsolatedRegion bool        `json:"-"`
+	RegionName           string      `json:"name"`
+	Credentials          Credentials `json:"credentials"`
+	BucketName           string      `json:"bucket_name"`
+	ServerSideEncryption string      `json:"server_side_encryption"`
+	Destinations         []string    `json:"destinations"`
+	IsolatedRegion       bool        `json:"-"`
 }
 
 type Credentials struct {

@@ -12,18 +12,20 @@ import (
 )
 
 type StandardRegionPublisher struct {
-	Region           string
-	BucketName       string
-	AmiProperties    resources.AmiProperties
-	CopyDestinations []string
-	logger           *log.Logger
+	Region               string
+	BucketName           string
+	ServerSideEncryption string
+	AmiProperties        resources.AmiProperties
+	CopyDestinations     []string
+	logger               *log.Logger
 }
 
 func NewStandardRegionPublisher(logDest io.Writer, c Config) *StandardRegionPublisher {
 	return &StandardRegionPublisher{
-		Region:           c.RegionName,
-		BucketName:       c.BucketName,
-		CopyDestinations: c.Destinations,
+		Region:               c.RegionName,
+		BucketName:           c.BucketName,
+		ServerSideEncryption: c.ServerSideEncryption,
+		CopyDestinations:     c.Destinations,
 		AmiProperties: resources.AmiProperties{
 			Name:               c.AmiName,
 			Description:        c.Description,
@@ -42,9 +44,10 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 	}(createStartTime)
 
 	machineImageDriverConfig := resources.MachineImageDriverConfig{
-		MachineImagePath: machineImageConfig.LocalPath,
-		FileFormat:       machineImageConfig.FileFormat,
-		BucketName:       p.BucketName,
+		MachineImagePath:     machineImageConfig.LocalPath,
+		FileFormat:           machineImageConfig.FileFormat,
+		BucketName:           p.BucketName,
+		ServerSideEncryption: p.ServerSideEncryption,
 	}
 
 	machineImageDriver := ds.MachineImageDriver()
