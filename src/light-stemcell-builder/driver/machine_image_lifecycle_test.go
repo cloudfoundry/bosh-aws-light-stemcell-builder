@@ -8,7 +8,12 @@ import (
 	"light-stemcell-builder/driver/manifests"
 	"light-stemcell-builder/resources"
 	"net/http"
+	"net/url"
 	"os"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,10 +22,13 @@ import (
 var _ = Describe("Machine Image Lifecycle", func() {
 
 	var (
-		creds       config.Credentials
-		imagePath   string
-		imageFormat string
-		bucketName  string
+		s3Client                  *s3.S3
+		creds                     config.Credentials
+		imagePath                 string
+		imageFormat               string
+		bucketName                string
+		testMachineImageLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage))
+		testMachineImageManifestLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage, manifests.ImportVolumeManifest))
 	)
 
 	BeforeEach(func() {
@@ -39,6 +47,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			Region:    region,
 		}
 
+		s3Client = s3.New(session.New())
+
 		imagePath = os.Getenv("MACHINE_IMAGE_PATH")
 		Expect(imagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
 
@@ -55,6 +65,80 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			BucketName:       bucketName,
 		}
 
+		testMachineImageLifecycle(driverConfig)
+	})
+
+	Context("when ServerSideEncryption is specified", func() {
+		It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
+			driverConfig := resources.MachineImageDriverConfig{
+				MachineImagePath:     imagePath,
+				BucketName:           bucketName,
+				ServerSideEncryption: "AES256",
+			}
+
+			testMachineImageLifecycle(driverConfig, func(machineImage resources.MachineImage) {
+				imageURL, err := url.Parse(machineImage.GetURL)
+
+				params := &s3.HeadObjectInput{
+					Bucket: aws.String(bucketName),
+					Key:    aws.String(imageURL.Path),
+				}
+				headResp, err := s3Client.HeadObject(params)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(*headResp.ServerSideEncryption).To(Equal("AES256"))
+			})
+		})
+	})
+
+	It("uploads a machine image w/manifest to S3 with pre-signed URLs for GET and DELETE", func() {
+		driverConfig := resources.MachineImageDriverConfig{
+			MachineImagePath: imagePath,
+			FileFormat:       imageFormat,
+			BucketName:       bucketName,
+			VolumeSizeGB:     3,
+		}
+
+		testMachineImageManifestLifecycle(driverConfig)
+	})
+
+	Context("when ServerSideEncryption is specified", func() {
+		It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
+			driverConfig := resources.MachineImageDriverConfig{
+				MachineImagePath:     imagePath,
+				FileFormat:           imageFormat,
+				BucketName:           bucketName,
+				VolumeSizeGB:         3,
+				ServerSideEncryption: "AES256",
+			}
+
+			testMachineImageManifestLifecycle(driverConfig, func(machineImage resources.MachineImage, manifest manifests.ImportVolumeManifest) {
+				imageURL, err := url.Parse(machineImage.GetURL)
+
+				params := &s3.HeadObjectInput{
+					Bucket: aws.String(bucketName),
+					Key:    aws.String(imageURL.Path),
+				}
+				headResp, err := s3Client.HeadObject(params)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(*headResp.ServerSideEncryption).To(Equal("AES256"))
+
+				imageURL, err = url.Parse(manifest.Parts.Part.HeadURL)
+
+				params = &s3.HeadObjectInput{
+					Bucket: aws.String(bucketName),
+					Key:    aws.String(imageURL.Path),
+				}
+				headResp, err = s3Client.HeadObject(params)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(*headResp.ServerSideEncryption).To(Equal("AES256"))
+			})
+		})
+	})
+
+	testMachineImageLifecycle = func(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage)) {
 		createDriver := driver.NewCreateMachineImageDriver(GinkgoWriter, creds)
 
 		machineImage, err := createDriver.Create(driverConfig)
@@ -66,6 +150,10 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
+		if len(cb) > 0 {
+			cb[0](machineImage)
+		}
+
 		deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
 
 		err = deleteDriver.Delete(machineImage)
@@ -74,16 +162,9 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		resp, err = http.Get(machineImage.GetURL)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
-	})
+	}
 
-	It("uploads a machine image w/manifest to S3 with pre-signed URLs for GET and DELETE", func() {
-		driverConfig := resources.MachineImageDriverConfig{
-			MachineImagePath: imagePath,
-			FileFormat:       imageFormat,
-			BucketName:       bucketName,
-			VolumeSizeGB:     3,
-		}
-
+	testMachineImageManifestLifecycle = func(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage, manifests.ImportVolumeManifest)) {
 		createDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, creds)
 
 		machineImage, err := createDriver.Create(driverConfig)
@@ -111,6 +192,10 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		Expect(m.FileFormat).To(Equal(imageFormat))
 		Expect(m.VolumeSizeGB).To(Equal(int64(3)))
 
+		if len(cb) > 0 {
+			cb[0](machineImage, m)
+		}
+
 		deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
 
 		err = deleteDriver.Delete(machineImage)
@@ -125,5 +210,5 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		defer resp.Body.Close()
 
 		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
-	})
+	}
 })
