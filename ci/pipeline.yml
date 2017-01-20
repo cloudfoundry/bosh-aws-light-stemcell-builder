@@ -16,7 +16,7 @@ shared:
   - &get-china-stemcell
     get: cn-input-stemcell
     version: every
-    tags: [aws-cn]
+    tags: [asia]
     trigger: true
     params:
       preserve_filename: true
@@ -28,7 +28,7 @@ shared:
       preserve_filename: true
   - &get-china-builder-src
     get: cn-builder-src
-    tags: [aws-cn]
+    tags: [asia]
     resource: builder-src-out
   - &get-us-builder-src
     get: us-builder-src
@@ -36,7 +36,7 @@ shared:
   - &build-china-stemcell-task
     task: build-china-stemcell
     file: cn-builder-src/ci/tasks/build.yml
-    tags: [aws-cn]
+    tags: [asia]
     input_mapping:
       input-stemcell: cn-input-stemcell
       builder-src: cn-builder-src
@@ -67,7 +67,6 @@ shared:
       ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds
-    attempts: 5
     file: us-builder-src/ci/tasks/merge-builds.yml
     input_mapping:
       builder-src: us-builder-src
@@ -76,7 +75,6 @@ shared:
     file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
     input_mapping:
       builder-src: us-builder-src
-      light-stemcell: us-light-stemcell
     params:
       BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
       AWS_ACCESS_KEY_ID: {{output__bucket_access_key}}
@@ -152,11 +150,17 @@ jobs:
     plan:
       - do:
         - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-latest
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
           - <<: *get-us-stemcell
             resource: ubuntu-stemcell-latest
           - *get-us-builder-src
         - *build-us-stemcell-task
-        attempts: 5
+      - *merge-builds-task
       - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3312
@@ -165,11 +169,17 @@ jobs:
     plan:
       - do:
         - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-3312
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
           - <<: *get-us-stemcell
             resource: ubuntu-stemcell-3312
           - *get-us-builder-src
         - *build-us-stemcell-task
-        attempts: 5
+      - *merge-builds-task
       - *publish-stemcell-and-checksum
 
   - name: publish-centos-latest
@@ -178,11 +188,17 @@ jobs:
     plan:
       - do:
         - aggregate:
+          - <<: *get-china-stemcell
+            resource: centos-stemcell-latest
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
           - <<: *get-us-stemcell
             resource: centos-stemcell-latest
           - *get-us-builder-src
         - *build-us-stemcell-task
-        attempts: 5
+      - *merge-builds-task
       - *publish-stemcell-and-checksum
 
   - name: bump-minor
