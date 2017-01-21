@@ -18,6 +18,7 @@ trap '{ rm -rf ${tmpdir}; }' EXIT
 : ${existing_volume_id:?must be set}
 : ${existing_snapshot_id:?must be set}
 : ${uploaded_machine_image_url:?must be set}
+: ${kms_key_id:?must be set}
 
 : ${uploaded_machine_image_format:=RAW}
 
@@ -27,6 +28,7 @@ export AWS_SECRET_ACCESS_KEY=$secret_key
 export AWS_BUCKET_NAME=$bucket_name
 export AWS_REGION=$region
 export AWS_DESTINATION_REGION=${copy_region}
+export AWS_KMS_KEY_ID=${kms_key_id}
 
 # Fixtures
 export S3_MACHINE_IMAGE_URL=${uploaded_machine_image_url}

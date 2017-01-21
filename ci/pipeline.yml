@@ -113,6 +113,7 @@ jobs:
           region:                     {{test__region}}
           copy_region:                {{test__copy_region}}
           ami_fixture_id:             {{test__ami_fixture_id}}
+          kms_key_id:                 {{test__kms_key_id}}
           existing_volume_id:         {{test__volume_fixture_id}}
           existing_snapshot_id:       {{test__snapshot_fixture_id}}
           uploaded_machine_image_url: {{test__machine_image_fixture_url}}

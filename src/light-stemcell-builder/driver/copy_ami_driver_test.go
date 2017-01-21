@@ -17,7 +17,7 @@ import (
 )
 
 var _ = Describe("CopyAmiDriver", func() {
-	It("copies an existing AMI to a new region while preserving its properties", func() {
+	cpiAmi := func(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
@@ -44,12 +44,19 @@ var _ = Describe("CopyAmiDriver", func() {
 		amiUniqueID := strings.ToUpper(uuid.NewV4().String())
 		amiName := fmt.Sprintf("BOSH-%s", amiUniqueID)
 
+		accessibility := resources.PublicAmiAccessibility
+		if encrypted {
+			accessibility = resources.PrivateAmiAccessibility
+		}
+
 		amiDriverConfig.Name = amiName
 		amiDriverConfig.VirtualizationType = resources.HvmAmiVirtualization
-		amiDriverConfig.Accessibility = resources.PublicAmiAccessibility
+		amiDriverConfig.Accessibility = accessibility
 		amiDriverConfig.Description = "bosh cpi test ami"
 		amiDriverConfig.ExistingAmiID = existingAmiID
 		amiDriverConfig.DestinationRegion = dstRegion
+		amiDriverConfig.Encrypted = encrypted
+		amiDriverConfig.KmsKeyId = kmsKey
 
 		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
@@ -65,9 +72,46 @@ var _ = Describe("CopyAmiDriver", func() {
 		Expect(*reqOutput.Images[0].Name).To(Equal(amiDriverConfig.Name))
 		Expect(*reqOutput.Images[0].Architecture).To(Equal(resources.AmiArchitecture))
 		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
-		Expect(*reqOutput.Images[0].Public).To(BeTrue())
+		if !encrypted {
+			Expect(*reqOutput.Images[0].Public).To(BeTrue())
+		}
+
+
+		if len(cb) > 0 {
+			cb[0](ec2Client, reqOutput)
+		}
 
 		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(copiedAmi.ID)}) // Ignore DeregisterImageOutput
 		Expect(err).ToNot(HaveOccurred())
+	}
+
+	It("copies an existing AMI to a new region while preserving its properties", func() {
+		cpiAmi(false, "")
+	})
+
+	Context("when encrypted flag is set to true", func() {
+		It("encrypts destination AMI using default AWS KMS key", func() {
+			cpiAmi(true, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+				respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(*respSnapshots.Snapshots[0].Encrypted).To(BeTrue())
+			})
+		})
+
+		Context("when kms_key_id is provided", func() {
+			It("encrypts destination AMI using provided kms key", func() {
+				kmsKeyId := os.Getenv("AWS_KMS_KEY_ID")
+				Expect(kmsKeyId).ToNot(BeEmpty(), "AWS_KMS_KEY_ID must be set")
+
+				cpiAmi(true, kmsKeyId, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+					respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(*respSnapshots.Snapshots[0].Encrypted).To(BeTrue())
+					Expect(*respSnapshots.Snapshots[0].KmsKeyId).To(Equal(kmsKeyId))
+				})
+			})
+		})
 	})
 })
