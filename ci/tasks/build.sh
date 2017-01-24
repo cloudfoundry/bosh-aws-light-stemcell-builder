@@ -43,7 +43,7 @@ cat > $CONFIG_PATH << EOF
   "ami_configuration": {
     "description":          "$ami_description",
     "virtualization_type":  "$ami_virtualization_type",
-    "encrypted":            "$ami_encrypted",
+    "encrypted":            $ami_encrypted,
     "kms_key_id":           "$ami_kms_key_id",
     "visibility":           "$ami_visibility"
   },
