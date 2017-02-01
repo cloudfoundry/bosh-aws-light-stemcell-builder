@@ -7,6 +7,9 @@ release_dir="$( cd ${my_dir} && cd ../.. && pwd )"
 
 source ${release_dir}/ci/tasks/utils.sh
 
+ami_kms_key_id=${ami_kms_key_id:-}
+ami_server_side_encryption=${ami_server_side_encryption:-}
+
 : ${ami_description:?}
 : ${ami_virtualization_type:?}
 : ${ami_visibility:?}
@@ -14,9 +17,7 @@ source ${release_dir}/ci/tasks/utils.sh
 : ${ami_access_key:?}
 : ${ami_secret_key:?}
 : ${ami_bucket_name:?}
-: ${ami_server_side_encryption:?}
 : ${ami_encrypted:?}
-: ${ami_kms_key_id:?}
 
 export AWS_ACCESS_KEY_ID=$ami_access_key
 export AWS_SECRET_ACCESS_KEY=$ami_secret_key
