@@ -11,11 +11,14 @@ outputs:
 run:
   path: builder-src/ci/tasks/build.sh
 params:
-  ami_description:         ""
-  ami_virtualization_type: ""
-  ami_visibility:          ""
-  ami_region:              ""
-  ami_access_key:          ""
-  ami_secret_key:          ""
-  ami_bucket_name:         ""
-  ami_destinations:        ""
+  ami_description:            ""
+  ami_virtualization_type:    ""
+  ami_visibility:             ""
+  ami_region:                 ""
+  ami_access_key:             ""
+  ami_secret_key:             ""
+  ami_bucket_name:            ""
+  ami_destinations:           ""
+  ami_server_side_encryption: ""
+  ami_kms_key_id:             ""
+  ami_encrypted:              false
