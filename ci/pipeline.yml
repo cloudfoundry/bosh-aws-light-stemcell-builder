@@ -1,17 +1,4 @@
 ---
-groups:
-  - name: light-aws-stemcells
-    jobs:
-      - test-unit
-      - test-drivers
-      - test-integration
-      - bump-minor
-      - bump-major
-      - promote
-      - publish-centos-latest
-      - publish-ubuntu-latest
-      - publish-ubuntu-3312
-
 shared:
   - &get-china-stemcell
     get: cn-input-stemcell
@@ -151,25 +138,6 @@ jobs:
       - put: builder-src-out
         params: { repository: builder-src }
 
-  - name: publish-ubuntu-latest
-    disable_manual_trigger: true
-    serial: true
-    plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: ubuntu-stemcell-latest
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-latest
-          - *get-us-builder-src
-        - *build-us-stemcell-task
-      - *merge-builds-task
-      - *publish-stemcell-and-checksum
-
   - name: publish-ubuntu-3312
     disable_manual_trigger: true
     serial: true
@@ -189,20 +157,39 @@ jobs:
       - *merge-builds-task
       - *publish-stemcell-and-checksum
 
-  - name: publish-centos-latest
+  - name: publish-ubuntu-3363
     disable_manual_trigger: true
     serial: true
     plan:
       - do:
         - aggregate:
           - <<: *get-china-stemcell
-            resource: centos-stemcell-latest
+            resource: ubuntu-stemcell-3363
           - *get-china-builder-src
         - *build-china-stemcell-task
       - do:
         - aggregate:
           - <<: *get-us-stemcell
-            resource: centos-stemcell-latest
+            resource: ubuntu-stemcell-3363
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+      - *merge-builds-task
+      - *publish-stemcell-and-checksum
+
+  - name: publish-centos-3363
+    disable_manual_trigger: true
+    serial: true
+    plan:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: centos-stemcell-3363
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: centos-stemcell-3363
           - *get-us-builder-src
         - *build-us-stemcell-task
       - *merge-builds-task
@@ -257,17 +244,19 @@ resources:
       bucket: {{builder__bucket}}
       region_name: {{builder__region}}
 
-  - name: centos-stemcell-latest
+  - name: centos-stemcell-3363
     type: bosh-io-stemcell-version-family
     source:
-      name: bosh-aws-xen-centos-7-go_agent
+      name: bosh-aws-xen-hvm-centos-7-go_agent
       force_regular: true
+      version_family: "3363"
 
-  - name: ubuntu-stemcell-latest
+  - name: ubuntu-stemcell-3363
     type: bosh-io-stemcell-version-family
     source:
-      name: bosh-aws-xen-ubuntu-trusty-go_agent
+      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
+      version_family: "3363"
 
   - name: ubuntu-stemcell-3312
     type: bosh-io-stemcell-version-family
