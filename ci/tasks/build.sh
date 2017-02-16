@@ -71,7 +71,9 @@ original_stemcell_name="$(basename ${stemcell_path})"
 light_stemcell_name="light-${original_stemcell_name}"
 
 if [ "${ami_virtualization_type}" = "hvm" ]; then
-  light_stemcell_name="${light_stemcell_name/xen/xen-hvm}"
+  if [[ "${light_stemcell_name}" != *"-hvm"*  ]]; then
+    light_stemcell_name="${light_stemcell_name/xen/xen-hvm}"
+  fi
 fi
 
 # image format can be raw or stream optimized vmdk
