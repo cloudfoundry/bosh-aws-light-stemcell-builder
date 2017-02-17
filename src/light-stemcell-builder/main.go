@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"light-stemcell-builder/collection"
 	"light-stemcell-builder/config"
-	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/manifest"
 	"light-stemcell-builder/publisher"
 	"light-stemcell-builder/resources"
@@ -71,7 +70,7 @@ func main() {
 		logger.Fatalf("Error opening config file: %s", err)
 	}
 
-	c, err := config.NewFromReader(configFile)
+	_, err = config.NewFromReader(configFile)
 	if err != nil {
 		logger.Fatalf("Error parsing config file: %s. Message: %s", *configPath, err)
 	}
@@ -94,62 +93,69 @@ func main() {
 		logger.Fatalf("reading manifest: %s", err)
 	}
 
-	amiCollection := collection.Ami{}
+	// amiCollection := collection.Ami{}
 	errCollection := collection.Error{}
 
-	var wg sync.WaitGroup
-	wg.Add(len(c.AmiRegions))
+	// var wg sync.WaitGroup
+	// wg.Add(len(c.AmiRegions))
 
-	imageConfig := publisher.MachineImageConfig{
+	_ = publisher.MachineImageConfig{
 		LocalPath:    *machineImagePath,
 		FileFormat:   *machineImageFormat,
 		VolumeSizeGB: int64(*imageVolumeSize),
 	}
 
-	for i := range c.AmiRegions {
-		go func(regionConfig config.AmiRegion) {
-			defer wg.Done()
-
-			switch {
-			case regionConfig.IsolatedRegion:
-				ds := driverset.NewIsolatedRegionDriverSet(sharedWriter, regionConfig.Credentials)
-				p := publisher.NewIsolatedRegionPublisher(sharedWriter, publisher.Config{
-					AmiRegion:        regionConfig,
-					AmiConfiguration: c.AmiConfiguration,
-				})
-
-				amis, err := p.Publish(ds, imageConfig)
-				if err != nil {
-					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
-				} else {
-					amiCollection.Merge(amis)
-				}
-			default:
-				ds := driverset.NewStandardRegionDriverSet(sharedWriter, regionConfig.Credentials)
-				p := publisher.NewStandardRegionPublisher(sharedWriter, publisher.Config{
-					AmiRegion:        regionConfig,
-					AmiConfiguration: c.AmiConfiguration,
-				})
-
-				amis, err := p.Publish(ds, imageConfig)
-				if err != nil {
-					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
-				} else {
-					amiCollection.Merge(amis)
-				}
-			}
-		}(c.AmiRegions[i])
-	}
+	// for i := range c.AmiRegions {
+	// 	go func(regionConfig config.AmiRegion) {
+	// 		defer wg.Done()
+	//
+	// 		switch {
+	// 		case regionConfig.IsolatedRegion:
+	// 			ds := driverset.NewIsolatedRegionDriverSet(sharedWriter, regionConfig.Credentials)
+	// 			p := publisher.NewIsolatedRegionPublisher(sharedWriter, publisher.Config{
+	// 				AmiRegion:        regionConfig,
+	// 				AmiConfiguration: c.AmiConfiguration,
+	// 			})
+	//
+	// 			amis, err := p.Publish(ds, imageConfig)
+	// 			if err != nil {
+	// 				errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
+	// 			} else {
+	// 				amiCollection.Merge(amis)
+	// 			}
+	// 		default:
+	// 			ds := driverset.NewStandardRegionDriverSet(sharedWriter, regionConfig.Credentials)
+	// 			p := publisher.NewStandardRegionPublisher(sharedWriter, publisher.Config{
+	// 				AmiRegion:        regionConfig,
+	// 				AmiConfiguration: c.AmiConfiguration,
+	// 			})
+	//
+	// 			amis, err := p.Publish(ds, imageConfig)
+	// 			if err != nil {
+	// 				errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
+	// 			} else {
+	// 				amiCollection.Merge(amis)
+	// 			}
+	// 		}
+	// 	}(c.AmiRegions[i])
+	// }
 
 	logger.Println("Waiting for publishers to finish...")
-	wg.Wait()
+	// wg.Wait()
 
 	combinedErr := errCollection.Error()
 	if combinedErr != nil {
 		logger.Fatal(combinedErr)
 	}
 
-	m.PublishedAmis = amiCollection.GetAll()
+	// m.PublishedAmis = amiCollection.GetAll()
+	m.PublishedAmis = []resources.Ami{
+		resources.Ami{
+			ID:                 "ami-xxxxxxx",
+			VirtualizationType: resources.HvmAmiVirtualization,
+			Region:             "us-east-1",
+		},
+	}
 
 	m.Sha1 = shasum([]byte{})
 

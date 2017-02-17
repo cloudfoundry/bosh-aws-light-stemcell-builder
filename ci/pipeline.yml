@@ -161,20 +161,20 @@ jobs:
     disable_manual_trigger: true
     serial: true
     plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: ubuntu-stemcell-3363
-          - *get-china-builder-src
-        - *build-china-stemcell-task
+      # - do:
+      #   - aggregate:
+      #     - <<: *get-china-stemcell
+      #       resource: ubuntu-stemcell-3363
+      #     - *get-china-builder-src
+      #   - *build-china-stemcell-task
       - do:
         - aggregate:
           - <<: *get-us-stemcell
             resource: ubuntu-stemcell-3363
           - *get-us-builder-src
         - *build-us-stemcell-task
-      - *merge-builds-task
-      - *publish-stemcell-and-checksum
+      # - *merge-builds-task
+      # - *publish-stemcell-and-checksum
 
   - name: publish-centos-3363
     disable_manual_trigger: true
@@ -224,14 +224,14 @@ resources:
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
-      branch: develop
+      branch: stemcell_mf_name
       private_key: {{builder__github_deployment_key}}
 
   - name: builder-src-out
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
-      branch: master
+      branch: stemcell_mf_name
       private_key: {{builder__github_deployment_key}}
 
   - name: version-semver
