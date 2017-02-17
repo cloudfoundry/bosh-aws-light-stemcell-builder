@@ -12,8 +12,9 @@ import (
 )
 
 var _ = Describe("Manifest", func() {
-	Context("reading and writing the manifest", func() {
-		manifestBytes := []byte(`
+	var manifestBytes []byte
+	BeforeEach(func() {
+		manifestBytes = []byte(`
 name: bosh-aws-xen-ubuntu-trusty-go_agent
 version: blah
 bosh_protocol: 1
@@ -31,6 +32,8 @@ cloud_properties:
   os_distro: ubuntu
   architecture: x86_64
   root_device_name: /dev/sda1`)
+	})
+	Context("reading and writing the manifest", func() {
 
 		It("writes the expected YAML file", func() {
 			manifestReader := bytes.NewReader(manifestBytes)
@@ -62,28 +65,75 @@ cloud_properties:
 			Expect(resultManifest.CloudProperties.Amis["fake-region"]).To(Equal("fake-ami-id"))
 		})
 
-		It("adds 'hvm' to name if AMI collection has HVM virtualization type", func() {
-			manifestReader := bytes.NewReader(manifestBytes)
-			m, err := manifest.NewFromReader(manifestReader)
-			Expect(err).ToNot(HaveOccurred())
+		Context("When it's a stemcell with the HVM virtualization type", func() {
+			It("adds 'hvm' to the name", func() {
+				manifestReader := bytes.NewReader(manifestBytes)
+				m, err := manifest.NewFromReader(manifestReader)
+				Expect(err).ToNot(HaveOccurred())
 
-			m.PublishedAmis = []resources.Ami{
-				resources.Ami{
-					Region:             "fake-region",
-					ID:                 "fake-ami-id",
-					VirtualizationType: resources.HvmAmiVirtualization,
-				},
-			}
+				m.PublishedAmis = []resources.Ami{
+					resources.Ami{
+						Region:             "fake-region",
+						ID:                 "fake-ami-id",
+						VirtualizationType: resources.HvmAmiVirtualization,
+					},
+				}
 
-			writer := &bytes.Buffer{}
-			err = m.Write(writer)
-			Expect(err).ToNot(HaveOccurred())
+				writer := &bytes.Buffer{}
+				err = m.Write(writer)
+				Expect(err).ToNot(HaveOccurred())
 
-			resultManifest := &manifest.Manifest{}
-			err = yaml.Unmarshal(writer.Bytes(), resultManifest)
-			Expect(err).ToNot(HaveOccurred())
+				resultManifest := &manifest.Manifest{}
+				err = yaml.Unmarshal(writer.Bytes(), resultManifest)
+				Expect(err).ToNot(HaveOccurred())
 
-			Expect(resultManifest.Name).To(Equal("bosh-aws-xen-hvm-ubuntu-trusty-go_agent"))
+				Expect(resultManifest.Name).To(Equal("bosh-aws-xen-hvm-ubuntu-trusty-go_agent"))
+			})
+			Context("when the name of the stemcell already has 'hvm' in it", func() {
+				BeforeEach(func() {
+					manifestBytes = []byte(`
+name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+version: blah
+bosh_protocol: 1
+sha1: some-sha
+operating_system: ubuntu-trusty
+cloud_properties:
+  name: bosh-aws-xen-ubuntu-trusty-go_agent
+  version: blah
+  infrastructure: aws
+  hypervisor: xen
+  disk: 3072
+  disk_format: raw
+  container_format: bare
+  os_type: linux
+  os_distro: ubuntu
+  architecture: x86_64
+  root_device_name: /dev/sda1`)
+				})
+				It("does not add a second 'hvm' to the name", func() {
+					manifestReader := bytes.NewReader(manifestBytes)
+					m, err := manifest.NewFromReader(manifestReader)
+					Expect(err).ToNot(HaveOccurred())
+
+					m.PublishedAmis = []resources.Ami{
+						resources.Ami{
+							Region:             "fake-region",
+							ID:                 "fake-ami-id",
+							VirtualizationType: resources.HvmAmiVirtualization,
+						},
+					}
+
+					writer := &bytes.Buffer{}
+					err = m.Write(writer)
+					Expect(err).ToNot(HaveOccurred())
+
+					resultManifest := &manifest.Manifest{}
+					err = yaml.Unmarshal(writer.Bytes(), resultManifest)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(resultManifest.Name).To(Equal("bosh-aws-xen-hvm-ubuntu-trusty-go_agent"))
+				})
+			})
 		})
 
 		Context("given an invalid manifest", func() {

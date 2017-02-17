@@ -61,7 +61,7 @@ func (m *Manifest) Write(writer io.Writer) error {
 	}
 
 	virtualizationType := m.PublishedAmis[0].VirtualizationType
-	if virtualizationType == resources.HvmAmiVirtualization {
+	if virtualizationType == resources.HvmAmiVirtualization && !strings.Contains(m.Name, "-hvm") {
 		m.Name = strings.Replace(m.Name, "xen", "xen-hvm", 1)
 	}
 

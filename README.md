@@ -10,6 +10,13 @@ Any AWS region including China is supported.
 1. Create the `vmimport` AWS role as detailed [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/VMImportPrerequisites.html#iam-permissions-image), specifying the previously created bucket in place of `<disk-image-file-bucket>`; see [example IAM policy](iam-policy.json).
 1. Replicate these steps in a separate AWS China account if publishing to China.
 
+#### Testing
+
+Unit testing:
+```
+ginkgo -r --skipPackage driver,integration
+```
+
 #### Example Usage
 
 Example config:
