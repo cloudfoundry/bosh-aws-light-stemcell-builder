@@ -1,4 +1,17 @@
 ---
+groups:
+  - name: light-aws-stemcells
+    jobs:
+      - test-unit
+      - test-drivers
+      - test-integration
+      - bump-minor
+      - bump-major
+      - promote
+      - publish-centos-3363
+      - publish-ubuntu-3363
+      - publish-ubuntu-3312
+
 shared:
   - &get-china-stemcell
     get: cn-input-stemcell
