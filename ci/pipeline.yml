@@ -224,14 +224,6 @@ jobs:
       - put: version-semver
         params: { file: version-semver/number }
 
-# TODO: switch back to using canonical resource after PR is merged #133222913
-resource_types:
-  - name: bosh-io-stemcell-version-family
-    type: docker-image
-    source:
-      repository: boshcpi/bosh-io-stemcell-resource
-      tag: PR-version-family
-
 resources:
   - name: builder-src-in
     type: git
@@ -258,21 +250,21 @@ resources:
       region_name: {{builder__region}}
 
   - name: centos-stemcell-3363
-    type: bosh-io-stemcell-version-family
+    type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-centos-7-go_agent
       force_regular: true
       version_family: "3363"
 
   - name: ubuntu-stemcell-3363
-    type: bosh-io-stemcell-version-family
+    type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3363"
 
   - name: ubuntu-stemcell-3312
-    type: bosh-io-stemcell-version-family
+    type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
