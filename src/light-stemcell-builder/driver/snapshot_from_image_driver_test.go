@@ -14,7 +14,7 @@ import (
 )
 
 var _ = Describe("SnapshotFromImageDriver", func() {
-	It("creates an snapshot from a machine image located at some S3 URL", func() {
+	It("creates a public snapshot from a machine image located at some S3 URL", func() {
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
@@ -52,5 +52,13 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Snapshots)).To(Equal(1))
+
+		snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
+			SnapshotId: aws.String(snapshot.ID),
+			Attribute:  aws.String("createVolumePermission"),
+		})
+		Expect(err).ToNot(HaveOccurred())
+		Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(1))
+		Expect(*snapshotAttributes.CreateVolumePermissions[0].Group).To(Equal("all"))
 	})
 })

@@ -51,6 +51,17 @@ func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriv
 		return resources.Snapshot{}, fmt.Errorf("creating snapshot from EBS volume: %s: %s", driverConfig.VolumeID, err)
 	}
 
+	modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
+		SnapshotId:    reqOutput.SnapshotId,
+		Attribute:     aws.String("createVolumePermission"),
+		OperationType: aws.String("add"),
+		GroupNames:    []*string{aws.String("all")},
+	}
+	_, err = d.ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+	if err != nil {
+		return resources.Snapshot{}, fmt.Errorf("making snapshot with id %s public: %s", *reqOutput.SnapshotId, err)
+	}
+
 	d.logger.Printf("waiting on snapshot %s to be completed\n", *reqOutput.SnapshotId)
 	waitStartTime := time.Now()
 	err = d.waitUntilSnapshotCompleted(&ec2.DescribeSnapshotsInput{
