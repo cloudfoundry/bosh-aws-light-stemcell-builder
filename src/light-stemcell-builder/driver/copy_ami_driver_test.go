@@ -76,7 +76,6 @@ var _ = Describe("CopyAmiDriver", func() {
 			Expect(*reqOutput.Images[0].Public).To(BeTrue())
 		}
 
-
 		if len(cb) > 0 {
 			cb[0](ec2Client, reqOutput)
 		}
