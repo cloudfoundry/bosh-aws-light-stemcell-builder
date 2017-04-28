@@ -48,6 +48,7 @@
         "ec2:DescribeInstanceAttribute",
         "ec2:DescribeInstanceStatus",
         "ec2:DescribeInstances",
+        "ec2:DescribeRegions",
         "ec2:DescribeSnapshotAttribute",
         "ec2:DescribeSnapshots",
         "ec2:DescribeTags",
