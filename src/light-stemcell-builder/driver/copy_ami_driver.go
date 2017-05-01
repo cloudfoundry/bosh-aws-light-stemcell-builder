@@ -88,6 +88,10 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		})
 	}
 
+	if driverConfig.Encrypted {
+		return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
+	}
+
 	describeImagesOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
 			&ec2.Filter{

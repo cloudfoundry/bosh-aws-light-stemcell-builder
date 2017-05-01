@@ -111,6 +111,20 @@ var _ = Describe("CopyAmiDriver", func() {
 	})
 
 	Context("when encrypted flag is set to true", func() {
+		It("does NOT make snapshot public", func() {
+			cpiAmi(true, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+				snapshotIDptr := getSnapshotID(reqOutput)
+
+				snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
+					SnapshotId: snapshotIDptr,
+					Attribute:  aws.String("createVolumePermission"),
+				})
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(0))
+			})
+		})
+
 		It("encrypts destination AMI using default AWS KMS key", func() {
 			cpiAmi(true, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 				respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
