@@ -103,7 +103,6 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	var snapshotIDptr *string
 	image := describeImagesOutput.Images[0]
 	for _, deviceMapping := range image.BlockDeviceMappings {
-		fmt.Printf("DeviceMapping: %s", *deviceMapping.DeviceName)
 		if *deviceMapping.DeviceName == *image.RootDeviceName {
 			snapshotIDptr = deviceMapping.Ebs.SnapshotId
 		}
