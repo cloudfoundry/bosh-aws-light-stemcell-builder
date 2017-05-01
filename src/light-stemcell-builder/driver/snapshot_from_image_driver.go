@@ -90,6 +90,8 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 		return resources.Snapshot{}, fmt.Errorf("making snapshot with id %s public: %s", *snapshotIDptr, err)
 	}
 
+	d.logger.Printf("snapshot %s is public\n", *snapshotIDptr)
+
 	return resources.Snapshot{ID: *snapshotIDptr}, nil
 }
 

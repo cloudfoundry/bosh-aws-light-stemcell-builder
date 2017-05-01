@@ -88,6 +88,45 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		})
 	}
 
+	describeImagesOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{
+		Filters: []*ec2.Filter{
+			&ec2.Filter{
+				Name:   aws.String("image-id"),
+				Values: []*string{aws.String(*amiIDptr)},
+			},
+		},
+	})
+	if err != nil {
+		return resources.Ami{}, fmt.Errorf("failed to retrieve image %s: %s", *amiIDptr, err)
+	}
+
+	var snapshotIDptr *string
+	image := describeImagesOutput.Images[0]
+	for _, deviceMapping := range image.BlockDeviceMappings {
+		fmt.Printf("DeviceMapping: %s", *deviceMapping.DeviceName)
+		if *deviceMapping.DeviceName == *image.RootDeviceName {
+			snapshotIDptr = deviceMapping.Ebs.SnapshotId
+		}
+	}
+	if snapshotIDptr == nil {
+		return resources.Ami{}, fmt.Errorf("snapshot for image %s not found: %s", *amiIDptr, err)
+	}
+
+	d.logger.Printf("snapshot %s for image %s found\n", *snapshotIDptr, *amiIDptr)
+
+	modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
+		SnapshotId:    snapshotIDptr,
+		Attribute:     aws.String("createVolumePermission"),
+		OperationType: aws.String("add"),
+		GroupNames:    []*string{aws.String("all")},
+	}
+	_, err = ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+	if err != nil {
+		return resources.Ami{}, fmt.Errorf("making snapshot with id %s public: %s", *snapshotIDptr, err)
+	}
+
+	d.logger.Printf("snapshot %s is public\n", *snapshotIDptr)
+
 	return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
 }
 
