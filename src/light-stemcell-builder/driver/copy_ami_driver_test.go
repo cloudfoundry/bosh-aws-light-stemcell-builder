@@ -84,8 +84,30 @@ var _ = Describe("CopyAmiDriver", func() {
 		Expect(err).ToNot(HaveOccurred())
 	}
 
+	getSnapshotID := func(describeImagesOutput *ec2.DescribeImagesOutput) *string {
+		var snapshotIDptr *string
+		image := describeImagesOutput.Images[0]
+		for _, deviceMapping := range image.BlockDeviceMappings {
+			if *deviceMapping.DeviceName == *image.RootDeviceName {
+				snapshotIDptr = deviceMapping.Ebs.SnapshotId
+			}
+		}
+		return snapshotIDptr
+	}
+
 	It("copies an existing AMI to a new region while preserving its properties", func() {
-		cpiAmi(false, "")
+		cpiAmi(false, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+			snapshotIDptr := getSnapshotID(reqOutput)
+
+			snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
+				SnapshotId: snapshotIDptr,
+				Attribute:  aws.String("createVolumePermission"),
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(1))
+			Expect(*snapshotAttributes.CreateVolumePermissions[0].Group).To(Equal("all"))
+		})
 	})
 
 	Context("when encrypted flag is set to true", func() {
