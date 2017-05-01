@@ -3,12 +3,28 @@
 This tool takes a raw machine image and a configuration file and creates a collection of AMIs.
 Any AWS region including China is supported.
 
-#### Setup
+#### AWS Setup for Publishing
 
-1. Create an AWS IAM user with privileges to create EC2 volumes, snapshots, and AMIs.
-1. Create an S3 bucket and give this user full privileges on the bucket contents.
+1. Create an S3 bucket for intermediate artifacts (e.g. `light-stemcells-for-project-XXX`)
+1. Create an AWS IAM policy based on the JSON contained in `builder-policy.json`
+1. Replace the bucket placeholder in your policy with the bucket created in step 1
+    ```diff
+      "Resource": [
+    -    "arn:aws:s3:::<disk-image-file-bucket>",
+    -    "arn:aws:s3:::<disk-image-file-bucket>/*"
+    +    "arn:aws:s3:::light-stemcells-for-project-XXX",
+    +    "arn:aws:s3:::light-stemcells-for-project-XXX/*"
+      ]
+    ```
+1. Create an AWS IAM user and attach the policy created in steps 2, 3.
 1. Create the `vmimport` AWS role as detailed [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/VMImportPrerequisites.html#iam-permissions-image), specifying the previously created bucket in place of `<disk-image-file-bucket>`; see [example IAM policy](iam-policy.json).
 1. Replicate these steps in a separate AWS China account if publishing to China.
+
+#### IAM User Setup for Integration Testing
+
+1. Follow steps in "AWS Setup for Publishing"
+1. Create an IAM policy based on the JSON contained in `integration-test-policy.json`
+1. Attach the policy you created in step 2 to the existing publishing user
 
 #### Testing
 

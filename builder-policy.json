@@ -48,22 +48,17 @@
         "ec2:DescribeInstanceAttribute",
         "ec2:DescribeInstanceStatus",
         "ec2:DescribeInstances",
+        "ec2:DescribeRegions",
         "ec2:DescribeSnapshotAttribute",
         "ec2:DescribeSnapshots",
         "ec2:DescribeTags",
-        "ec2:DescribeVolumes",
-        "ec2:DeregisterImage",
         "ec2:ImportImage",
         "ec2:ImportInstance",
         "ec2:ImportSnapshot",
         "ec2:ImportVolume",
         "ec2:ModifyImageAttribute",
         "ec2:ModifySnapshotAttribute",
-        "ec2:RegisterImage",
-        "ec2:RunInstances",
-        "ec2:StartInstances",
-        "ec2:StopInstances",
-        "ec2:TerminateInstances"
+        "ec2:RegisterImage"
       ],
       "Resource": "*"
     }
