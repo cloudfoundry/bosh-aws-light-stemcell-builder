@@ -13,8 +13,8 @@ run:
   path: builder-src/ci/tasks/publish-stemcell-and-checksum.sh
 
 params:
-  BOSHIO_TOKEN: ""
-  AWS_ACCESS_KEY_ID: ""
+  BOSHIO_TOKEN:          ""
+  AWS_ACCESS_KEY_ID:     ""
   AWS_SECRET_ACCESS_KEY: ""
-  AWS_DEFAULT_REGION: "us-east-1"
-  OUTPUT_BUCKET: ""
+  AWS_DEFAULT_REGION:    "us-east-1"
+  OUTPUT_BUCKET:         ""

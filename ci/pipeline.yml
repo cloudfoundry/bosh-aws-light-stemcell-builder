@@ -11,6 +11,10 @@ groups:
       - publish-centos-3363
       - publish-ubuntu-3363
       - publish-ubuntu-3312
+  - name: alpha
+    jobs:
+      - publish-centos-alpha
+      - publish-ubuntu-alpha
 
 shared:
   - &get-china-stemcell
@@ -87,6 +91,17 @@ shared:
       AWS_SECRET_ACCESS_KEY: {{output__bucket_secret_key}}
       AWS_DEFAULT_REGION: {{output__region}}
       OUTPUT_BUCKET: {{output__bucket}}
+  - &publish-alpha-stemcell
+    task: publish-alpha-stemcell
+    file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
+    input_mapping:
+      builder-src: us-builder-src
+    params:
+      BOSHIO_TOKEN: "" # DO NOT publish to bosh.io
+      AWS_ACCESS_KEY_ID: {{alpha_output__bucket_access_key}}
+      AWS_SECRET_ACCESS_KEY: {{alpha_output__bucket_secret_key}}
+      AWS_DEFAULT_REGION: {{alpha_output__region}}
+      OUTPUT_BUCKET: {{alpha_output__bucket}}
 
 jobs:
   - name: test-unit
@@ -224,6 +239,42 @@ jobs:
       - put: version-semver
         params: { file: version-semver/number }
 
+  - name: publish-ubuntu-alpha
+    serial: true
+    plan:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-alpha
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-stemcell-alpha
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+      - *merge-builds-task
+      - *publish-alpha-stemcell
+
+  - name: publish-centos-alpha
+    serial: true
+    plan:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: centos-stemcell-alpha
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: centos-stemcell-alpha
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+      - *merge-builds-task
+      - *publish-alpha-stemcell
+
 resources:
   - name: builder-src-in
     type: git
@@ -269,3 +320,15 @@ resources:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3312"
+
+  - name: centos-stemcell-alpha
+    type: s3
+    source:
+      bucket: bosh-core-stemcells-candidate
+      regexp: aws/bosh-stemcell-(\d+)-aws-xen-hvm-centos-7-go_agent.tgz
+
+  - name: ubuntu-stemcell-alpha
+    type: s3
+    source:
+      bucket: bosh-core-stemcells-candidate
+      regexp: aws/bosh-stemcell-(\d+)-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
