@@ -1,4 +1,5 @@
 ---
+# fly -t cpi set-pipeline -p light-aws-stemcells -c ~/workspace/aws-light-stemcell-builder/ci/pipeline.yml -l <( lpass show --notes "light aws stemcell secrets")
 groups:
   - name: light-aws-stemcells
     jobs:
@@ -8,6 +9,8 @@ groups:
       - bump-minor
       - bump-major
       - promote
+      - publish-centos-3421
+      - publish-ubuntu-3421
       - publish-centos-3363
       - publish-ubuntu-3363
       - publish-ubuntu-3312
@@ -223,6 +226,44 @@ jobs:
       - *merge-builds-task
       - *publish-stemcell-and-checksum
 
+  - name: publish-ubuntu-3421
+    disable_manual_trigger: true
+    serial: true
+    plan:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-stemcell-3421
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-stemcell-3421
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+      - *merge-builds-task
+      - *publish-stemcell-and-checksum
+
+  - name: publish-centos-3421
+    disable_manual_trigger: true
+    serial: true
+    plan:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: centos-stemcell-3421
+          - *get-china-builder-src
+        - *build-china-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: centos-stemcell-3421
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+      - *merge-builds-task
+      - *publish-stemcell-and-checksum
+
   - name: bump-minor
     public: true
     plan:
@@ -320,6 +361,20 @@ resources:
       name: bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3312"
+
+  - name: centos-stemcell-3421
+    type: bosh-io-stemcell
+    source:
+      name: bosh-aws-xen-hvm-centos-7-go_agent
+      force_regular: true
+      version_family: "3421"
+
+  - name: ubuntu-stemcell-3421
+    type: bosh-io-stemcell
+    source:
+      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+      force_regular: true
+      version_family: "3421"
 
   - name: centos-stemcell-alpha
     type: s3
