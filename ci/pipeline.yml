@@ -78,6 +78,23 @@ shared:
       ami_bucket_name: {{publish__us_bucket}}
       ami_server_side_encryption: {{publish__us_server_side_encryption}}
       ami_virtualization_type: hvm
+  - &build-alpha-stemcell-task
+    task: build-us-stemcell
+    file: us-builder-src/ci/tasks/build.yml
+    input_mapping:
+      input-stemcell: us-input-stemcell
+      builder-src: us-builder-src
+    params:
+      ami_description: {{publish_alpha__ami_description}}
+      ami_encrypted: {{publish_alpha__ami_encrypted}}
+      ami_kms_key_id: {{publish_alpha__ami_kms_key_id}}
+      ami_visibility: {{publish_alpha__ami_visibility}}
+      ami_region: {{publish_alpha__us_region}}
+      ami_access_key: {{publish_alpha__us_access_key}}
+      ami_secret_key: {{publish_alpha__us_secret_key}}
+      ami_bucket_name: {{publish_alpha__us_bucket}}
+      ami_server_side_encryption: {{publish_alpha__us_server_side_encryption}}
+      ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds
     file: us-builder-src/ci/tasks/merge-builds.yml
@@ -285,17 +302,10 @@ jobs:
     plan:
       - do:
         - aggregate:
-          - <<: *get-china-stemcell
-            resource: ubuntu-stemcell-alpha
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
           - <<: *get-us-stemcell
             resource: ubuntu-stemcell-alpha
           - *get-us-builder-src
-        - *build-us-stemcell-task
-      - *merge-builds-task
+        - *build-alpha-stemcell-task
       - *publish-alpha-stemcell
 
   - name: publish-centos-alpha
@@ -303,17 +313,10 @@ jobs:
     plan:
       - do:
         - aggregate:
-          - <<: *get-china-stemcell
-            resource: centos-stemcell-alpha
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
           - <<: *get-us-stemcell
             resource: centos-stemcell-alpha
           - *get-us-builder-src
-        - *build-us-stemcell-task
-      - *merge-builds-task
+        - *build-alpha-stemcell-task
       - *publish-alpha-stemcell
 
 resources:
