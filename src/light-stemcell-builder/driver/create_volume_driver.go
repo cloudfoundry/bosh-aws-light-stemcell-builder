@@ -30,9 +30,12 @@ type SDKCreateVolumeDriver struct {
 func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCreateVolumeDriver {
 	logger := log.New(logDest, "SDKCreateVolumeDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
+
+	if d.creds.AccessKey != "" && d.creds.SecretKey != "" {
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, ""))
+	}
 
 	ec2Client := ec2.New(session.New(), awsConfig)
 	return &SDKCreateVolumeDriver{ec2Client: ec2Client, logger: logger}

@@ -35,9 +35,12 @@ type SDKCreateAmiDriver struct {
 func NewCreateAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCreateAmiDriver {
 	logger := log.New(logDest, "SDKCreateAmiDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
+
+	if d.creds.AccessKey != "" && d.creds.SecretKey != "" {
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, ""))
+	}
 
 	ec2Client := ec2.New(session.New(), awsConfig)
 	return &SDKCreateAmiDriver{ec2Client: ec2Client, region: creds.Region, logger: logger}

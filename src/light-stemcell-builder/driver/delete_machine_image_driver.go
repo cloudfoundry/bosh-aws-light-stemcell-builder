@@ -28,9 +28,12 @@ func NewDeleteMachineImageDriver(logDest io.Writer, creds config.Credentials) *S
 	logger := log.New(logDest, "SDKDeleteMachineImageDriver ", log.LstdFlags)
 
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
+
+	if d.creds.AccessKey != "" && d.creds.SecretKey != "" {
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, ""))
+	}
 
 	s3Session := session.New(awsConfig)
 	s3Client := s3.New(s3Session)
