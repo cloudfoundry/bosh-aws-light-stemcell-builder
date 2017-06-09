@@ -33,10 +33,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 	BeforeEach(func() {
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
 		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(secretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
 
 		region := os.Getenv("AWS_REGION")
 		Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")
