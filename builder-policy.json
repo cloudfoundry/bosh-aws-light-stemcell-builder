@@ -20,8 +20,8 @@
         "s3:PutObject"
       ],
       "Resource": [
-        "arn:aws:s3:::<disk-image-file-bucket>",
-        "arn:aws:s3:::<disk-image-file-bucket>/*"
+        "arn:<aws|aws-us-gov>:s3:::<disk-image-file-bucket>",
+        "arn:<aws|aws-us-gov>:s3:::<disk-image-file-bucket>/*"
       ]
     },
     {

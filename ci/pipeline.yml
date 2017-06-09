@@ -27,6 +27,12 @@ shared:
     trigger: true
     params:
       preserve_filename: true
+  - &get-us_gov-stemcell
+    get: us_gov-input-stemcell
+    version: every
+    trigger: true
+    params:
+      preserve_filename: true
   - &get-us-stemcell
     get: us-input-stemcell
     version: every
@@ -36,6 +42,9 @@ shared:
   - &get-china-builder-src
     get: cn-builder-src
     tags: [asia]
+    resource: builder-src-out
+  - &get-us_gov-builder-src
+    get: us_gov-builder-src
     resource: builder-src-out
   - &get-us-builder-src
     get: us-builder-src
@@ -58,6 +67,25 @@ shared:
       ami_secret_key: {{publish__cn_secret_key}}
       ami_bucket_name: {{publish__cn_bucket}}
       ami_server_side_encryption: {{publish__cn_server_side_encryption}}
+      ami_destinations: []
+      ami_virtualization_type: hvm
+  - &build-us_gov-stemcell-task
+    task: build-us_gov-stemcell
+    file: us_gov-builder-src/ci/tasks/build.yml
+    input_mapping:
+      input-stemcell: us_gov-input-stemcell
+      builder-src: us_gov-builder-src
+    output_mapping: {light-stemcell: us_gov-light-stemcell}
+    params:
+      ami_description: {{publish__ami_description}}
+      ami_encrypted: {{publish__ami_encrypted}}
+      ami_kms_key_id: {{publish__ami_kms_key_id}}
+      ami_visibility: {{publish__ami_visibility}}
+      ami_region: {{publish__us-gov_region}}
+      ami_access_key: {{publish__us-gov_access_key}}
+      ami_secret_key: {{publish__us-gov_secret_key}}
+      ami_bucket_name: {{publish__us-gov_bucket}}
+      ami_server_side_encryption: {{publish__us-gov_server_side_encryption}}
       ami_destinations: []
       ami_virtualization_type: hvm
   - &build-us-stemcell-task
@@ -100,6 +128,11 @@ shared:
     file: us-builder-src/ci/tasks/merge-builds.yml
     input_mapping:
       builder-src: us-builder-src
+  - &us_gov-merge-builds-task
+    task: merge-builds
+    file: us-builder-src/ci/tasks/us_gov-merge-builds.yml
+    input_mapping:
+      builder-src: us-builder-src
   - &publish-stemcell-and-checksum
     task: publish-stemcell-and-checksum
     file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
@@ -122,6 +155,18 @@ shared:
       AWS_SECRET_ACCESS_KEY: {{alpha_output__bucket_secret_key}}
       AWS_DEFAULT_REGION: {{alpha_output__region}}
       OUTPUT_BUCKET: {{alpha_output__bucket}}
+
+  - &publish-dev-test-stemcell-and-checksum
+    task: publish-stemcell-and-checksum
+    file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
+    input_mapping:
+      builder-src: us-builder-src
+    params:
+      BOSHIO_TOKEN: "" # DO NOT publish to bosh.io
+      AWS_ACCESS_KEY_ID: {{dev_test_output__bucket_access_key}}
+      AWS_SECRET_ACCESS_KEY: {{dev_test_output__bucket_secret_key}}
+      AWS_DEFAULT_REGION: {{dev_test_output__region}}
+      OUTPUT_BUCKET: {{dev_test_output__bucket}}
 
 jobs:
   - name: test-unit
@@ -255,12 +300,18 @@ jobs:
         - *build-china-stemcell-task
       - do:
         - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-stemcell-3421
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
           - <<: *get-us-stemcell
             resource: ubuntu-stemcell-3421
           - *get-us-builder-src
         - *build-us-stemcell-task
-      - *merge-builds-task
-      - *publish-stemcell-and-checksum
+      - *us_gov-merge-builds-task
+      - *publish-dev-test-stemcell-and-checksum
 
   - name: publish-centos-3421
     disable_manual_trigger: true
@@ -274,12 +325,18 @@ jobs:
         - *build-china-stemcell-task
       - do:
         - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-stemcell-3421
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
           - <<: *get-us-stemcell
             resource: centos-stemcell-3421
           - *get-us-builder-src
         - *build-us-stemcell-task
-      - *merge-builds-task
-      - *publish-stemcell-and-checksum
+      - *us_gov-merge-builds-task
+      - *publish-dev-test-stemcell-and-checksum
 
   - name: bump-minor
     public: true

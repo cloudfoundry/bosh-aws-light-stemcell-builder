@@ -16,6 +16,7 @@ Any AWS region including China is supported.
     +    "arn:aws:s3:::light-stemcells-for-project-XXX/*"
       ]
     ```
+    Note: The arn for AWS GovCloud region is `aws-us-gov`. It looks like this: `"arn:aws-us-gov:s3:::<disk-image-file-bucket>"`
 1. Create an AWS IAM user and attach the policy created in steps 2, 3.
 1. Create the `vmimport` AWS role as detailed [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/VMImportPrerequisites.html#iam-permissions-image), specifying the previously created bucket in place of `<disk-image-file-bucket>`; see [example IAM policy](iam-policy.json).
 1. Replicate these steps in a separate AWS China account if publishing to China.
