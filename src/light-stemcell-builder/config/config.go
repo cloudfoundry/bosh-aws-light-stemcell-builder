@@ -146,12 +146,18 @@ func (r *AmiRegion) validate() error {
 		return errors.New("bucket_name must be specified for ami_regions entries")
 	}
 
-	if r.Credentials.AccessKey == "" {
-		return errors.New("access_key must be specified for credentials")
-	}
+	if r.Credentials.CredentialsSource	== "static" {
+		if r.Credentials.AccessKey == "" {
+			return errors.New("access_key must be specified for credentials")
+		}
 
-	if r.Credentials.SecretKey == "" {
-		return errors.New("secret_key must be specified for credentials")
+		if r.Credentials.SecretKey == "" {
+			return errors.New("secret_key must be specified for credentials")
+		}
+	} 
+
+	if r.Credentials.CredentialsSource == "" {
+		return errors.New("CredentialsSource must be specified as one of 'static', or 'env-or-profile'")
 	}
 
 	if r.Credentials.Region == "" {
