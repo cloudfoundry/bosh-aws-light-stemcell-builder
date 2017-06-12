@@ -156,9 +156,11 @@ func (r *AmiRegion) validate() error {
 		}
 	} 
 
+	/*
 	if r.Credentials.CredentialsSource == "" {
 		return errors.New("CredentialsSource must be specified as one of 'static', or 'env-or-profile'")
 	}
+	*/
 
 	if r.Credentials.Region == "" {
 		return errors.New("region must be specified for credentials")
