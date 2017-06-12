@@ -48,9 +48,10 @@ type AmiRegion struct {
 }
 
 type Credentials struct {
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	Region    string `json:"-"`
+	CredentialsSource string `json:"credentials_source"`
+	AccessKey         string `json:"access_key"`
+	SecretKey         string `json:"secret_key"`
+	Region            string `json:"-"`
 }
 
 type Config struct {

@@ -37,7 +37,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		WithRegion(dstRegion).
 		WithLogger(newDriverLogger(d.logger))
 
-	if d.creds.AccessKey != "" && d.creds.SecretKey != "" {
+	if d.creds.CredentialsSource == "static" {
 		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(d.creds.AccessKey, d.creds.SecretKey, ""))
 	}
 

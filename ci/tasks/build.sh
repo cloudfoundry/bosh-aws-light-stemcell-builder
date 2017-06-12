@@ -14,8 +14,9 @@ ami_server_side_encryption=${ami_server_side_encryption:-}
 : ${ami_virtualization_type:?}
 : ${ami_visibility:?}
 : ${ami_region:?}
-: ${ami_access_key:?}
-: ${ami_secret_key:?}
+: ${ami_credentials_source:?}
+: ${ami_access_key:-}
+: ${ami_secret_key:-}
 : ${ami_bucket_name:?}
 : ${ami_encrypted:?}
 
@@ -51,12 +52,13 @@ cat > $CONFIG_PATH << EOF
     {
       "name":               "$ami_region",
       "credentials": {
-        "access_key":       "$ami_access_key",
-        "secret_key":       "$ami_secret_key"
+        "credentials_source": "$ami_credentials_source",
+        "access_key":         "$ami_access_key",
+        "secret_key":         "$ami_secret_key"
       },
-      "bucket_name":        "$ami_bucket_name",
+      "bucket_name":            "$ami_bucket_name",
       "server_side_encryption": "$ami_server_side_encryption",
-      "destinations":       $ami_destinations
+      "destinations":           $ami_destinations
     }
   ]
 }

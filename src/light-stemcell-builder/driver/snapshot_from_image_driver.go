@@ -30,7 +30,7 @@ func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SD
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	if d.creds.AccessKey != "" && d.creds.SecretKey != "" {
+	if creds.CredentialsSource == "static" {
 		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, ""))
 	}
 
