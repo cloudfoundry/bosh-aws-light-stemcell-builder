@@ -104,8 +104,8 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 
 	if err != nil {
 		aerr, ok := err.(awserr.Error)
-		d.logger.Printf("Error Code/Message: %s %s", aerr.Code(),a err.Message())
-		d.logger.Printf("Error: %s %s", aerr.Error())
+		d.logger.Printf("Error Code/Message: %s %s", aerr.Code(), aerr.Message())
+		d.logger.Printf("Error: %s", aerr.Error())
 
 		return resources.Volume{}, fmt.Errorf("creating import volume task: %s", err)
 	}
