@@ -103,7 +103,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	})
 
 	if err != nil {
-		aerr, ok := err.(awserr.Error)
+		aerr, _ := err.(awserr.Error)
 		d.logger.Printf("Error Code/Message: %s %s", aerr.Code(), aerr.Message())
 		d.logger.Printf("Error: %s", aerr.Error())
 
