@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
+        "github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 // SDKCreateVolumeDriver is an implementation of the resources VolumeDriver that
@@ -87,7 +88,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	}
 
 	fmt.Println("=== SLEEPING FOR MANUAL DEBUGGING ===")
-	time.Sleep(5 * time.Minute)
+	// time.Sleep(5 * time.Minute)
 
 	reqOutput, err := d.ec2Client.ImportVolume(&ec2.ImportVolumeInput{
 		AvailabilityZone: availabilityZone,
@@ -102,8 +103,9 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	})
 
 	if err != nil {
-		d.logger.Printf("Error Code/Message: %s %s", err.Code(), err.Message())
-		d.logger.Printf("Error: %s %s", err.Error())
+		aerr, ok := err.(awserr.Error)
+		d.logger.Printf("Error Code/Message: %s %s", aerr.Code(),a err.Message())
+		d.logger.Printf("Error: %s %s", aerr.Error())
 
 		return resources.Volume{}, fmt.Errorf("creating import volume task: %s", err)
 	}
