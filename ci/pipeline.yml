@@ -157,7 +157,7 @@ shared:
       OUTPUT_BUCKET: {{alpha_output__bucket}}
 
   - &publish-dev-test-stemcell-and-checksum
-    task: publish-stemcell-and-checksum
+    task: publish-dev-test-stemcell-and-checksum
     file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
     input_mapping:
       builder-src: us-builder-src
@@ -235,18 +235,19 @@ jobs:
     disable_manual_trigger: true
     serial: true
     plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: ubuntu-stemcell-3312
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-3312
-          - *get-us-builder-src
-        - *build-us-stemcell-task
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3312
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: ubuntu-stemcell-3312
+            - *get-us-builder-src
+          - *build-us-stemcell-task
       - *merge-builds-task
       - *publish-stemcell-and-checksum
 
@@ -254,18 +255,19 @@ jobs:
     disable_manual_trigger: true
     serial: true
     plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: ubuntu-stemcell-3363
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-3363
-          - *get-us-builder-src
-        - *build-us-stemcell-task
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3363
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: ubuntu-stemcell-3363
+            - *get-us-builder-src
+          - *build-us-stemcell-task
       - *merge-builds-task
       - *publish-stemcell-and-checksum
 
@@ -273,18 +275,19 @@ jobs:
     disable_manual_trigger: true
     serial: true
     plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: centos-stemcell-3363
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: centos-stemcell-3363
-          - *get-us-builder-src
-        - *build-us-stemcell-task
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell-3363
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: centos-stemcell-3363
+            - *get-us-builder-src
+          - *build-us-stemcell-task
       - *merge-builds-task
       - *publish-stemcell-and-checksum
 
@@ -292,51 +295,53 @@ jobs:
     disable_manual_trigger: true
     serial: true
     plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: ubuntu-stemcell-3421
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us_gov-stemcell
-            resource: ubuntu-stemcell-3421
-          - *get-us_gov-builder-src
-        - *build-us_gov-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-3421
-          - *get-us-builder-src
-        - *build-us-stemcell-task
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3421
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us_gov-stemcell
+              resource: ubuntu-stemcell-3421
+            - *get-us_gov-builder-src
+          - *build-us_gov-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: ubuntu-stemcell-3421
+            - *get-us-builder-src
+          - *build-us-stemcell-task
       - *us_gov-merge-builds-task
-      - *publish-dev-test-stemcell-and-checksum
+      - *publish-stemcell-and-checksum
 
   - name: publish-centos-3421
     disable_manual_trigger: true
     serial: true
     plan:
-      - do:
-        - aggregate:
-          - <<: *get-china-stemcell
-            resource: centos-stemcell-3421
-          - *get-china-builder-src
-        - *build-china-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us_gov-stemcell
-            resource: ubuntu-stemcell-3421
-          - *get-us_gov-builder-src
-        - *build-us_gov-stemcell-task
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: centos-stemcell-3421
-          - *get-us-builder-src
-        - *build-us-stemcell-task
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell-3421
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us_gov-stemcell
+              resource: centos-stemcell-3421
+            - *get-us_gov-builder-src
+          - *build-us_gov-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: centos-stemcell-3421
+            - *get-us-builder-src
+          - *build-us-stemcell-task
       - *us_gov-merge-builds-task
-      - *publish-dev-test-stemcell-and-checksum
+      - *publish-stemcell-and-checksum
 
   - name: bump-minor
     public: true
