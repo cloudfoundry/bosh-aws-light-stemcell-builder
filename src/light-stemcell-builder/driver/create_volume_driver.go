@@ -88,7 +88,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	}
 
 	fmt.Println("=== SLEEPING FOR MANUAL DEBUGGING ===")
-	// time.Sleep(5 * time.Minute)
+	time.Sleep(5 * time.Minute)
 
 	reqOutput, err := d.ec2Client.ImportVolume(&ec2.ImportVolumeInput{
 		AvailabilityZone: availabilityZone,
