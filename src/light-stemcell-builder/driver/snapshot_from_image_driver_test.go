@@ -16,10 +16,8 @@ import (
 var _ = Describe("SnapshotFromImageDriver", func() {
 	It("creates a public snapshot from a machine image located at some S3 URL", func() {
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
 		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(secretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
 
 		region := os.Getenv("AWS_REGION")
 		Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")

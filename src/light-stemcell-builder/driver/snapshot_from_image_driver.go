@@ -27,9 +27,12 @@ type SDKSnapshotFromImageDriver struct {
 func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SDKSnapshotFromImageDriver {
 	logger := log.New(logDest, "SDKSnapshotFromImageDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
+
+	if creds.CredentialsSource == "static" {
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, ""))
+	}
 
 	ec2Client := ec2.New(session.New(), awsConfig)
 	return &SDKSnapshotFromImageDriver{ec2Client: ec2Client, logger: logger}

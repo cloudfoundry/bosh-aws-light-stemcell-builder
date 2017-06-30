@@ -40,6 +40,7 @@ var _ = Describe("Config", func() {
           "name": "ami-region",
           "bucket_name": "ami-bucket",
           "credentials": {
+            "credentials_source": "static",
             "access_key": "access-key",
             "secret_key": "secret-key"
           }

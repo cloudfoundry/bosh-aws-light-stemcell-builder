@@ -19,10 +19,8 @@ import (
 var _ = Describe("CopyAmiDriver", func() {
 	cpiAmi := func(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
 		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 
 		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(secretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
 
 		region := os.Getenv("AWS_REGION")
 		Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")

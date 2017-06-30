@@ -48,9 +48,10 @@ type AmiRegion struct {
 }
 
 type Credentials struct {
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	Region    string `json:"-"`
+	CredentialsSource string `json:"credentials_source"`
+	AccessKey         string `json:"access_key"`
+	SecretKey         string `json:"secret_key"`
+	Region            string `json:"-"`
 }
 
 type Config struct {
@@ -145,13 +146,21 @@ func (r *AmiRegion) validate() error {
 		return errors.New("bucket_name must be specified for ami_regions entries")
 	}
 
-	if r.Credentials.AccessKey == "" {
-		return errors.New("access_key must be specified for credentials")
+	if r.Credentials.CredentialsSource == "static" {
+		if r.Credentials.AccessKey == "" {
+			return errors.New("access_key must be specified for credentials")
+		}
+
+		if r.Credentials.SecretKey == "" {
+			return errors.New("secret_key must be specified for credentials")
+		}
 	}
 
-	if r.Credentials.SecretKey == "" {
-		return errors.New("secret_key must be specified for credentials")
-	}
+	/*
+		if r.Credentials.CredentialsSource == "" {
+			return errors.New("CredentialsSource must be specified as one of 'static', or 'env-or-profile'")
+		}
+	*/
 
 	if r.Credentials.Region == "" {
 		return errors.New("region must be specified for credentials")

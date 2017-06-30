@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
+        "github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 // SDKCreateVolumeDriver is an implementation of the resources VolumeDriver that
@@ -30,9 +31,12 @@ type SDKCreateVolumeDriver struct {
 func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCreateVolumeDriver {
 	logger := log.New(logDest, "SDKCreateVolumeDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
+
+	if creds.CredentialsSource == "static" {
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, ""))
+	}
 
 	ec2Client := ec2.New(session.New(), awsConfig)
 	return &SDKCreateVolumeDriver{ec2Client: ec2Client, logger: logger}
@@ -83,6 +87,9 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 		return resources.Volume{}, fmt.Errorf("deserializing import volume manifest. Bytes:\n%s\nError: %s", manifestBytes, err)
 	}
 
+	fmt.Println("=== SLEEPING FOR MANUAL DEBUGGING ===")
+	time.Sleep(5 * time.Minute)
+
 	reqOutput, err := d.ec2Client.ImportVolume(&ec2.ImportVolumeInput{
 		AvailabilityZone: availabilityZone,
 		Image: &ec2.DiskImageDetail{
@@ -96,6 +103,10 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	})
 
 	if err != nil {
+		aerr, _ := err.(awserr.Error)
+		d.logger.Printf("Error Code/Message: %s %s", aerr.Code(), aerr.Message())
+		d.logger.Printf("Error: %s", aerr.Error())
+
 		return resources.Volume{}, fmt.Errorf("creating import volume task: %s", err)
 	}
 

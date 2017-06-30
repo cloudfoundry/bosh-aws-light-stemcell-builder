@@ -27,9 +27,12 @@ func NewCreateMachineImageDriver(logDest io.Writer, creds config.Credentials) *S
 	logger := log.New(logDest, "SDKCreateMachineImageDriver ", log.LstdFlags)
 
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
+
+	if creds.CredentialsSource == "static" {
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, ""))
+	}
 
 	s3Retryer := S3Retryer{}
 	s3Retryer.NumMaxRetries = 50

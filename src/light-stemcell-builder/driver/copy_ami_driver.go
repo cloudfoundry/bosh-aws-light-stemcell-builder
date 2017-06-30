@@ -34,9 +34,12 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	dstRegion := driverConfig.DestinationRegion
 
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(d.creds.AccessKey, d.creds.SecretKey, "")).
 		WithRegion(dstRegion).
 		WithLogger(newDriverLogger(d.logger))
+
+	if d.creds.CredentialsSource == "static" {
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(d.creds.AccessKey, d.creds.SecretKey, ""))
+	}
 
 	ec2Client := ec2.New(session.New(), awsConfig)
 
