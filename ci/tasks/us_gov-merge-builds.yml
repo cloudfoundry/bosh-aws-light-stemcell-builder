@@ -7,7 +7,6 @@ image_resource:
 
 inputs:
 - name: builder-src
-- name: cn-light-stemcell
 - name: us-light-stemcell
 - name: us_gov-light-stemcell
 
@@ -17,6 +16,5 @@ outputs:
 run:
   path: builder-src/ci/tasks/merge-builds
   args:
-    - cn-light-stemcell
     - us-light-stemcell
     - us_gov-light-stemcell
