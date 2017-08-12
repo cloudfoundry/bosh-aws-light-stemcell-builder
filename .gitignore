@@ -4,10 +4,5 @@ bin
 pkg
 tmp
 *.iml
-
-# Added by Atom
-src/9fans.net/go
-src/github.com/golang/lint
-src/github.com/nsf/gocode
-src/github.com/rogpeppe/godef
-src/golang.org/x/tools
+/src/*
+!/src/light-stemcell-builder
