@@ -1,7 +1,7 @@
 ---
 # fly -t cpi set-pipeline -p light-aws-stemcells -c ~/workspace/aws-light-stemcell-builder/ci/pipeline.yml -l <( lpass show --notes "light aws stemcell secrets")
 groups:
-  - name: light-aws-stemcells
+  - name: aws-all
     jobs:
       - test-unit
       - test-drivers
@@ -11,13 +11,30 @@ groups:
       - promote
       - publish-centos-3421
       - publish-ubuntu-3421
-      - publish-centos-3431
-      - publish-ubuntu-3431
       - publish-centos-3445
       - publish-ubuntu-3445
-      - publish-centos-3363
       - publish-ubuntu-3363
       - publish-ubuntu-3312
+  - name: "3312"
+    jobs:
+      - publish-ubuntu-3312
+  - name: "3363"
+    jobs:
+      - publish-centos-3363
+      - publish-ubuntu-3363
+  - name: "3421"
+    jobs:
+      - publish-centos-3421
+      - publish-ubuntu-3421
+  - name: "3445"
+    jobs:
+      - publish-centos-3445
+      - publish-ubuntu-3445
+  - name: deprecated
+    jobs:
+      - publish-centos-3363
+      - publish-centos-3431
+      - publish-ubuntu-3431
   - name: alpha
     jobs:
       - publish-centos-alpha
@@ -406,6 +423,12 @@ jobs:
       - aggregate:
         - do:
           - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3445
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
             - <<: *get-us_gov-stemcell
               resource: ubuntu-stemcell-3445
             - *get-us_gov-builder-src
@@ -424,6 +447,12 @@ jobs:
     serial: true
     plan:
       - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell-3445
+            - *get-china-builder-src
+          - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
