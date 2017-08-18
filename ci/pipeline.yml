@@ -242,6 +242,12 @@ jobs:
       - aggregate:
         - do:
           - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3312
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
             - <<: *get-us-stemcell
               resource: ubuntu-stemcell-3312
             - *get-us-builder-src
@@ -254,6 +260,12 @@ jobs:
     serial: true
     plan:
       - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3363
+            - *get-china-builder-src
+          - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
@@ -290,6 +302,12 @@ jobs:
       - aggregate:
         - do:
           - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3421
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
             - <<: *get-us_gov-stemcell
               resource: ubuntu-stemcell-3421
             - *get-us_gov-builder-src
@@ -308,6 +326,12 @@ jobs:
     serial: true
     plan:
       - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell-3421
+            - *get-china-builder-src
+          - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
