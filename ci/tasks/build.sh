@@ -10,6 +10,7 @@ source ${release_dir}/ci/tasks/utils.sh
 ami_kms_key_id=${ami_kms_key_id:-}
 ami_server_side_encryption=${ami_server_side_encryption:-}
 
+: ${bosh_io_bucket_name:?}
 : ${ami_description:?}
 : ${ami_virtualization_type:?}
 : ${ami_visibility:?}
@@ -31,6 +32,27 @@ saved_ami_destinations="$( aws ec2 describe-regions \
 
 stemcell_path=${PWD}/input-stemcell/*.tgz
 output_path=${PWD}/light-stemcell/
+
+echo "Checking if light stemcell already exists..."
+
+original_stemcell_name="$(basename ${stemcell_path})"
+light_stemcell_name="light-${original_stemcell_name}"
+
+if [ "${ami_virtualization_type}" = "hvm" ]; then
+  if [[ "${light_stemcell_name}" != *"-hvm"*  ]]; then
+    light_stemcell_name="${light_stemcell_name/xen/xen-hvm}"
+  fi
+fi
+
+bosh_io_light_stemcell_url="https://s3.amazonaws.com/$bosh_io_bucket_name/$light_stemcell_name"
+set +e
+wget --spider "$bosh_io_light_stemcell_url"
+if [[ "$?" == "0" ]]; then
+  echo "AWS light stemcell '$light_stemcell_name' already exists!"
+  echo "You can download here: $bosh_io_light_stemcell_url"
+  exit 1
+fi
+set -e
 
 echo "Building light stemcell..."
 echo "  Starting region: ${ami_region}"
@@ -66,15 +88,6 @@ extracted_stemcell_dir=${PWD}/extracted-stemcell
 mkdir -p ${extracted_stemcell_dir}
 tar -C ${extracted_stemcell_dir} -xf ${stemcell_path}
 tar -xf ${extracted_stemcell_dir}/image
-
-original_stemcell_name="$(basename ${stemcell_path})"
-light_stemcell_name="light-${original_stemcell_name}"
-
-if [ "${ami_virtualization_type}" = "hvm" ]; then
-  if [[ "${light_stemcell_name}" != *"-hvm"*  ]]; then
-    light_stemcell_name="${light_stemcell_name/xen/xen-hvm}"
-  fi
-fi
 
 # image format can be raw or stream optimized vmdk
 stemcell_image="$(echo ${PWD}/root.*)"
