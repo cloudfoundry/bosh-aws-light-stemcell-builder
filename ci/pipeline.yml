@@ -1,7 +1,7 @@
 ---
 # fly -t cpi set-pipeline -p light-aws-stemcells -c ~/workspace/aws-light-stemcell-builder/ci/pipeline.yml -l <( lpass show --notes "light aws stemcell secrets")
 groups:
-  - name: aws-all
+  - name: all-aws
     jobs:
       - test-unit
       - test-drivers
@@ -20,7 +20,6 @@ groups:
       - publish-ubuntu-3312
   - name: "3363"
     jobs:
-      - publish-centos-3363
       - publish-ubuntu-3363
   - name: "3421"
     jobs:
@@ -160,7 +159,6 @@ shared:
     input_mapping:
       builder-src: us-builder-src
     params:
-      BOSHIO_TOKEN: {{aws_boshio_checksum_token}}
       AWS_ACCESS_KEY_ID: {{output__bucket_access_key}}
       AWS_SECRET_ACCESS_KEY: {{output__bucket_secret_key}}
       AWS_DEFAULT_REGION: {{output__region}}
@@ -171,7 +169,6 @@ shared:
     input_mapping:
       builder-src: us-builder-src
     params:
-      BOSHIO_TOKEN: "" # DO NOT publish to bosh.io
       AWS_ACCESS_KEY_ID: {{alpha_output__bucket_access_key}}
       AWS_SECRET_ACCESS_KEY: {{alpha_output__bucket_secret_key}}
       AWS_DEFAULT_REGION: {{alpha_output__region}}
@@ -183,7 +180,6 @@ shared:
     input_mapping:
       builder-src: us-builder-src
     params:
-      BOSHIO_TOKEN: "" # DO NOT publish to bosh.io
       AWS_ACCESS_KEY_ID: {{dev_test_output__bucket_access_key}}
       AWS_SECRET_ACCESS_KEY: {{dev_test_output__bucket_secret_key}}
       AWS_DEFAULT_REGION: {{dev_test_output__region}}
