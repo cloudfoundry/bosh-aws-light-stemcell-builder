@@ -12,7 +12,11 @@ RUN apt-get install -y \
 RUN pip install awscli
 
 RUN cd /tmp && \
-    curl -O -L https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz && \
+    wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz && \
+    ( \
+        echo '1862f4c3d3907e59b04a757cfda0ea7aa9ef39274af99a784f5be843c80c6772 go1.8.3.linux-amd64.tar.gz' | \
+        sha256sum -c - \
+    ) && \
     tar -C /usr/local -xzf go*.tar.gz && \
     rm go*.tar.gz
 
