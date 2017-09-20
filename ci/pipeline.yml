@@ -1,5 +1,5 @@
 ---
-# fly -t cpi set-pipeline -p light-aws-stemcells -c ~/workspace/aws-light-stemcell-builder/ci/pipeline.yml -l <( lpass show --notes "light aws stemcell secrets")
+# fly -t cpi set-pipeline -p light-aws-stemcells -c ~/workspace/bosh-aws-light-stemcell-builder/ci/pipeline.yml -l <( lpass show --notes "light aws stemcell secrets")
 groups:
   - name: all-aws
     jobs:
@@ -11,9 +11,12 @@ groups:
       - promote
       - publish-centos-3421
       - publish-ubuntu-3421
+      - publish-centos-3431
+      - publish-ubuntu-3431
       - publish-centos-3445
       - publish-ubuntu-3445
       - publish-ubuntu-3363
+      - publish-centos-3363
       - publish-ubuntu-3312
   - name: "3312"
     jobs:
@@ -249,7 +252,6 @@ jobs:
         params: { repository: builder-src }
 
   - name: publish-ubuntu-3312
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -269,7 +271,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3363
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -289,7 +290,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-centos-3363
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -309,7 +309,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3421
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -335,7 +334,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-centos-3421
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -361,7 +359,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3431
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -387,7 +384,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-centos-3431
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -413,7 +409,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-ubuntu-3445
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -439,7 +434,6 @@ jobs:
       - *publish-stemcell-and-checksum
 
   - name: publish-centos-3445
-    disable_manual_trigger: true
     serial: true
     plan:
       - aggregate:
@@ -506,14 +500,14 @@ resources:
   - name: builder-src-in
     type: git
     source:
-      uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
+      uri: git@github.com:cloudfoundry-incubator/bosh-aws-light-stemcell-builder.git
       branch: develop
       private_key: {{builder__github_deployment_key}}
 
   - name: builder-src-out
     type: git
     source:
-      uri: git@github.com:cloudfoundry-incubator/aws-light-stemcell-builder.git
+      uri: git@github.com:cloudfoundry-incubator/bosh-aws-light-stemcell-builder.git
       branch: master
       private_key: {{builder__github_deployment_key}}
 

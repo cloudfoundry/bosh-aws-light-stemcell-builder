@@ -1,4 +1,4 @@
 fly -t cpi set-pipeline \
   -p light-aws-stemcells \
-  -c ~/workspace/aws-light-stemcell-builder/ci/pipeline.yml \
+  -c ~/workspace/bosh-aws-light-stemcell-builder/ci/pipeline.yml \
   -l <( lpass show --notes "light aws stemcell secrets")

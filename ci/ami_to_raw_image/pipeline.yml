@@ -46,7 +46,7 @@ resources:
   - name: builder-src
     type: git
     source:
-      uri: https://github.com/cloudfoundry-incubator/aws-light-stemcell-builder
+      uri: https://github.com/cloudfoundry-incubator/bosh-aws-light-stemcell-builder
       branch: develop
 
   - name: raw-machine-image
