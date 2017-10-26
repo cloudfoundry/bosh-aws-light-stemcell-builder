@@ -1,5 +1,4 @@
 ---
-# fly -t cpi set-pipeline -p light-aws-stemcells -c ~/workspace/bosh-aws-light-stemcell-builder/ci/pipeline.yml -l <( lpass show --notes "light aws stemcell secrets")
 groups:
   - name: all-aws
     jobs:
@@ -15,6 +14,8 @@ groups:
       - publish-ubuntu-3431
       - publish-centos-3445
       - publish-ubuntu-3445
+      - publish-centos-3468
+      - publish-ubuntu-3468
       - publish-ubuntu-3363
       - publish-centos-3363
       - publish-ubuntu-3312
@@ -32,6 +33,10 @@ groups:
     jobs:
       - publish-centos-3445
       - publish-ubuntu-3445
+  - name: "3468"
+    jobs:
+      - publish-centos-3468
+      - publish-ubuntu-3468
   - name: deprecated
     jobs:
       - publish-centos-3363
@@ -458,6 +463,56 @@ jobs:
       - *us_gov-merge-builds-task
       - *publish-stemcell-and-checksum
 
+  - name: publish-ubuntu-3468
+    serial: true
+    plan:
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: ubuntu-stemcell-3468
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us_gov-stemcell
+              resource: ubuntu-stemcell-3468
+            - *get-us_gov-builder-src
+          - *build-us_gov-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: ubuntu-stemcell-3468
+            - *get-us-builder-src
+          - *build-us-stemcell-task
+      - *us_gov-merge-builds-task
+      - *publish-stemcell-and-checksum
+
+  - name: publish-centos-3468
+    serial: true
+    plan:
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell-3468
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us_gov-stemcell
+              resource: centos-stemcell-3468
+            - *get-us_gov-builder-src
+          - *build-us_gov-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: centos-stemcell-3468
+            - *get-us-builder-src
+          - *build-us-stemcell-task
+      - *us_gov-merge-builds-task
+      - *publish-stemcell-and-checksum
+
   - name: bump-minor
     public: true
     plan:
@@ -583,6 +638,20 @@ resources:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3445"
+
+  - name: centos-stemcell-3468
+    type: bosh-io-stemcell
+    source:
+      name: bosh-aws-xen-hvm-centos-7-go_agent
+      force_regular: true
+      version_family: "3468"
+
+  - name: ubuntu-stemcell-3468
+    type: bosh-io-stemcell
+    source:
+      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+      force_regular: true
+      version_family: "3468"
 
   - name: centos-stemcell-alpha
     type: s3
