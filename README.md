@@ -78,6 +78,8 @@ version: "3202"
 bosh_protocol: "1"
 sha1: f0c10bb5e8b7fee9c29db15bbb4ae481e398eab6
 operating_system: ubuntu-trusty
+stemcell_formats:
+- aws-light
 cloud_properties:
   ami:
     cn-north-1: ami-69ae6504

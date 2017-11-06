@@ -20,6 +20,8 @@ version: blah
 bosh_protocol: 1
 sha1: some-sha
 operating_system: ubuntu-trusty
+stemcell_formats:
+- aws-raw
 cloud_properties:
   name: bosh-aws-xen-ubuntu-trusty-go_agent
   version: blah
@@ -61,6 +63,8 @@ cloud_properties:
 			Expect(resultManifest.BoshProtocol).To(Equal("1"))
 			Expect(resultManifest.Sha1).To(Equal("some-sha"))
 			Expect(resultManifest.OperatingSystem).To(Equal("ubuntu-trusty"))
+			Expect(resultManifest.StemcellFormats).To(HaveLen(1))
+			Expect(resultManifest.StemcellFormats).To(ContainElement("aws-light"))
 			Expect(resultManifest.CloudProperties.Amis).To(HaveLen(1))
 			Expect(resultManifest.CloudProperties.Amis["fake-region"]).To(Equal("fake-ami-id"))
 		})
@@ -97,6 +101,8 @@ version: blah
 bosh_protocol: 1
 sha1: some-sha
 operating_system: ubuntu-trusty
+stemcell_formats:
+- aws-light
 cloud_properties:
   name: bosh-aws-xen-ubuntu-trusty-go_agent
   version: blah

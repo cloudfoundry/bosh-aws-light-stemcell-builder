@@ -19,6 +19,7 @@ type Manifest struct {
 	BoshProtocol    string          `yaml:"bosh_protocol"`
 	Sha1            string          `yaml:"sha1"`
 	OperatingSystem string          `yaml:"operating_system"`
+	StemcellFormats []string				`yaml:"stemcell_formats"`
 	CloudProperties CloudProperties `yaml:"cloud_properties"`
 	PublishedAmis   []resources.Ami `yaml:"-"`
 }
@@ -51,6 +52,10 @@ func NewFromReader(reader io.Reader) (*Manifest, error) {
 func (m *Manifest) Write(writer io.Writer) error {
 	if len(m.PublishedAmis) == 0 {
 		return errors.New("no Amis have been added to the manifest")
+	}
+
+	m.StemcellFormats = []string{
+		"aws-light",
 	}
 
 	m.CloudProperties.Amis = make(RegionToAmiMapping)

@@ -122,6 +122,8 @@ version: 9999
 bosh_protocol: 1
 sha1: 123456789
 operating_system: ubuntu-trusty
+stemcell_formats:
+- aws-raw
 cloud_properties:
   name: bosh-aws-xen-ubuntu-trusty-go_agent
   version: blah
@@ -183,6 +185,8 @@ cloud_properties:
 		Expect(m.BoshProtocol).To(Equal("1"))
 		Expect(m.Sha1).To(Equal("da39a3ee5e6b4b0d3255bfef95601890afd80709"))
 		Expect(m.OperatingSystem).To(Equal("ubuntu-trusty"))
+		Expect(m.StemcellFormats).To(HaveLen(1))
+		Expect(m.StemcellFormats).To(ContainElement("aws-light"))
 
 		amis := m.CloudProperties.Amis
 		Expect(amis).To(HaveLen(len(expectedRegions)))
