@@ -1,15 +1,21 @@
-FROM ubuntu:15.10
+FROM ubuntu:16.04
 
-RUN locale-gen en_US.UTF-8
-RUN dpkg-reconfigure locales
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
+ENV BOSH_CLI_VERSION 2.0.45-linux-amd64
 
-RUN apt-get update; apt-get -y upgrade; apt-get clean
-RUN apt-get install -y \
+RUN apt update; apt -y upgrade; apt-get clean
+RUN apt install -y \
   git tar curl wget make ruby unzip qemu-utils python python-pip jq && \
   apt-get clean
 RUN pip install awscli
+
+RUN cd /tmp && \
+    wget -nv "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${BOSH_CLI_VERSION}" && \
+    ( \
+        echo "bf04be72daa7da0c9bbeda16fda7fc7b2b8af51e bosh-cli-${BOSH_CLI_VERSION}" | \
+        sha1sum -c - \
+    ) && \
+    mv /tmp/bosh-cli-* /usr/local/bin/bosh && \
+    chmod +x /usr/local/bin/bosh
 
 RUN cd /tmp && \
     wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz && \
