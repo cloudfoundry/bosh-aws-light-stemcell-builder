@@ -8,6 +8,10 @@ image_resource:
 inputs:
   - name: light-stemcell
   - name: builder-src
+  - name: stemcells-index
+
+outputs:
+  - name: stemcells-index-output
 
 run:
   path: builder-src/ci/tasks/publish-stemcell-and-checksum.sh

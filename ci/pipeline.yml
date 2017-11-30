@@ -36,6 +36,9 @@ groups:
       - publish-ubuntu-alpha
 
 shared:
+  - &put-stemcells-index
+    put: stemcells-index
+    params: {repository: stemcells-index-output}
   - &get-china-stemcell
     get: cn-input-stemcell
     version: every
@@ -261,7 +264,9 @@ jobs:
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *merge-builds-task
+      - get: stemcells-index
       - *publish-stemcell-and-checksum
+      - *put-stemcells-index
 
   - name: publish-ubuntu-3363
     serial: true
@@ -280,7 +285,9 @@ jobs:
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *merge-builds-task
+      - get: stemcells-index
       - *publish-stemcell-and-checksum
+      - *put-stemcells-index
 
   - name: publish-ubuntu-3421
     serial: true
@@ -305,7 +312,9 @@ jobs:
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
+      - get: stemcells-index
       - *publish-stemcell-and-checksum
+      - *put-stemcells-index
 
   - name: publish-ubuntu-3445
     serial: true
@@ -330,7 +339,9 @@ jobs:
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
+      - get: stemcells-index
       - *publish-stemcell-and-checksum
+      - *put-stemcells-index
 
   - name: publish-ubuntu-3468
     serial: true
@@ -355,7 +366,9 @@ jobs:
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
+      - get: stemcells-index
       - *publish-stemcell-and-checksum
+      - *put-stemcells-index
 
   - name: publish-centos-3468
     serial: true
@@ -380,7 +393,9 @@ jobs:
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
+      - get: stemcells-index
       - *publish-stemcell-and-checksum
+      - *put-stemcells-index
 
   - name: bump-minor
     public: true
@@ -421,6 +436,12 @@ jobs:
       - *publish-alpha-stemcell
 
 resources:
+  - name: stemcells-index
+    type: git
+    source:
+      uri: git@github.com:bosh-io/stemcells-cpi-index.git
+      private_key: {{stemcells_index__github_key}}
+
   - name: builder-src-in
     type: git
     source:
