@@ -38,7 +38,9 @@ groups:
 shared:
   - &put-stemcells-index
     put: stemcells-index
-    params: {repository: stemcells-index-output}
+    params:
+      repository: stemcells-index-output
+      rebase: true
   - &get-china-stemcell
     get: cn-input-stemcell
     version: every
