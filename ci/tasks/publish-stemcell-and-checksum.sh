@@ -38,5 +38,5 @@ popd > /dev/null
 echo "Uploading light stemcell ${light_stemcell_name} to ${OUTPUT_BUCKET}..."
 aws s3 cp "${light_stemcell_path}" "s3://${OUTPUT_BUCKET}"
 
-checksum="$(sha1sum ${light_stemcell_dir}/*.tgz | awk '{print $1}')"
-echo "sha1: ${light_stemcell_name} ${checksum}"
+echo "Stemcell metalink"
+cat "$meta4_path"
