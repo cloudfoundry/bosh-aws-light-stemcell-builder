@@ -19,7 +19,7 @@ tar -Oxf ${light_stemcell_path} stemcell.MF > /tmp/stemcell.MF
 OS_NAME="$(bosh int /tmp/stemcell.MF --path /operating_system)"
 STEMCELL_VERSION="$(bosh int /tmp/stemcell.MF --path /version)"
 
-cp -r stemcells-index stemcells-index-output
+git clone stemcells-index stemcells-index-output
 
 meta4_path=$PWD/stemcells-index-output/published/$OS_NAME/$STEMCELL_VERSION/stemcells.aws.meta4
 
@@ -31,9 +31,8 @@ meta4 file-set-url --metalink="$meta4_path" --file="${light_stemcell_name}" "htt
 
 pushd stemcells-index-output > /dev/null
   git add -A
-  git commit -c user.email="ci@localhost" \
-    -c user.name="CI Bot" \
-    -m "publish: $OS_NAME/$STEMCELL_VERSION"
+  git -c user.email="ci@localhost" -c user.name="CI Bot" \
+    commit -m "publish: $OS_NAME/$STEMCELL_VERSION"
 popd > /dev/null
 
 echo "Uploading light stemcell ${light_stemcell_name} to ${OUTPUT_BUCKET}..."

@@ -2,7 +2,7 @@
 platform: linux
 image_resource:
   type: docker-image
-  source: {repository: boshcpi/aws-light-stemcell-builder}
+  source: {repository: boshcpi/light-stemcell-builder}
 
 inputs:
 - name: builder-src
