@@ -4,7 +4,7 @@ set -e
 
 my_dir="$( cd $(dirname $0) && pwd )"
 
-DOCKER_IMAGE=${DOCKER_IMAGE:-boshcpi/aws-light-stemcell-builder}
+DOCKER_IMAGE=${DOCKER_IMAGE:-boshcpi/light-stemcell-builder}
 
 docker login
 
