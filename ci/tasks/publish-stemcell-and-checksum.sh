@@ -17,7 +17,7 @@ light_stemcell_name="$(basename "${light_stemcell_path}")"
 tar -Oxf ${light_stemcell_path} stemcell.MF > /tmp/stemcell.MF
 
 OS_NAME="$(bosh int /tmp/stemcell.MF --path /operating_system)"
-STEMCEL_VERSION="$(bosh int /tmp/stemcell.MF --path /version)"
+STEMCELL_VERSION="$(bosh int /tmp/stemcell.MF --path /version)"
 
 cp -r stemcells-index stemcells-index-output
 
