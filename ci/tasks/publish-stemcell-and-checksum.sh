@@ -19,7 +19,7 @@ tar -Oxf ${light_stemcell_path} stemcell.MF > /tmp/stemcell.MF
 OS_NAME="$(bosh int /tmp/stemcell.MF --path /operating_system)"
 STEMCEL_VERSION="$(bosh int /tmp/stemcell.MF --path /version)"
 
-cp stemcells-index stemcells-index-output
+cp -r stemcells-index stemcells-index-output
 
 meta4_path=$PWD/stemcells-index-output/published/$OS_NAME/$STEMCELL_VERSION/stemcells.aws.meta4
 
