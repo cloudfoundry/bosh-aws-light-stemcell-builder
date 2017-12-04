@@ -58,9 +58,27 @@ echo "Building light stemcell..."
 echo "  Starting region: ${ami_region}"
 echo "  Copy regions: ${ami_destinations}"
 
-export CONFIG_PATH=${PWD}/config.json
+extracted_stemcell_dir=${PWD}/extracted-stemcell
+mkdir -p ${extracted_stemcell_dir}
+tar -C ${extracted_stemcell_dir} -xf ${stemcell_path}
+tar -xf ${extracted_stemcell_dir}/image
 
-cat > $CONFIG_PATH << EOF
+# image format can be raw or stream optimized vmdk
+stemcell_image="$(echo ${PWD}/root.*)"
+stemcell_manifest=${extracted_stemcell_dir}/stemcell.MF
+manifest_contents="$(cat ${stemcell_manifest})"
+
+disk_regex="disk: ([0-9]+)"
+format_regex="disk_format: ([a-z]+)"
+
+[[ "${manifest_contents}" =~ ${disk_regex} ]]
+disk_size_gb=$(mb_to_gb "${BASH_REMATCH[1]}")
+
+[[ "${manifest_contents}" =~ ${format_regex} ]]
+disk_format="${BASH_REMATCH[1]}"
+
+config_path=${PWD}/config.json
+cat > ${config_path} << EOF
 {
   "ami_configuration": {
     "description":          "$ami_description",
@@ -84,30 +102,11 @@ cat > $CONFIG_PATH << EOF
 }
 EOF
 
-extracted_stemcell_dir=${PWD}/extracted-stemcell
-mkdir -p ${extracted_stemcell_dir}
-tar -C ${extracted_stemcell_dir} -xf ${stemcell_path}
-tar -xf ${extracted_stemcell_dir}/image
-
-# image format can be raw or stream optimized vmdk
-stemcell_image="$(echo ${PWD}/root.*)"
-stemcell_manifest=${extracted_stemcell_dir}/stemcell.MF
-manifest_contents="$(cat ${stemcell_manifest})"
-
-disk_regex="disk: ([0-9]+)"
-format_regex="disk_format: ([a-z]+)"
-
-[[ "${manifest_contents}" =~ ${disk_regex} ]]
-disk_size_gb=$(mb_to_gb "${BASH_REMATCH[1]}")
-
-[[ "${manifest_contents}" =~ ${format_regex} ]]
-disk_format="${BASH_REMATCH[1]}"
-
 pushd ${release_dir} > /dev/null
   . .envrc
   # Make sure we've closed the manifest file before writing to it
   go run src/light-stemcell-builder/main.go \
-    -c $CONFIG_PATH \
+    -c ${config_path} \
     --image ${stemcell_image} \
     --format ${disk_format} \
     --volume-size ${disk_size_gb} \

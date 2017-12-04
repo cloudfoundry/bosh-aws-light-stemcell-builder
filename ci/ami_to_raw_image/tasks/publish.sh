@@ -26,32 +26,6 @@ output_path=${workspace_dir}/metadata
 tmpdir="$(mktemp -d /tmp/publish-ami.XXXXX)"
 trap '{ rm -rf ${tmpdir}; }' EXIT
 
-export CONFIG_PATH=${workspace_dir}/config.json
-
-cat > $CONFIG_PATH << EOF
-{
-  "ami_configuration": {
-    "description":          "$ami_description",
-    "virtualization_type":  "$ami_virtualization_type",
-    "visibility":           "$ami_visibility"
-  },
-  "ami_regions": [
-    {
-      "name":               "${ami_initial_region}",
-      "credentials": {
-        "access_key":       "$ami_access_key",
-        "secret_key":       "$ami_secret_key"
-      },
-      "bucket_name":        "$ami_bucket_name",
-      "destinations":       ${ami_copy_regions}
-    }
-  ]
-}
-EOF
-
-echo "Configuration:"
-cat $CONFIG_PATH
-
 extracted_ami_dir=${tmpdir}/extracted-ami
 
 mkdir -p ${extracted_ami_dir}
@@ -74,11 +48,36 @@ disk_size_gb=$(mb_to_gb "${BASH_REMATCH[1]}")
 [[ "${manifest_contents}" =~ ${format_regex} ]]
 disk_format="${BASH_REMATCH[1]}"
 
+config_path=${workspace_dir}/config.json
+cat > ${config_path} << EOF
+{
+  "ami_configuration": {
+    "description":          "$ami_description",
+    "virtualization_type":  "$ami_virtualization_type",
+    "visibility":           "$ami_visibility"
+  },
+  "ami_regions": [
+    {
+      "name":               "${ami_initial_region}",
+      "credentials": {
+        "access_key":       "$ami_access_key",
+        "secret_key":       "$ami_secret_key"
+      },
+      "bucket_name":        "$ami_bucket_name",
+      "destinations":       ${ami_copy_regions}
+    }
+  ]
+}
+EOF
+
+echo "Configuration:"
+cat $config_path
+
 pushd ${release_dir} > /dev/null
   . .envrc
   # Make sure we've closed the manifest file before writing to it
   go run src/light-stemcell-builder/main.go \
-    -c $CONFIG_PATH \
+    -c ${config_path} \
     --image ${ami_image} \
     --format ${disk_format} \
     --volume-size ${disk_size_gb} \
