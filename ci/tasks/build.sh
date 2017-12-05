@@ -77,10 +77,15 @@ disk_size_gb=$(mb_to_gb "${BASH_REMATCH[1]}")
 [[ "${manifest_contents}" =~ ${format_regex} ]]
 disk_format="${BASH_REMATCH[1]}"
 
+stemcell_name=$(grep '^name: ' ${stemcell_manifest} | awk '{print $2}' | tr -d "\"'")
+stemcell_version=$(grep '^version: ' ${stemcell_manifest} | awk '{print $2}' | tr -d "\"'")
+ami_name="${stemcell_name}/${stemcell_version} from ${publisher_name:-unknown}"
+
 config_path=${PWD}/config.json
 cat > ${config_path} << EOF
 {
   "ami_configuration": {
+    "name":                 "$ami_name",
     "description":          "$ami_description",
     "virtualization_type":  "$ami_virtualization_type",
     "encrypted":            $ami_encrypted,

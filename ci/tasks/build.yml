@@ -15,6 +15,7 @@ run:
   path: builder-src/ci/tasks/build.sh
 params:
   bosh_io_bucket_name:        "bosh-aws-light-stemcells"
+  publisher_name:             ""
   ami_description:            ""
   ami_virtualization_type:    ""
   ami_visibility:             ""

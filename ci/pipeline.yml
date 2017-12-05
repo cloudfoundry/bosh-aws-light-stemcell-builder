@@ -83,6 +83,7 @@ shared:
       builder-src: cn-builder-src
     output_mapping: {light-stemcell: cn-light-stemcell}
     params:
+      publisher_name: {{publisher_name}}
       ami_description: {{publish__ami_description}}
       ami_encrypted: {{publish__ami_encrypted}}
       ami_kms_key_id: {{publish__ami_kms_key_id}}
@@ -102,6 +103,7 @@ shared:
       builder-src: us_gov-builder-src
     output_mapping: {light-stemcell: us_gov-light-stemcell}
     params:
+      publisher_name: {{publisher_name}}
       ami_description: {{publish__ami_description}}
       ami_encrypted: {{publish__ami_encrypted}}
       ami_kms_key_id: {{publish__ami_kms_key_id}}
@@ -121,6 +123,7 @@ shared:
       builder-src: us-builder-src
     output_mapping: {light-stemcell: us-light-stemcell}
     params:
+      publisher_name: {{publisher_name}}
       ami_description: {{publish__ami_description}}
       ami_encrypted: {{publish__ami_encrypted}}
       ami_kms_key_id: {{publish__ami_kms_key_id}}
@@ -138,6 +141,7 @@ shared:
       input-stemcell: us-input-stemcell
       builder-src: us-builder-src
     params:
+      publisher_name: {{publisher_name}}
       ami_description: {{publish_alpha__ami_description}}
       ami_encrypted: {{publish_alpha__ami_encrypted}}
       ami_kms_key_id: {{publish_alpha__ami_kms_key_id}}
