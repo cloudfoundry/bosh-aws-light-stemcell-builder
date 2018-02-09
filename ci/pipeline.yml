@@ -8,13 +8,14 @@ groups:
       - bump-minor
       - bump-major
       - promote
+      - publish-centos-3468
+      - publish-centos-3541
+      - publish-ubuntu-3312
+      - publish-ubuntu-3363
       - publish-ubuntu-3421
       - publish-ubuntu-3422
       - publish-ubuntu-3445
-      - publish-centos-3468
       - publish-ubuntu-3468
-      - publish-ubuntu-3363
-      - publish-ubuntu-3312
       - publish-ubuntu-3541
   - name: "3312"
     jobs:
@@ -38,6 +39,7 @@ groups:
   - name: "3541"
     jobs:
       - publish-ubuntu-3541
+      - publish-centos-3541
   - name: alpha
     jobs:
       - publish-centos-alpha
@@ -434,6 +436,33 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
+  - name: publish-centos-3541
+    serial: true
+    plan:
+      - aggregate:
+        - do:
+          - aggregate:
+            - <<: *get-china-stemcell
+              resource: centos-stemcell-3541
+            - *get-china-builder-src
+          - *build-china-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us_gov-stemcell
+              resource: centos-stemcell-3541
+            - *get-us_gov-builder-src
+          - *build-us_gov-stemcell-task
+        - do:
+          - aggregate:
+            - <<: *get-us-stemcell
+              resource: centos-stemcell-3541
+            - *get-us-builder-src
+          - *build-us-stemcell-task
+      - *us_gov-merge-builds-task
+      - get: stemcells-index
+      - *publish-stemcell-and-checksum
+      - *put-stemcells-index
+
   - name: publish-ubuntu-3541
     serial: true
     plan:
@@ -584,6 +613,13 @@ resources:
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+      force_regular: true
+      version_family: "3541"
+
+  - name: centos-stemcell-3541
+    type: bosh-io-stemcell
+    source:
+      name: bosh-aws-xen-hvm-centos-7-go_agent
       force_regular: true
       version_family: "3541"
 
