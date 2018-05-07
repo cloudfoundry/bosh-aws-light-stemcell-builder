@@ -220,7 +220,7 @@ cloud_properties:
 			Expect(reqOutput.Images).To(HaveLen(1))
 			snapshotID := reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId
 			Expect(snapshotID).ToNot(BeNil())
-			Expect(reqOutput.Images[0].EnaSupport).To(BeTrue())
+			Expect(aws.BoolValue(reqOutput.Images[0].EnaSupport)).To(BeTrue())
 
 			_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(amiID)})
 			if err != nil {
