@@ -22,6 +22,7 @@ func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID str
 		VirtualizationType: aws.String(resources.HvmAmiVirtualization),
 		Name:               aws.String(amiName),
 		RootDeviceName:     aws.String(firstDeviceNameHVMAmi),
+		EnaSupport:         aws.Bool(true),
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			&ec2.BlockDeviceMapping{
 				DeviceName: aws.String(firstDeviceNameHVMAmi),

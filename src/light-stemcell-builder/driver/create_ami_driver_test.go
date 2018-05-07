@@ -65,6 +65,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(*reqOutput.Images[0].Name).To(Equal(amiName))
 		Expect(*reqOutput.Images[0].Architecture).To(Equal(resources.AmiArchitecture))
 		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(ami.VirtualizationType))
+		Expect(*reqOutput.Images[0].EnaSupport).To(BeTrue())
 		Expect(*reqOutput.Images[0].SriovNetSupport).To(Equal("simple"))
 		Expect(*reqOutput.Images[0].Public).To(BeTrue())
 
