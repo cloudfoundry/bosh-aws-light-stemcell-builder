@@ -5,9 +5,6 @@ groups:
       - test-unit
       - test-drivers
       - test-integration
-      - bump-minor
-      - bump-major
-      - promote
       - publish-centos-3468
       - publish-centos-3541
       - publish-ubuntu-3312
@@ -77,13 +74,16 @@ shared:
   - &get-china-builder-src
     get: cn-builder-src
     tags: [asia]
-    resource: builder-src-out
+    resource: builder-src
+    passed: [test-unit, test-integration, test-drivers]
   - &get-us_gov-builder-src
     get: us_gov-builder-src
-    resource: builder-src-out
+    resource: builder-src
+    passed: [test-unit, test-integration, test-drivers]
   - &get-us-builder-src
     get: us-builder-src
-    resource: builder-src-out
+    resource: builder-src
+    passed: [test-unit, test-integration, test-drivers]
   - &build-china-stemcell-task
     task: build-china-stemcell
     file: cn-builder-src/ci/tasks/build.yml
@@ -205,7 +205,7 @@ jobs:
     serial: true
     plan:
       - get: builder-src
-        resource: builder-src-in
+        resource: builder-src
         trigger: true
       - task: test
         file: builder-src/ci/tasks/test-unit.yml
@@ -214,7 +214,7 @@ jobs:
     serial: true
     plan:
       - get: builder-src
-        resource: builder-src-in
+        resource: builder-src
         trigger: true
       - task: test
         file: builder-src/ci/tasks/test-drivers.yml
@@ -234,7 +234,7 @@ jobs:
     serial: true
     plan:
       - get: builder-src
-        resource: builder-src-in
+        resource: builder-src
         trigger: true
       - task: test
         file: builder-src/ci/tasks/test-integration.yml
@@ -248,20 +248,6 @@ jobs:
           cn_secret_key:              {{test__cn_secret_key}}
           cn_bucket_name:             {{test__cn_bucket_name}}
           cn_region:                  {{test__cn_region}}
-
-  - name: promote
-    plan:
-      - aggregate:
-        - get: builder-src
-          passed: [test-unit, test-drivers, test-integration]
-          resource: builder-src-in
-          trigger: true
-        - get: version-semver
-          params: { bump: patch }
-      - put: version-semver
-        params: { file: version-semver/number }
-      - put: builder-src-out
-        params: { repository: builder-src }
 
   - name: publish-ubuntu-3312
     serial: true
@@ -548,22 +534,6 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: bump-minor
-    public: true
-    plan:
-      - get: version-semver
-        params: { bump: minor }
-      - put: version-semver
-        params: { file: version-semver/number }
-
-  - name: bump-major
-    public: true
-    plan:
-      - get: version-semver
-        params: { bump: major }
-      - put: version-semver
-        params: { file: version-semver/number }
-
   - name: publish-ubuntu-alpha
     serial: true
     plan:
@@ -594,29 +564,11 @@ resources:
       branch: master
       private_key: {{stemcells_index__github_key}}
 
-  - name: builder-src-in
+  - name: builder-src
     type: git
     source:
-      uri: git@github.com:cloudfoundry/bosh-aws-light-stemcell-builder.git
-      branch: develop
-      private_key: {{builder__github_deployment_key}}
-
-  - name: builder-src-out
-    type: git
-    source:
-      uri: git@github.com:cloudfoundry/bosh-aws-light-stemcell-builder.git
+      uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder
       branch: master
-      private_key: {{builder__github_deployment_key}}
-
-  - name: version-semver
-    type: semver
-    source:
-      initial_version: 0.0.1
-      key: current-version
-      access_key_id: {{builder__access_key}}
-      secret_access_key: {{builder__secret_key}}
-      bucket: {{builder__bucket}}
-      region_name: {{builder__region}}
 
   - name: ubuntu-stemcell-3363
     type: bosh-io-stemcell
