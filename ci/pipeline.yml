@@ -7,6 +7,7 @@ groups:
       - test-integration
       - publish-centos-3468
       - publish-centos-3541
+      - publish-centos-3586
       - publish-ubuntu-3312
       - publish-ubuntu-3363
       - publish-ubuntu-3421
@@ -14,6 +15,7 @@ groups:
       - publish-ubuntu-3468
       - publish-ubuntu-3469
       - publish-ubuntu-3541
+      - publish-ubuntu-3586
   - name: "3312"
     jobs:
       - publish-ubuntu-3312
