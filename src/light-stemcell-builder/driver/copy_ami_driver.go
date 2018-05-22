@@ -101,18 +101,25 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		},
 	})
 	if err != nil {
-		return resources.Ami{}, fmt.Errorf("failed to retrieve image %s: %s", *amiIDptr, err)
+		return resources.Ami{}, fmt.Errorf("failed to retrieve image %s: %v", *amiIDptr, err)
 	}
 
 	var snapshotIDptr *string
 	image := describeImagesOutput.Images[0]
+	deviceMappings := make([]string, 0, len(image.BlockDeviceMappings))
 	for _, deviceMapping := range image.BlockDeviceMappings {
+		deviceMappings = append(deviceMappings, *deviceMapping.DeviceName)
 		if *deviceMapping.DeviceName == *image.RootDeviceName {
 			snapshotIDptr = deviceMapping.Ebs.SnapshotId
 		}
 	}
 	if snapshotIDptr == nil {
-		return resources.Ami{}, fmt.Errorf("snapshot for image %s not found: %s", *amiIDptr, err)
+		return resources.Ami{}, fmt.Errorf(
+			"snapshot for image %s not found: root device %s not found in device mappings %v",
+			*amiIDptr,
+			*image.RootDeviceName,
+			deviceMappings,
+		)
 	}
 
 	d.logger.Printf("snapshot %s for image %s found\n", *snapshotIDptr, *amiIDptr)
@@ -125,7 +132,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	}
 	_, err = ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
 	if err != nil {
-		return resources.Ami{}, fmt.Errorf("making snapshot with id %s public: %s", *snapshotIDptr, err)
+		return resources.Ami{}, fmt.Errorf("making snapshot with id %s public: %v", *snapshotIDptr, err)
 	}
 
 	d.logger.Printf("snapshot %s is public\n", *snapshotIDptr)
