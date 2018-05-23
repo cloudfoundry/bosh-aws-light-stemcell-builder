@@ -92,34 +92,48 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
 	}
 
-	describeImagesOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{
-		Filters: []*ec2.Filter{
-			&ec2.Filter{
-				Name:   aws.String("image-id"),
-				Values: []*string{aws.String(*amiIDptr)},
-			},
-		},
-	})
-	if err != nil {
-		return resources.Ami{}, fmt.Errorf("failed to retrieve image %s: %v", *amiIDptr, err)
-	}
-
 	var snapshotIDptr *string
-	image := describeImagesOutput.Images[0]
-	deviceMappings := make([]string, 0, len(image.BlockDeviceMappings))
-	for _, deviceMapping := range image.BlockDeviceMappings {
-		deviceMappings = append(deviceMappings, *deviceMapping.DeviceName)
-		if *deviceMapping.DeviceName == *image.RootDeviceName {
-			snapshotIDptr = deviceMapping.Ebs.SnapshotId
+	var snapshotErr error
+
+	for i := 0; i < 100; i++ {
+		describeImagesOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{
+			Filters: []*ec2.Filter{
+				&ec2.Filter{
+					Name:   aws.String("image-id"),
+					Values: []*string{aws.String(*amiIDptr)},
+				},
+			},
+		})
+		if err != nil {
+			return resources.Ami{}, fmt.Errorf("failed to retrieve image %s: %v", *amiIDptr, err)
 		}
-	}
-	if snapshotIDptr == nil {
-		return resources.Ami{}, fmt.Errorf(
+
+		image := describeImagesOutput.Images[0]
+		deviceMappings := make([]string, 0, len(image.BlockDeviceMappings))
+		for _, deviceMapping := range image.BlockDeviceMappings {
+			deviceMappings = append(deviceMappings, *deviceMapping.DeviceName)
+			if *deviceMapping.DeviceName == *image.RootDeviceName {
+				snapshotIDptr = deviceMapping.Ebs.SnapshotId
+			}
+		}
+
+		if snapshotIDptr != nil {
+			break
+		}
+
+		snapshotErr = fmt.Errorf(
 			"snapshot for image %s not found: root device %s not found in device mappings %v",
 			*amiIDptr,
 			*image.RootDeviceName,
 			deviceMappings,
 		)
+
+		time.Sleep(5 * time.Second)
+		d.logger.Printf("waiting for snapshot to be available for AMI ID: %s...\n", *amiIDptr)
+	}
+
+	if snapshotIDptr == nil {
+		return resources.Ami{}, snapshotErr
 	}
 
 	d.logger.Printf("snapshot %s for image %s found\n", *snapshotIDptr, *amiIDptr)
