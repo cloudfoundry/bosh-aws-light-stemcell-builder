@@ -13,7 +13,7 @@ groups:
       - publish-ubuntu-trusty-3468
       - publish-ubuntu-trusty-3541
       - publish-ubuntu-trusty-3586
-      - publish-ubuntu-xenial-40
+      - publish-ubuntu-xenial
   - name: "centos-7"
     jobs:
     - publish-centos-7-3541
@@ -28,7 +28,7 @@ groups:
     - publish-ubuntu-trusty-3586
   - name: "ubuntu-xenial"
     jobs:
-    - publish-ubuntu-xenial-40
+    - publish-ubuntu-xenial
 
 shared:
   - &put-stemcells-index
@@ -415,26 +415,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-ubuntu-xenial-40
+  - name: publish-ubuntu-xenial
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-xenial-stemcell-40
+              resource: ubuntu-xenial-stemcell
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: ubuntu-xenial-stemcell-40
+              resource: ubuntu-xenial-stemcell
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-xenial-stemcell-40
+              resource: ubuntu-xenial-stemcell
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -512,9 +512,8 @@ resources:
       force_regular: true
       version_family: "3586"
 
-  - name: ubuntu-xenial-stemcell-40
+  - name: ubuntu-xenial-stemcell
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
       force_regular: true
-      version_family: "40"
