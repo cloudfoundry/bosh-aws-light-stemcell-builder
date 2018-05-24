@@ -5,48 +5,30 @@ groups:
       - test-unit
       - test-drivers
       - test-integration
-      - publish-centos-3468
-      - publish-centos-3541
-      - publish-centos-3586
-      - publish-ubuntu-3312
-      - publish-ubuntu-3363
-      - publish-ubuntu-3421
-      - publish-ubuntu-3445
-      - publish-ubuntu-3468
-      - publish-ubuntu-3469
-      - publish-ubuntu-3541
-      - publish-ubuntu-3586
-  - name: "3312"
+      - publish-centos-7-3541
+      - publish-centos-7-3586
+      - publish-ubuntu-trusty-3363
+      - publish-ubuntu-trusty-3421
+      - publish-ubuntu-trusty-3445
+      - publish-ubuntu-trusty-3468
+      - publish-ubuntu-trusty-3541
+      - publish-ubuntu-trusty-3586
+      - publish-ubuntu-xenial-40
+  - name: "centos-7"
     jobs:
-      - publish-ubuntu-3312
-  - name: "3363"
+    - publish-centos-7-3541
+    - publish-centos-7-3586
+  - name: "ubuntu-trusty"
     jobs:
-      - publish-ubuntu-3363
-  - name: "3421"
+    - publish-ubuntu-trusty-3363
+    - publish-ubuntu-trusty-3421
+    - publish-ubuntu-trusty-3445
+    - publish-ubuntu-trusty-3468
+    - publish-ubuntu-trusty-3541
+    - publish-ubuntu-trusty-3586
+  - name: "ubuntu-xenial"
     jobs:
-      - publish-ubuntu-3421
-  - name: "3445"
-    jobs:
-      - publish-ubuntu-3445
-  - name: "3468"
-    jobs:
-      - publish-centos-3468
-      - publish-ubuntu-3468
-  - name: "3469"
-    jobs:
-      - publish-ubuntu-3469
-  - name: "3541"
-    jobs:
-      - publish-ubuntu-3541
-      - publish-centos-3541
-  - name: "3586"
-    jobs:
-      - publish-ubuntu-3586
-      - publish-centos-3586
-  - name: alpha
-    jobs:
-      - publish-centos-alpha
-      - publish-ubuntu-alpha
+    - publish-ubuntu-xenial-40
 
 shared:
   - &put-stemcells-index
@@ -143,23 +125,6 @@ shared:
       ami_bucket_name: {{publish__us_bucket}}
       ami_server_side_encryption: {{publish__us_server_side_encryption}}
       ami_virtualization_type: hvm
-  - &build-alpha-stemcell-task
-    task: build-us-stemcell
-    file: us-builder-src/ci/tasks/build.yml
-    input_mapping:
-      input-stemcell: us-input-stemcell
-      builder-src: us-builder-src
-    params:
-      ami_description: {{publish_alpha__ami_description}}
-      ami_encrypted: {{publish_alpha__ami_encrypted}}
-      ami_kms_key_id: {{publish_alpha__ami_kms_key_id}}
-      ami_visibility: {{publish_alpha__ami_visibility}}
-      ami_region: {{publish_alpha__us_region}}
-      ami_access_key: {{publish_alpha__us_access_key}}
-      ami_secret_key: {{publish_alpha__us_secret_key}}
-      ami_bucket_name: {{publish_alpha__us_bucket}}
-      ami_server_side_encryption: {{publish_alpha__us_server_side_encryption}}
-      ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds
     file: us-builder-src/ci/tasks/merge-builds.yml
@@ -180,17 +145,6 @@ shared:
       AWS_SECRET_ACCESS_KEY: {{output__bucket_secret_key}}
       AWS_DEFAULT_REGION: {{output__region}}
       OUTPUT_BUCKET: {{output__bucket}}
-  - &publish-alpha-stemcell
-    task: publish-alpha-stemcell
-    file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
-    input_mapping:
-      builder-src: us-builder-src
-    params:
-      AWS_ACCESS_KEY_ID: {{alpha_output__bucket_access_key}}
-      AWS_SECRET_ACCESS_KEY: {{alpha_output__bucket_secret_key}}
-      AWS_DEFAULT_REGION: {{alpha_output__region}}
-      OUTPUT_BUCKET: {{alpha_output__bucket}}
-
   - &publish-dev-test-stemcell-and-checksum
     task: publish-dev-test-stemcell-and-checksum
     file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
@@ -251,20 +205,20 @@ jobs:
           cn_bucket_name:             {{test__cn_bucket_name}}
           cn_region:                  {{test__cn_region}}
 
-  - name: publish-ubuntu-3312
+  - name: publish-ubuntu-trusty-3363
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3312
+              resource: ubuntu-trusty-stemcell-3363
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3312
+              resource: ubuntu-trusty-stemcell-3363
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *merge-builds-task
@@ -272,47 +226,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-ubuntu-3363
+  - name: publish-ubuntu-trusty-3421
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3363
-            - *get-china-builder-src
-          - *build-china-stemcell-task
-        - do:
-          - aggregate:
-            - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3363
-            - *get-us-builder-src
-          - *build-us-stemcell-task
-      - *merge-builds-task
-      - get: stemcells-index
-      - *publish-stemcell-and-checksum
-      - *put-stemcells-index
-
-  - name: publish-ubuntu-3421
-    serial: true
-    plan:
-      - aggregate:
-        - do:
-          - aggregate:
-            - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3421
+              resource: ubuntu-trusty-stemcell-3421
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: ubuntu-stemcell-3421
+              resource: ubuntu-trusty-stemcell-3421
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3421
+              resource: ubuntu-trusty-stemcell-3421
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -320,26 +253,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-ubuntu-3445
+  - name: publish-ubuntu-trusty-3445
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3445
+              resource: ubuntu-trusty-stemcell-3445
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: ubuntu-stemcell-3445
+              resource: ubuntu-trusty-stemcell-3445
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3445
+              resource: ubuntu-trusty-stemcell-3445
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -347,26 +280,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-ubuntu-3468
+  - name: publish-ubuntu-trusty-3468
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3468
+              resource: ubuntu-trusty-stemcell-3468
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: ubuntu-stemcell-3468
+              resource: ubuntu-trusty-stemcell-3468
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3468
+              resource: ubuntu-trusty-stemcell-3468
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -374,26 +307,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-centos-3468
+  - name: publish-centos-7-3541
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: centos-stemcell-3468
+              resource: centos-7-stemcell-3541
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: centos-stemcell-3468
+              resource: centos-7-stemcell-3541
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: centos-stemcell-3468
+              resource: centos-7-stemcell-3541
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -401,26 +334,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-ubuntu-3469
+  - name: publish-ubuntu-trusty-3541
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3469
+              resource: ubuntu-trusty-stemcell-3541
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: ubuntu-stemcell-3469
+              resource: ubuntu-trusty-stemcell-3541
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3469
+              resource: ubuntu-trusty-stemcell-3541
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -428,26 +361,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-centos-3541
+  - name: publish-centos-7-3586
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: centos-stemcell-3541
+              resource: centos-7-stemcell-3586
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: centos-stemcell-3541
+              resource: centos-7-stemcell-3586
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: centos-stemcell-3541
+              resource: centos-7-stemcell-3586
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -455,26 +388,26 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-ubuntu-3541
+  - name: publish-ubuntu-trusty-3586
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3541
+              resource: ubuntu-trusty-stemcell-3586
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: ubuntu-stemcell-3541
+              resource: ubuntu-trusty-stemcell-3586
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3541
+              resource: ubuntu-trusty-stemcell-3586
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
@@ -482,81 +415,32 @@ jobs:
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
 
-  - name: publish-centos-3586
+  - name: publish-ubuntu-xenial-40
     serial: true
     plan:
       - aggregate:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: centos-stemcell-3586
+              resource: ubuntu-xenial-stemcell-40
             - *get-china-builder-src
           - *build-china-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: centos-stemcell-3586
+              resource: ubuntu-xenial-stemcell-40
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: centos-stemcell-3586
+              resource: ubuntu-xenial-stemcell-40
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
       - get: stemcells-index
       - *publish-stemcell-and-checksum
       - *put-stemcells-index
-
-  - name: publish-ubuntu-3586
-    serial: true
-    plan:
-      - aggregate:
-        - do:
-          - aggregate:
-            - <<: *get-china-stemcell
-              resource: ubuntu-stemcell-3586
-            - *get-china-builder-src
-          - *build-china-stemcell-task
-        - do:
-          - aggregate:
-            - <<: *get-us_gov-stemcell
-              resource: ubuntu-stemcell-3586
-            - *get-us_gov-builder-src
-          - *build-us_gov-stemcell-task
-        - do:
-          - aggregate:
-            - <<: *get-us-stemcell
-              resource: ubuntu-stemcell-3586
-            - *get-us-builder-src
-          - *build-us-stemcell-task
-      - *us_gov-merge-builds-task
-      - get: stemcells-index
-      - *publish-stemcell-and-checksum
-      - *put-stemcells-index
-
-  - name: publish-ubuntu-alpha
-    serial: true
-    plan:
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: ubuntu-stemcell-alpha
-          - *get-us-builder-src
-        - *build-alpha-stemcell-task
-      - *publish-alpha-stemcell
-
-  - name: publish-centos-alpha
-    serial: true
-    plan:
-      - do:
-        - aggregate:
-          - <<: *get-us-stemcell
-            resource: centos-stemcell-alpha
-          - *get-us-builder-src
-        - *build-alpha-stemcell-task
-      - *publish-alpha-stemcell
 
 resources:
   - name: stemcells-index
@@ -572,91 +456,65 @@ resources:
       uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder
       branch: master
 
-  - name: ubuntu-stemcell-3363
+  - name: ubuntu-trusty-stemcell-3363
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3363"
 
-  - name: ubuntu-stemcell-3312
-    type: bosh-io-stemcell
-    source:
-      name: bosh-aws-xen-ubuntu-trusty-go_agent
-      force_regular: true
-      version_family: "3312"
-
-  - name: ubuntu-stemcell-3421
+  - name: ubuntu-trusty-stemcell-3421
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3421"
 
-  - name: ubuntu-stemcell-3445
+  - name: ubuntu-trusty-stemcell-3445
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3445"
 
-  - name: centos-stemcell-3468
-    type: bosh-io-stemcell
-    source:
-      name: bosh-aws-xen-hvm-centos-7-go_agent
-      force_regular: true
-      version_family: "3468"
-
-  - name: ubuntu-stemcell-3468
+  - name: ubuntu-trusty-stemcell-3468
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3468"
 
-  - name: ubuntu-stemcell-3469
-    type: bosh-io-stemcell
-    source:
-      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-      force_regular: true
-      version_family: "3469"
-
-  - name: ubuntu-stemcell-3541
+  - name: ubuntu-trusty-stemcell-3541
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3541"
 
-  - name: centos-stemcell-3541
+  - name: centos-7-stemcell-3541
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-centos-7-go_agent
       force_regular: true
       version_family: "3541"
 
-  - name: ubuntu-stemcell-3586
+  - name: ubuntu-trusty-stemcell-3586
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
       force_regular: true
       version_family: "3586"
 
-  - name: centos-stemcell-3586
+  - name: centos-7-stemcell-3586
     type: bosh-io-stemcell
     source:
       name: bosh-aws-xen-hvm-centos-7-go_agent
       force_regular: true
       version_family: "3586"
 
-  - name: centos-stemcell-alpha
-    type: s3
+  - name: ubuntu-xenial-stemcell-40
+    type: bosh-io-stemcell
     source:
-      bucket: bosh-core-stemcells-candidate
-      regexp: aws/bosh-stemcell-(\d+)-aws-xen-hvm-centos-7-go_agent.tgz
-
-  - name: ubuntu-stemcell-alpha
-    type: s3
-    source:
-      bucket: bosh-core-stemcells-candidate
-      regexp: aws/bosh-stemcell-(\d+)-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+      name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
+      force_regular: true
+      version_family: "40"
