@@ -287,9 +287,12 @@ jobs:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
+              tags: [singapore]
               resource: ubuntu-trusty-stemcell-3468
-            - *get-china-builder-src
-          - *build-china-stemcell-task
+            - <<: *get-china-builder-src
+              tags: [singapore]
+          - <<: *build-china-stemcell-task
+            tags: [singapore]
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -342,8 +345,11 @@ jobs:
           - aggregate:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3541
-            - *get-china-builder-src
-          - *build-china-stemcell-task
+              tags: [taiwan]
+            - <<: *get-china-builder-src
+              tags: [taiwan]
+          - <<: *build-china-stemcell-task
+            tags: [taiwan]
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -396,8 +402,11 @@ jobs:
           - aggregate:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3586
-            - *get-china-builder-src
-          - *build-china-stemcell-task
+              tags: [asia]
+            - <<: *get-china-builder-src
+              tags: [asia]
+          - <<: *build-china-stemcell-task
+            tags: [asia]
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
