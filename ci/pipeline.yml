@@ -69,25 +69,40 @@ shared:
     resource: builder-src
     passed: [test-unit, test-integration, test-drivers]
   - &build-china-stemcell-task
-    task: build-china-stemcell
     file: cn-builder-src/ci/tasks/build.yml
     tags: [asia]
     input_mapping:
       input-stemcell: cn-input-stemcell
       builder-src: cn-builder-src
-    output_mapping: {light-stemcell: cn-light-stemcell}
+  - &cn-params
+    ami_description: {{publish__ami_description}}
+    ami_encrypted: {{publish__ami_encrypted}}
+    ami_kms_key_id: {{publish__ami_kms_key_id}}
+    ami_visibility: {{publish__ami_visibility}}
+    ami_access_key: {{publish__cn_access_key}}
+    ami_secret_key: {{publish__cn_secret_key}}
+    ami_bucket_name: {{publish__cn_bucket}}
+    ami_server_side_encryption: {{publish__cn_server_side_encryption}}
+    ami_destinations: []
+    ami_virtualization_type: hvm
+  - &cn-north-attributes
+    task: build-china-north-stemcell
+    output_mapping: {light-stemcell: cn-north-light-stemcell}
     params:
-      ami_description: {{publish__ami_description}}
-      ami_encrypted: {{publish__ami_encrypted}}
-      ami_kms_key_id: {{publish__ami_kms_key_id}}
-      ami_visibility: {{publish__ami_visibility}}
-      ami_region: {{publish__cn_region}}
-      ami_access_key: {{publish__cn_access_key}}
-      ami_secret_key: {{publish__cn_secret_key}}
-      ami_bucket_name: {{publish__cn_bucket}}
-      ami_server_side_encryption: {{publish__cn_server_side_encryption}}
-      ami_destinations: []
-      ami_virtualization_type: hvm
+      <<: *cn-params
+      ami_region: {{publish__cn_north_region}}
+  - &cn-northwest-attributes
+    task: build-china-northwest-stemcell
+    output_mapping: {light-stemcell: cn-northwest-light-stemcell}
+    params:
+      <<: *cn-params
+      ami_region: {{publish__cn_northwest_region}}
+  - &build-china-north-stemcell-task
+    <<: *build-china-stemcell-task
+    <<: *cn-north-attributes
+  - &build-china-northwest-stemcell-task
+    <<: *build-china-stemcell-task
+    <<: *cn-northwest-attributes
   - &build-us_gov-stemcell-task
     task: build-us_gov-stemcell
     file: us_gov-builder-src/ci/tasks/build.yml
@@ -214,7 +229,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3363
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - <<: *build-china-stemcell-task
+            <<: *cn-north-attributes
+            output_mapping: {light-stemcell: cn-light-stemcell}
         - do:
           - aggregate:
             - <<: *get-us-stemcell
@@ -235,7 +252,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3421
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -262,7 +281,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3445
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -289,7 +310,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3468
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -316,7 +339,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: centos-7-stemcell-3541
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -343,7 +368,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3541
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -370,7 +397,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: centos-7-stemcell-3586
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -397,7 +426,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3586
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
@@ -424,7 +455,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-xenial-stemcell
             - *get-china-builder-src
-          - *build-china-stemcell-task
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
