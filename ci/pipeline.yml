@@ -81,7 +81,6 @@ shared:
     ami_visibility: {{publish__ami_visibility}}
     ami_access_key: {{publish__cn_access_key}}
     ami_secret_key: {{publish__cn_secret_key}}
-    ami_bucket_name: {{publish__cn_bucket}}
     ami_server_side_encryption: {{publish__cn_server_side_encryption}}
     ami_destinations: []
     ami_virtualization_type: hvm
@@ -91,12 +90,14 @@ shared:
     params:
       <<: *cn-params
       ami_region: {{publish__cn_north_region}}
+      ami_bucket_name: {{publish__cn_bucket}}
   - &cn-northwest-attributes
     task: build-china-northwest-stemcell
     output_mapping: {light-stemcell: cn-northwest-light-stemcell}
     params:
       <<: *cn-params
       ami_region: {{publish__cn_northwest_region}}
+      ami_bucket_name: {{publish__cn_northwest_bucket}}
   - &build-china-north-stemcell-task
     <<: *build-china-stemcell-task
     <<: *cn-north-attributes
@@ -229,9 +230,9 @@ jobs:
             - <<: *get-china-stemcell
               resource: ubuntu-trusty-stemcell-3363
             - *get-china-builder-src
-          - <<: *build-china-stemcell-task
-            <<: *cn-north-attributes
-            output_mapping: {light-stemcell: cn-light-stemcell}
+          - aggregate:
+            - <<: *build-china-north-stemcell-task
+            - <<: *build-china-northwest-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
