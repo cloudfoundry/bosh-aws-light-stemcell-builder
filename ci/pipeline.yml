@@ -75,29 +75,31 @@ shared:
       input-stemcell: cn-input-stemcell
       builder-src: cn-builder-src
   - &cn-params
-    ami_description: {{publish__ami_description}}
-    ami_encrypted: {{publish__ami_encrypted}}
-    ami_kms_key_id: {{publish__ami_kms_key_id}}
-    ami_visibility: {{publish__ami_visibility}}
-    ami_access_key: {{publish__cn_access_key}}
-    ami_secret_key: {{publish__cn_secret_key}}
-    ami_server_side_encryption: {{publish__cn_server_side_encryption}}
+    ami_description: ((publish__ami_description))
+    ami_encrypted: ((publish__ami_encrypted))
+    ami_kms_key_id: ((publish__ami_kms_key_id))
+    ami_visibility: ((publish__ami_visibility))
+    ami_access_key: ((publish__cn_access_key))
+    ami_secret_key: ((publish__cn_secret_key))
+    ami_server_side_encryption: ((publish__cn_server_side_encryption))
     ami_destinations: []
     ami_virtualization_type: hvm
   - &cn-north-attributes
     task: build-china-north-stemcell
-    output_mapping: {light-stemcell: cn-north-light-stemcell}
+    output_mapping:
+      light-stemcell: cn-north-light-stemcell
     params:
       <<: *cn-params
-      ami_region: {{publish__cn_north_region}}
-      ami_bucket_name: {{publish__cn_bucket}}
+      ami_region: ((publish__cn_north_region))
+      ami_bucket_name: ((publish__cn_bucket))
   - &cn-northwest-attributes
     task: build-china-northwest-stemcell
-    output_mapping: {light-stemcell: cn-northwest-light-stemcell}
+    output_mapping:
+      light-stemcell: cn-northwest-light-stemcell
     params:
       <<: *cn-params
-      ami_region: {{publish__cn_northwest_region}}
-      ami_bucket_name: {{publish__cn_northwest_bucket}}
+      ami_region: ((publish__cn_northwest_region))
+      ami_bucket_name: ((publish__cn_northwest_bucket))
   - &build-china-north-stemcell-task
     <<: *build-china-stemcell-task
     <<: *cn-north-attributes
@@ -110,17 +112,18 @@ shared:
     input_mapping:
       input-stemcell: us_gov-input-stemcell
       builder-src: us_gov-builder-src
-    output_mapping: {light-stemcell: us_gov-light-stemcell}
+    output_mapping:
+      light-stemcell: us_gov-light-stemcell
     params:
-      ami_description: {{publish__ami_description}}
-      ami_encrypted: {{publish__ami_encrypted}}
-      ami_kms_key_id: {{publish__ami_kms_key_id}}
-      ami_visibility: {{publish__ami_visibility}}
-      ami_region: {{publish__us-gov_region}}
-      ami_access_key: {{publish__us-gov_access_key}}
-      ami_secret_key: {{publish__us-gov_secret_key}}
-      ami_bucket_name: {{publish__us-gov_bucket}}
-      ami_server_side_encryption: {{publish__us-gov_server_side_encryption}}
+      ami_description: ((publish__ami_description))
+      ami_encrypted: ((publish__ami_encrypted))
+      ami_kms_key_id: ((publish__ami_kms_key_id))
+      ami_visibility: ((publish__ami_visibility))
+      ami_region: ((publish__us-gov_region))
+      ami_access_key: ((publish__us-gov_access_key))
+      ami_secret_key: ((publish__us-gov_secret_key))
+      ami_bucket_name: ((publish__us-gov_bucket))
+      ami_server_side_encryption: ((publish__us-gov_server_side_encryption))
       ami_destinations: []
       ami_virtualization_type: hvm
   - &build-us-stemcell-task
@@ -129,17 +132,18 @@ shared:
     input_mapping:
       input-stemcell: us-input-stemcell
       builder-src: us-builder-src
-    output_mapping: {light-stemcell: us-light-stemcell}
+    output_mapping:
+      light-stemcell: us-light-stemcell
     params:
-      ami_description: {{publish__ami_description}}
-      ami_encrypted: {{publish__ami_encrypted}}
-      ami_kms_key_id: {{publish__ami_kms_key_id}}
-      ami_visibility: {{publish__ami_visibility}}
-      ami_region: {{publish__us_region}}
-      ami_access_key: {{publish__us_access_key}}
-      ami_secret_key: {{publish__us_secret_key}}
-      ami_bucket_name: {{publish__us_bucket}}
-      ami_server_side_encryption: {{publish__us_server_side_encryption}}
+      ami_description: ((publish__ami_description))
+      ami_encrypted: ((publish__ami_encrypted))
+      ami_kms_key_id: ((publish__ami_kms_key_id))
+      ami_visibility: ((publish__ami_visibility))
+      ami_region: ((publish__us_region))
+      ami_access_key: ((publish__us_access_key))
+      ami_secret_key: ((publish__us_secret_key))
+      ami_bucket_name: ((publish__us_bucket))
+      ami_server_side_encryption: ((publish__us_server_side_encryption))
       ami_virtualization_type: hvm
   - &merge-builds-task
     task: merge-builds
@@ -157,20 +161,20 @@ shared:
     input_mapping:
       builder-src: us-builder-src
     params:
-      AWS_ACCESS_KEY_ID: {{output__bucket_access_key}}
-      AWS_SECRET_ACCESS_KEY: {{output__bucket_secret_key}}
-      AWS_DEFAULT_REGION: {{output__region}}
-      OUTPUT_BUCKET: {{output__bucket}}
+      AWS_ACCESS_KEY_ID: ((output__bucket_access_key))
+      AWS_SECRET_ACCESS_KEY: ((output__bucket_secret_key))
+      AWS_DEFAULT_REGION: ((output__region))
+      OUTPUT_BUCKET: ((output__bucket))
   - &publish-dev-test-stemcell-and-checksum
     task: publish-dev-test-stemcell-and-checksum
     file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
     input_mapping:
       builder-src: us-builder-src
     params:
-      AWS_ACCESS_KEY_ID: {{dev_test_output__bucket_access_key}}
-      AWS_SECRET_ACCESS_KEY: {{dev_test_output__bucket_secret_key}}
-      AWS_DEFAULT_REGION: {{dev_test_output__region}}
-      OUTPUT_BUCKET: {{dev_test_output__bucket}}
+      AWS_ACCESS_KEY_ID: ((dev_test_output__bucket_access_key))
+      AWS_SECRET_ACCESS_KEY: ((dev_test_output__bucket_secret_key))
+      AWS_DEFAULT_REGION: ((dev_test_output__region))
+      OUTPUT_BUCKET: ((dev_test_output__bucket))
 
 jobs:
   - name: test-unit
@@ -191,16 +195,16 @@ jobs:
       - task: test
         file: builder-src/ci/tasks/test-drivers.yml
         params:
-          access_key:                 {{test__access_key}}
-          secret_key:                 {{test__secret_key}}
-          bucket_name:                {{test__bucket_name}}
-          region:                     {{test__region}}
-          copy_region:                {{test__copy_region}}
-          ami_fixture_id:             {{test__ami_fixture_id}}
-          kms_key_id:                 {{test__kms_key_id}}
-          existing_volume_id:         {{test__volume_fixture_id}}
-          existing_snapshot_id:       {{test__snapshot_fixture_id}}
-          uploaded_machine_image_url: {{test__machine_image_fixture_url}}
+          access_key:                 ((test__access_key))
+          secret_key:                 ((test__secret_key))
+          bucket_name:                ((test__bucket_name))
+          region:                     ((test__region))
+          copy_region:                ((test__copy_region))
+          ami_fixture_id:             ((test__ami_fixture_id))
+          kms_key_id:                 ((test__kms_key_id))
+          existing_volume_id:         ((test__volume_fixture_id))
+          existing_snapshot_id:       ((test__snapshot_fixture_id))
+          uploaded_machine_image_url: ((test__machine_image_fixture_url))
 
   - name: test-integration
     serial: true
@@ -211,15 +215,15 @@ jobs:
       - task: test
         file: builder-src/ci/tasks/test-integration.yml
         params:
-          access_key:                 {{test__access_key}}
-          secret_key:                 {{test__secret_key}}
-          bucket_name:                {{test__bucket_name}}
-          region:                     {{test__region}}
-          copy_region:                {{test__copy_region}}
-          cn_access_key:              {{test__cn_access_key}}
-          cn_secret_key:              {{test__cn_secret_key}}
-          cn_bucket_name:             {{test__cn_bucket_name}}
-          cn_region:                  {{test__cn_region}}
+          access_key:                 ((test__access_key))
+          secret_key:                 ((test__secret_key))
+          bucket_name:                ((test__bucket_name))
+          region:                     ((test__region))
+          copy_region:                ((test__copy_region))
+          cn_access_key:              ((test__cn_access_key))
+          cn_secret_key:              ((test__cn_secret_key))
+          cn_bucket_name:             ((test__cn_bucket_name))
+          cn_region:                  ((test__cn_region))
 
   - name: publish-ubuntu-trusty-3363
     serial: true
@@ -240,9 +244,11 @@ jobs:
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *merge-builds-task
-      - get: stemcells-index
-      - *publish-stemcell-and-checksum
-      - *put-stemcells-index
+      - put: stemcells-lts-index
+        params:
+          files:
+          - light-stemcell/*.tgz
+          version: us-input-stemcell/.resource/version
 
   - name: publish-ubuntu-trusty-3421
     serial: true
@@ -482,7 +488,7 @@ resources:
     source:
       uri: git@github.com:bosh-io/stemcells-cpi-index.git
       branch: master
-      private_key: {{stemcells_index__github_key}}
+      private_key: ((stemcells_index__github_key))
 
   - name: builder-src
     type: git
@@ -490,12 +496,38 @@ resources:
       uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder
       branch: master
 
-  - name: ubuntu-trusty-stemcell-3363
-    type: bosh-io-stemcell
+  - name: stemcells-lts-index
+    type: metalink-repository
     source:
-      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-      force_regular: true
-      version_family: "3363"
+      uri: ((lts_light_stemcells_uri))
+      options:
+        private_key: ((lts_stemcells_private_key))
+      url_handlers:
+      - type: s3
+        include:
+        - (s3|https)://.*
+        options:
+          access_key: ((lts_light_bucket_access_key)) # make bucket
+          secret_key: ((lts_light_bucket_secret_key))
+      mirror_files:
+      - destination: "s3://s3.amazonaws.com/((lts_light_bucket_name))/{{.Name}}"
+
+  - name: ubuntu-trusty-stemcell-3363
+    type: metalink-repository
+    source:
+      uri: ((lts_stemcells_uri))
+      options:
+        private_key: ((lts_stemcells_private_key))
+      version: 3363.x
+      include_files:
+      - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+      url_handlers:
+      - type: s3
+        include:
+        - (s3|https)://.*
+        options:
+          access_key: ((lts_heavy_bucket_access_key)) # make bucket
+          secret_key: ((lts_heavy_bucket_secret_key))
 
   - name: ubuntu-trusty-stemcell-3421
     type: bosh-io-stemcell
@@ -551,3 +583,9 @@ resources:
     source:
       name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
       force_regular: true
+
+resource_types:
+- name: metalink-repository
+  type: docker-image
+  source:
+    repository: dpb587/metalink-repository-resource
