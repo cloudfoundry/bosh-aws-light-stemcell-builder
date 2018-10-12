@@ -1,0 +1,23 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: dpb587/metalink-repository-resource
+
+inputs:
+- name: light-stemcell
+- name: us-input-stemcell
+- name: builder-src
+
+run:
+  path: builder-src/ci/tasks/push-metalink-repository.sh
+
+params:
+  access_key: ~
+  secret_key: ~
+  git_private_key: ~
+  uri: ~
+  version: ~
+  bucket_name: ~
