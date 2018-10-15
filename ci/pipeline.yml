@@ -510,7 +510,7 @@ resources:
           access_key: ((lts_light_bucket_access_key)) # make bucket
           secret_key: ((lts_light_bucket_secret_key))
       mirror_files:
-      - destination: "s3://s3.amazonaws.com/((lts_light_bucket_name))/{{.Name}}"
+      - destination: "s3://s3.amazonaws.com/((lts_light_bucket_name))/aws/light/{{.Name}}"
 
   - name: ubuntu-trusty-stemcell-3363
     type: metalink-repository
