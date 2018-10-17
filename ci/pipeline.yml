@@ -232,7 +232,7 @@ jobs:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-trusty-stemcell-3363
+              resource: ubuntu-trusty-stemcell-3363-lts
             - *get-china-builder-src
           - aggregate:
             - <<: *build-china-north-stemcell-task
@@ -240,7 +240,7 @@ jobs:
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-trusty-stemcell-3363
+              resource: ubuntu-trusty-stemcell-3363-lts
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *merge-builds-task
@@ -514,7 +514,7 @@ resources:
       mirror_files:
       - destination: "s3://s3.amazonaws.com/((lts_light_bucket_name))/aws/light/{{.Name}}"
 
-  - name: ubuntu-trusty-stemcell-3363
+  - name: ubuntu-trusty-stemcell-3363-lts
     type: metalink-repository
     source:
       uri: ((lts_stemcells_uri))
