@@ -257,7 +257,7 @@ jobs:
         - do:
           - aggregate:
             - <<: *get-china-stemcell
-              resource: ubuntu-trusty-stemcell-3421
+              resource: ubuntu-trusty-stemcell-3421-lts
             - *get-china-builder-src
           - aggregate:
             - <<: *build-china-north-stemcell-task
@@ -265,19 +265,21 @@ jobs:
         - do:
           - aggregate:
             - <<: *get-us_gov-stemcell
-              resource: ubuntu-trusty-stemcell-3421
+              resource: ubuntu-trusty-stemcell-3421-lts
             - *get-us_gov-builder-src
           - *build-us_gov-stemcell-task
         - do:
           - aggregate:
             - <<: *get-us-stemcell
-              resource: ubuntu-trusty-stemcell-3421
+              resource: ubuntu-trusty-stemcell-3421-lts
             - *get-us-builder-src
           - *build-us-stemcell-task
       - *us_gov-merge-builds-task
-      - get: stemcells-index
-      - *publish-stemcell-and-checksum
-      - *put-stemcells-index
+      - put: stemcells-lts-index
+        params:
+          files:
+          - light-stemcell/*.tgz
+          version: us-input-stemcell/.resource/version
 
   - name: publish-ubuntu-trusty-3445
     serial: true
@@ -529,12 +531,22 @@ resources:
           access_key: ((lts_heavy_bucket_access_key)) # make bucket
           secret_key: ((lts_heavy_bucket_secret_key))
 
-  - name: ubuntu-trusty-stemcell-3421
-    type: bosh-io-stemcell
+  - name: ubuntu-trusty-stemcell-3421-lts
+    type: metalink-repository
     source:
-      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-      force_regular: true
-      version_family: "3421"
+      uri: ((lts_stemcells_uri))
+      options:
+        private_key: ((lts_stemcells_private_key))
+      version: 3421.x
+      include_files:
+      - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+      url_handlers:
+      - type: s3
+        include:
+        - (s3|https)://.*
+        options:
+          access_key: ((lts_heavy_bucket_access_key)) # make bucket
+          secret_key: ((lts_heavy_bucket_secret_key))
 
   - name: ubuntu-trusty-stemcell-3445
     type: bosh-io-stemcell
