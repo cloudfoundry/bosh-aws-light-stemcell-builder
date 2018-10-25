@@ -553,7 +553,7 @@ resources:
   - name: ubuntu-trusty-stemcell-3445-lts
     type: metalink-repository
     source:
-     uri: ((lts_stemcells_uri))
+      uri: ((lts_stemcells_uri))
       options:
         private_key: ((lts_stemcells_private_key))
       version: 3421.x
