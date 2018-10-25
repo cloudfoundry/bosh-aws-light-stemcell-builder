@@ -556,7 +556,7 @@ resources:
       uri: ((lts_stemcells_uri))
       options:
         private_key: ((lts_stemcells_private_key))
-      version: 3421.x
+      version: 3445.x
       include_files:
       - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
       url_handlers:
