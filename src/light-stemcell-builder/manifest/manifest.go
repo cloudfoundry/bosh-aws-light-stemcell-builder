@@ -16,10 +16,11 @@ import (
 type Manifest struct {
 	Name            string          `yaml:"name"`
 	Version         string          `yaml:"version"`
+	ApiVersion      string          `yaml:"api_version"`
 	BoshProtocol    string          `yaml:"bosh_protocol"`
 	Sha1            string          `yaml:"sha1"`
 	OperatingSystem string          `yaml:"operating_system"`
-	StemcellFormats []string				`yaml:"stemcell_formats"`
+	StemcellFormats []string        `yaml:"stemcell_formats"`
 	CloudProperties CloudProperties `yaml:"cloud_properties"`
 	PublishedAmis   []resources.Ami `yaml:"-"`
 }

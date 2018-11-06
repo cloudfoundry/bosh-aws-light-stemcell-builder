@@ -17,6 +17,7 @@ var _ = Describe("Manifest", func() {
 		manifestBytes = []byte(`
 name: bosh-aws-xen-ubuntu-trusty-go_agent
 version: blah
+api_version: 2
 bosh_protocol: 1
 sha1: some-sha
 operating_system: ubuntu-trusty
@@ -60,6 +61,7 @@ cloud_properties:
 
 			Expect(resultManifest.Name).To(Equal("bosh-aws-xen-ubuntu-trusty-go_agent"))
 			Expect(resultManifest.Version).To(Equal("blah"))
+			Expect(resultManifest.ApiVersion).To(Equal("2"))
 			Expect(resultManifest.BoshProtocol).To(Equal("1"))
 			Expect(resultManifest.Sha1).To(Equal("some-sha"))
 			Expect(resultManifest.OperatingSystem).To(Equal("ubuntu-trusty"))
@@ -98,6 +100,7 @@ cloud_properties:
 					manifestBytes = []byte(`
 name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
 version: blah
+api_version: 2
 bosh_protocol: 1
 sha1: some-sha
 operating_system: ubuntu-trusty
