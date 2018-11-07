@@ -16,7 +16,7 @@ import (
 type Manifest struct {
 	Name            string          `yaml:"name"`
 	Version         string          `yaml:"version"`
-	ApiVersion      string          `yaml:"api_version"`
+	ApiVersion      int             `yaml:"api_version,omitempty"`
 	BoshProtocol    string          `yaml:"bosh_protocol"`
 	Sha1            string          `yaml:"sha1"`
 	OperatingSystem string          `yaml:"operating_system"`
