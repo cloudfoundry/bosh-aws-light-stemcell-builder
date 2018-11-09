@@ -5,10 +5,9 @@ import (
 	"light-stemcell-builder/manifest"
 	"light-stemcell-builder/resources"
 
-	"gopkg.in/yaml.v2"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var _ = Describe("Manifest", func() {
@@ -69,6 +68,7 @@ cloud_properties:
 			Expect(resultManifest.StemcellFormats).To(ContainElement("aws-light"))
 			Expect(resultManifest.CloudProperties.Amis).To(HaveLen(1))
 			Expect(resultManifest.CloudProperties.Amis["fake-region"]).To(Equal("fake-ami-id"))
+			Expect(resultManifest.CloudProperties.Infrastructure).To(Equal("aws"))
 		})
 
 		Context("When it's a stemcell with the HVM virtualization type", func() {

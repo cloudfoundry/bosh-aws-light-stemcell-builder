@@ -8,7 +8,7 @@ import (
 	"light-stemcell-builder/resources"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Manifest represents the stemcell manifest. We don't care about anything
@@ -28,9 +28,10 @@ type Manifest struct {
 // RegionToAmiMapping is a simple map of AWS region to AMI ID in that region
 type RegionToAmiMapping map[string]string
 
-// CloudProperties contains only our region to AMI ID mapping
+// CloudProperties contains our region to AMI ID mapping and Infrastructure
 type CloudProperties struct {
-	Amis RegionToAmiMapping `yaml:"ami"`
+	Infrastructure string             `yaml:"infrastructure"`
+	Amis           RegionToAmiMapping `yaml:"ami"`
 }
 
 // NewFromReader creates a new manifest from the YAML stored in the reader
