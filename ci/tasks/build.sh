@@ -50,7 +50,7 @@ wget --spider "$bosh_io_light_stemcell_url"
 if [[ "$?" == "0" ]]; then
   echo "AWS light stemcell '$light_stemcell_name' already exists!"
   echo "You can download here: $bosh_io_light_stemcell_url"
-  exit 1
+  # exit 1
 fi
 set -e
 
