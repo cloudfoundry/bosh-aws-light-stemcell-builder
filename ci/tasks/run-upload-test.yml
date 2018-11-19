@@ -8,8 +8,10 @@ image_resource:
 inputs:
   - name: bosh-cpi-src
   - name: environment
-  - name: light-stemcell
+  - name: stemcell
   - name: director-state
+  - name: builder-src
+  - name: bosh-cli
 
 run:
   path: builder-src/ci/tasks/run-upload-test.sh
