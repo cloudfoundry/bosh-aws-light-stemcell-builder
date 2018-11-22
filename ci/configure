@@ -1,3 +1,10 @@
+#!/usr/bin/env bash
+
+if [[ $(lpass status -q && echo $?) != 0 ]]; then
+  echo "Login with lpass first"
+  exit 1
+fi
+
 fly -t cpi set-pipeline \
   -p light-aws-stemcells \
   -c $SRC/ci/pipeline.yml \
