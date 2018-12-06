@@ -36,6 +36,13 @@ shared:
   params:
     repository: stemcells-index-output
     rebase: true
+- &put-stemcells-lts-index
+  attempts: 3
+  put: stemcells-lts-index
+  params:
+    files:
+    - light-stemcell/*.tgz
+    version: us-input-stemcell/.resource/version
 - &get-china-stemcell
   get: cn-input-stemcell
   version: every
@@ -306,11 +313,7 @@ jobs:
       - *teardown
       - *ensure-terminated
       - *delete-env
-  - put: stemcells-lts-index
-    params:
-      files:
-      - light-stemcell/*.tgz
-      version: us-input-stemcell/.resource/version
+  - *put-stemcells-lts-index
 
 - name: build-test-publish-ubuntu-trusty-3421
   serial: true
@@ -348,11 +351,7 @@ jobs:
       - *teardown
       - *ensure-terminated
       - *delete-env
-  - put: stemcells-lts-index
-    params:
-      files:
-      - light-stemcell/*.tgz
-      version: us-input-stemcell/.resource/version
+  - *put-stemcells-lts-index
 
 - name: build-test-publish-ubuntu-trusty-3445
   serial: true
@@ -390,11 +389,7 @@ jobs:
       - *teardown
       - *ensure-terminated
       - *delete-env
-  - put: stemcells-lts-index
-    params:
-      files:
-      - light-stemcell/*.tgz
-      version: us-input-stemcell/.resource/version
+  - *put-stemcells-lts-index
 
 - name: build-test-publish-ubuntu-trusty-3468
   serial: true
@@ -432,11 +427,7 @@ jobs:
       - *teardown
       - *ensure-terminated
       - *delete-env
-  - put: stemcells-lts-index
-    params:
-      files:
-      - light-stemcell/*.tgz
-      version: us-input-stemcell/.resource/version
+  - *put-stemcells-lts-index
 
 - name: build-test-publish-centos-7-3541
   serial: true
