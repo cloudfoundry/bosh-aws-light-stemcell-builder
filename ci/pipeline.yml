@@ -211,14 +211,12 @@ shared:
 - &create-env
   put: environment
   params:
-    env_name: bosh-upload-stemcell
     delete_on_failure: true
     generate_random_name: true
     terraform_source: bosh-cpi-src/ci/assets/terraform
 - &delete-env
   put: environment
   params:
-    env_name: bosh-upload-stemcell
     action: destroy
     env_name_file: environment/name
     terraform_source: bosh-cpi-src/ci/assets/terraform
