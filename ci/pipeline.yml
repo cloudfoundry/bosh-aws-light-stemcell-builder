@@ -13,7 +13,8 @@ groups:
   - build-test-publish-ubuntu-trusty-3468
   - build-test-publish-ubuntu-trusty-3541
   - build-test-publish-ubuntu-trusty-3586
-  - build-test-publish-ubuntu-xenial
+  - build-test-publish-ubuntu-xenial-97
+  - build-test-publish-ubuntu-xenial-170
 - name: "centos-7"
   jobs:
   - build-test-publish-centos-7-3541
@@ -28,7 +29,8 @@ groups:
   - build-test-publish-ubuntu-trusty-3586
 - name: "ubuntu-xenial"
   jobs:
-  - build-test-publish-ubuntu-xenial
+  - build-test-publish-ubuntu-xenial-97
+  - build-test-publish-ubuntu-xenial-170
 
 shared:
 - &put-stemcells-index
@@ -589,14 +591,14 @@ jobs:
     - *publish-stemcell-and-checksum
     - *put-stemcells-index
 
-- name: build-test-publish-ubuntu-xenial
+- name: build-test-publish-ubuntu-xenial-97
   serial: true
   plan:
     - aggregate:
       - do:
         - aggregate:
           - <<: *get-china-stemcell
-            resource: ubuntu-xenial-stemcell
+            resource: ubuntu-xenial-stemcell-97
           - *get-china-builder-src
         - aggregate:
           - <<: *build-china-north-stemcell-task
@@ -604,13 +606,53 @@ jobs:
       - do:
         - aggregate:
           - <<: *get-us_gov-stemcell
-            resource: ubuntu-xenial-stemcell
+            resource: ubuntu-xenial-stemcell-97
           - *get-us_gov-builder-src
         - *build-us_gov-stemcell-task
       - do:
         - aggregate:
           - <<: *get-us-stemcell
-            resource: ubuntu-xenial-stemcell
+            resource: ubuntu-xenial-stemcell-97
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+    - *us_gov-merge-builds-task
+    - do:
+      - *get-test-resources
+      - *create-env
+      - *prepare-director
+      - *deploy-director
+      - *run-upload-test
+      ensure:
+        do:
+        - *teardown
+        - *ensure-terminated
+        - *delete-env
+    - get: stemcells-index
+    - *publish-stemcell-and-checksum
+    - *put-stemcells-index
+
+- name: build-test-publish-ubuntu-xenial-170
+  serial: true
+  plan:
+    - aggregate:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-xenial-stemcell-170
+          - *get-china-builder-src
+        - aggregate:
+          - <<: *build-china-north-stemcell-task
+          - <<: *build-china-northwest-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-xenial-stemcell-170
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-xenial-stemcell-170
           - *get-us-builder-src
         - *build-us-stemcell-task
     - *us_gov-merge-builds-task
@@ -753,11 +795,19 @@ resources:
     force_regular: true
     version_family: "3586"
 
-- name: ubuntu-xenial-stemcell
+- name: ubuntu-xenial-stemcell-97
   type: bosh-io-stemcell
   source:
     name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
     force_regular: true
+    version_family: "97"
+
+- name: ubuntu-xenial-stemcell-170
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
+    force_regular: true
+    version_family: "170"
 
 - name: bosh-cpi-src-in
   type: git
