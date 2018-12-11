@@ -5,7 +5,6 @@ groups:
   - test-unit
   - test-drivers
   - test-integration
-  - build-test-publish-centos-7-3541
   - build-test-publish-centos-7-3586
   - build-test-publish-ubuntu-trusty-3363
   - build-test-publish-ubuntu-trusty-3421
@@ -17,7 +16,6 @@ groups:
   - build-test-publish-ubuntu-xenial-170
 - name: "centos-7"
   jobs:
-  - build-test-publish-centos-7-3541
   - build-test-publish-centos-7-3586
 - name: "ubuntu-trusty"
   jobs:
@@ -431,35 +429,6 @@ jobs:
       - *delete-env
   - *put-stemcells-lts-index
 
-- name: build-test-publish-centos-7-3541
-  serial: true
-  plan:
-  - aggregate:
-    - do:
-      - aggregate:
-        - <<: *get-china-stemcell
-          resource: centos-7-stemcell-3541
-        - *get-china-builder-src
-      - aggregate:
-        - <<: *build-china-north-stemcell-task
-        - <<: *build-china-northwest-stemcell-task
-    - do:
-      - aggregate:
-        - <<: *get-us_gov-stemcell
-          resource: centos-7-stemcell-3541
-        - *get-us_gov-builder-src
-      - *build-us_gov-stemcell-task
-    - do:
-      - aggregate:
-        - <<: *get-us-stemcell
-          resource: centos-7-stemcell-3541
-        - *get-us-builder-src
-      - *build-us-stemcell-task
-  - *us_gov-merge-builds-task
-  - get: stemcells-index
-  - *publish-stemcell-and-checksum
-  - *put-stemcells-index
-
 - name: build-test-publish-ubuntu-trusty-3541
   serial: true
   plan:
@@ -467,7 +436,7 @@ jobs:
       - do:
         - aggregate:
           - <<: *get-china-stemcell
-            resource: ubuntu-trusty-stemcell-3541
+            resource: ubuntu-trusty-stemcell-3541-lts
           - *get-china-builder-src
         - aggregate:
           - <<: *build-china-north-stemcell-task
@@ -475,13 +444,13 @@ jobs:
       - do:
         - aggregate:
           - <<: *get-us_gov-stemcell
-            resource: ubuntu-trusty-stemcell-3541
+            resource: ubuntu-trusty-stemcell-3541-lts
           - *get-us_gov-builder-src
         - *build-us_gov-stemcell-task
       - do:
         - aggregate:
           - <<: *get-us-stemcell
-            resource: ubuntu-trusty-stemcell-3541
+            resource: ubuntu-trusty-stemcell-3541-lts
           - *get-us-builder-src
         - *build-us-stemcell-task
     - *us_gov-merge-builds-task
@@ -496,9 +465,11 @@ jobs:
         - *teardown
         - *ensure-terminated
         - *delete-env
-    - get: stemcells-index
-    - *publish-stemcell-and-checksum
-    - *put-stemcells-index
+    - put: stemcells-lts-index
+      params:
+        files:
+        - light-stemcell/*.tgz
+        version: us-input-stemcell/.resource/version
 
 - name: build-test-publish-centos-7-3586
   serial: true
@@ -745,19 +716,22 @@ resources:
         access_key: ((lts_heavy_bucket_access_key))
         secret_key: ((lts_heavy_bucket_secret_key))
 
-- name: ubuntu-trusty-stemcell-3541
-  type: bosh-io-stemcell
+- name: ubuntu-trusty-stemcell-3541-lts
+  type: metalink-repository
   source:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    force_regular: true
-    version_family: "3541"
-
-- name: centos-7-stemcell-3541
-  type: bosh-io-stemcell
-  source:
-    name: bosh-aws-xen-hvm-centos-7-go_agent
-    force_regular: true
-    version_family: "3541"
+    uri: ((lts_stemcells_uri))
+    options:
+      private_key: ((lts_stemcells_private_key))
+    version: 3541.x
+    include_files:
+    - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+    url_handlers:
+    - type: s3
+      include:
+      - (s3|https)://.*
+      options:
+        access_key: ((lts_heavy_bucket_access_key))
+        secret_key: ((lts_heavy_bucket_secret_key))
 
 - name: ubuntu-trusty-stemcell-3586
   type: bosh-io-stemcell
