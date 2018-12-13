@@ -631,7 +631,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder
-    branch: add-ls-test-#161883259
+    branch: master
 - name: stemcells-lts-index
   type: metalink-repository
   source:
