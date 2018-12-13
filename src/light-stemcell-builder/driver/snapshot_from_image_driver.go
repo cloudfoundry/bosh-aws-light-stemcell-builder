@@ -98,7 +98,7 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 func (d *SDKSnapshotFromImageDriver) waitUntilImportSnapshotTaskCompleted(input *ec2.DescribeImportSnapshotTasksInput) error {
 	waiterCfg := waiter.Config{
 		Operation:   "DescribeImportSnapshotTasks",
-		Delay:       30,
+		Delay:       60,
 		MaxAttempts: 60,
 		Acceptors: []waiter.WaitAcceptor{
 			{
