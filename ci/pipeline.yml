@@ -5,7 +5,7 @@ groups:
   - test-unit
   - test-drivers
   - test-integration
-  - build-test-publish-centos-7-3586
+  - build-test-publish-centos-7-3763
   - build-test-publish-ubuntu-trusty-3363
   - build-test-publish-ubuntu-trusty-3421
   - build-test-publish-ubuntu-trusty-3445
@@ -16,7 +16,7 @@ groups:
   - build-test-publish-ubuntu-xenial-170
 - name: "centos-7"
   jobs:
-  - build-test-publish-centos-7-3586
+  - build-test-publish-centos-7-3763
 - name: "ubuntu-trusty"
   jobs:
   - build-test-publish-ubuntu-trusty-3363
@@ -471,14 +471,14 @@ jobs:
         - light-stemcell/*.tgz
         version: us-input-stemcell/.resource/version
 
-- name: build-test-publish-centos-7-3586
+- name: build-test-publish-centos-7-3763
   serial: true
   plan:
     - aggregate:
       - do:
         - aggregate:
           - <<: *get-china-stemcell
-            resource: centos-7-stemcell-3586
+            resource: centos-7-stemcell-3763
           - *get-china-builder-src
         - aggregate:
           - <<: *build-china-north-stemcell-task
@@ -486,13 +486,13 @@ jobs:
       - do:
         - aggregate:
           - <<: *get-us_gov-stemcell
-            resource: centos-7-stemcell-3586
+            resource: centos-7-stemcell-3763
           - *get-us_gov-builder-src
         - *build-us_gov-stemcell-task
       - do:
         - aggregate:
           - <<: *get-us-stemcell
-            resource: centos-7-stemcell-3586
+            resource: centos-7-stemcell-3763
           - *get-us-builder-src
         - *build-us-stemcell-task
     - *us_gov-merge-builds-task
@@ -740,12 +740,12 @@ resources:
     force_regular: true
     version_family: "3586"
 
-- name: centos-7-stemcell-3586
+- name: centos-7-stemcell-3763
   type: bosh-io-stemcell
   source:
     name: bosh-aws-xen-hvm-centos-7-go_agent
     force_regular: true
-    version_family: "3586"
+    version_family: "3763"
 
 - name: ubuntu-xenial-stemcell-97
   type: bosh-io-stemcell
