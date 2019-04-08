@@ -1,0 +1,22 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/light-stemcell-builder}
+
+inputs:
+- name: builder-src
+- name: cn-north-light-stemcell
+- name: cn-northwest-light-stemcell
+- name: us-light-stemcell
+
+outputs:
+- name: light-stemcell
+
+run:
+  path: builder-src/ci/tasks/merge-builds
+  args:
+    - cn-north-light-stemcell
+    - cn-northwest-light-stemcell
+    - us-light-stemcell

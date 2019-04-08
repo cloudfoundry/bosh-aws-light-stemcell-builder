@@ -1,0 +1,872 @@
+---
+groups:
+- name: all-aws
+  jobs:
+  - test-unit
+  - test-drivers
+  - test-integration
+  - build-test-publish-centos-7-3586
+  - build-test-publish-ubuntu-trusty-3363
+  - build-test-publish-ubuntu-trusty-3421
+  - build-test-publish-ubuntu-trusty-3445
+  - build-test-publish-ubuntu-trusty-3468
+  - build-test-publish-ubuntu-trusty-3541
+  - build-test-publish-ubuntu-trusty-3586
+  - build-test-publish-ubuntu-xenial-97
+  - build-test-publish-ubuntu-xenial-170
+  - build-test-publish-ubuntu-xenial-250
+- name: "centos-7"
+  jobs:
+  - build-test-publish-centos-7-3586
+- name: "ubuntu-trusty"
+  jobs:
+  - build-test-publish-ubuntu-trusty-3363
+  - build-test-publish-ubuntu-trusty-3421
+  - build-test-publish-ubuntu-trusty-3445
+  - build-test-publish-ubuntu-trusty-3468
+  - build-test-publish-ubuntu-trusty-3541
+  - build-test-publish-ubuntu-trusty-3586
+- name: "ubuntu-xenial"
+  jobs:
+  - build-test-publish-ubuntu-xenial-97
+  - build-test-publish-ubuntu-xenial-170
+  - build-test-publish-ubuntu-xenial-250
+
+shared:
+- &put-stemcells-index
+  put: stemcells-index
+  params:
+    repository: stemcells-index-output
+    rebase: true
+- &put-stemcells-lts-index
+  attempts: 3
+  put: stemcells-lts-index
+  params:
+    files:
+    - light-stemcell/*.tgz
+    version: us-input-stemcell/.resource/version
+- &get-china-stemcell
+  get: cn-input-stemcell
+  version: every
+  tags: [asia]
+  trigger: true
+  params:
+    preserve_filename: true
+- &get-us_gov-stemcell
+  get: us_gov-input-stemcell
+  version: every
+  trigger: true
+  params:
+    preserve_filename: true
+- &get-us-stemcell
+  get: us-input-stemcell
+  version: every
+  trigger: true
+  params:
+    preserve_filename: true
+- &get-china-builder-src
+  get: cn-builder-src
+  tags: [asia]
+  resource: builder-src
+  passed: [test-unit, test-integration, test-drivers]
+- &get-us_gov-builder-src
+  get: us_gov-builder-src
+  resource: builder-src
+  passed: [test-unit, test-integration, test-drivers]
+- &get-us-builder-src
+  get: us-builder-src
+  resource: builder-src
+  #passed: [test-unit, test-integration, test-drivers]
+- &build-china-stemcell-task
+  file: cn-builder-src/ci/tasks/build.yml
+  tags: [asia]
+  input_mapping:
+    input-stemcell: cn-input-stemcell
+    builder-src: cn-builder-src
+- &cn-params
+  ami_description: ((publish__ami_description))
+  ami_encrypted: ((publish__ami_encrypted))
+  ami_kms_key_id: ((publish__ami_kms_key_id))
+  ami_visibility: ((publish__ami_visibility))
+  ami_access_key: ((publish__cn_access_key))
+  ami_secret_key: ((publish__cn_secret_key))
+  ami_server_side_encryption: ((publish__cn_server_side_encryption))
+  ami_destinations: []
+  ami_virtualization_type: hvm
+- &cn-north-attributes
+  task: build-china-north-stemcell
+  output_mapping:
+    light-stemcell: cn-north-light-stemcell
+  params:
+    <<: *cn-params
+    ami_region: ((publish__cn_north_region))
+    ami_bucket_name: ((publish__cn_bucket))
+- &cn-northwest-attributes
+  task: build-china-northwest-stemcell
+  output_mapping:
+    light-stemcell: cn-northwest-light-stemcell
+  params:
+    <<: *cn-params
+    ami_region: ((publish__cn_northwest_region))
+    ami_bucket_name: ((publish__cn_northwest_bucket))
+- &build-china-north-stemcell-task
+  <<: *build-china-stemcell-task
+  <<: *cn-north-attributes
+- &build-china-northwest-stemcell-task
+  <<: *build-china-stemcell-task
+  <<: *cn-northwest-attributes
+- &build-us_gov-stemcell-task
+  task: build-us_gov-stemcell
+  file: us_gov-builder-src/ci/tasks/build.yml
+  input_mapping:
+    input-stemcell: us_gov-input-stemcell
+    builder-src: us_gov-builder-src
+  output_mapping:
+    light-stemcell: us_gov-light-stemcell
+  params:
+    ami_description: ((publish__ami_description))
+    ami_encrypted: ((publish__ami_encrypted))
+    ami_kms_key_id: ((publish__ami_kms_key_id))
+    ami_visibility: ((publish__ami_visibility))
+    ami_region: ((publish__us-gov_region))
+    ami_access_key: ((publish__us-gov_access_key))
+    ami_secret_key: ((publish__us-gov_secret_key))
+    ami_bucket_name: ((publish__us-gov_bucket))
+    ami_server_side_encryption: ((publish__us-gov_server_side_encryption))
+    ami_destinations: []
+    ami_virtualization_type: hvm
+- &build-us-stemcell-task
+  task: build-us-stemcell
+  file: us-builder-src/ci/tasks/build.yml
+  input_mapping:
+    input-stemcell: us-input-stemcell
+    builder-src: us-builder-src
+  output_mapping:
+    light-stemcell: us-light-stemcell
+  params:
+    ami_description: ((publish__ami_description))
+    ami_encrypted: ((publish__ami_encrypted))
+    ami_kms_key_id: ((publish__ami_kms_key_id))
+    ami_visibility: ((publish__ami_visibility))
+    ami_region: ((publish__us_region))
+    ami_access_key: ((publish__us_access_key))
+    ami_secret_key: ((publish__us_secret_key))
+    ami_bucket_name: ((publish__us_bucket))
+    ami_server_side_encryption: ((publish__us_server_side_encryption))
+    ami_virtualization_type: hvm
+- &merge-builds-task
+  task: merge-builds
+  file: us-builder-src/ci/tasks/merge-builds.yml
+  input_mapping:
+    builder-src: us-builder-src
+- &us_gov-merge-builds-task
+  task: merge-builds
+  file: us-builder-src/ci/tasks/us_gov-merge-builds.yml
+  input_mapping:
+    builder-src: us-builder-src
+- &publish-stemcell-and-checksum
+  task: publish-stemcell-and-checksum
+  file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
+  input_mapping:
+    builder-src: us-builder-src
+  params:
+    AWS_ACCESS_KEY_ID: ((output__bucket_access_key))
+    AWS_SECRET_ACCESS_KEY: ((output__bucket_secret_key))
+    AWS_DEFAULT_REGION: ((output__region))
+    OUTPUT_BUCKET: ((output__bucket))
+- &publish-dev-test-stemcell-and-checksum
+  task: publish-dev-test-stemcell-and-checksum
+  file: us-builder-src/ci/tasks/publish-stemcell-and-checksum.yml
+  input_mapping:
+    builder-src: us-builder-src
+  params:
+    AWS_ACCESS_KEY_ID: ((dev_test_output__bucket_access_key))
+    AWS_SECRET_ACCESS_KEY: ((dev_test_output__bucket_secret_key))
+    AWS_DEFAULT_REGION: ((dev_test_output__region))
+    OUTPUT_BUCKET: ((dev_test_output__bucket))
+- &prepare-director
+  task: prepare-director
+  file: pipelines/shared/tasks/prepare-director.yml
+  input_mapping:
+    stemcell: light-stemcell
+  params:
+    INFRASTRUCTURE:     aws
+    DIRECTOR_VARS_FILE: ((alpha_aws_director_vars_file))
+    OPTIONAL_OPS_FILE: |
+          -o pipelines/shared/assets/ops/remove-hm.yml
+          -o bosh-deployment/external-ip-with-registry-not-recommended.yml
+          -o pipelines/shared/assets/ops/remove-provider-cert.yml
+- &ensure-terminated
+  task: ensure-terminated
+  file: bosh-cpi-src/ci/tasks/ensure-terminated.yml
+  params:
+    AWS_ACCESS_KEY_ID: ((alpha_aws_access_key__primary))
+    AWS_SECRET_ACCESS_KEY: ((alpha_aws_secret_key__primary))
+    AWS_DEFAULT_REGION: ((alpha_aws_region__primary))
+- &teardown
+  task: teardown
+  file: pipelines/shared/tasks/teardown.yml
+- &deploy-director
+  task: deploy-director
+  file: pipelines/shared/tasks/deploy-director.yml
+  input_mapping:
+    stemcell: light-stemcell
+- &run-upload-test
+  task: run-stemcell-upload-tests
+  file: us-builder-src/ci/tasks/run-upload-test.yml
+  input_mapping:
+    stemcell: light-stemcell
+    builder-src: us-builder-src
+- &create-env
+  put: environment
+  params:
+    delete_on_failure: true
+    generate_random_name: true
+    terraform_source: bosh-cpi-src/ci/assets/terraform
+- &delete-env
+  put: environment
+  params:
+    action: destroy
+    env_name_file: environment/name
+    terraform_source: bosh-cpi-src/ci/assets/terraform
+  get_params:
+    action: destroy
+- &get-test-resources
+  aggregate:
+  - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in}
+  - {get: cpi-release,     trigger: false, resource: bosh-cpi-dev-artifacts}
+  - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
+  - {get: bosh-deployment, trigger: false}
+  - {get: bosh-cli,        trigger: false}
+  - get: pipelines
+
+jobs:
+- name: test-unit
+  serial: true
+  plan:
+    - get: builder-src
+      resource: builder-src
+      trigger: true
+    - task: test
+      file: builder-src/ci/tasks/test-unit.yml
+
+- name: test-drivers
+  serial: true
+  plan:
+    - get: builder-src
+      resource: builder-src
+      trigger: true
+    - task: test
+      file: builder-src/ci/tasks/test-drivers.yml
+      params:
+        access_key:                 ((test__access_key))
+        secret_key:                 ((test__secret_key))
+        bucket_name:                ((test__bucket_name))
+        region:                     ((test__region))
+        copy_region:                ((test__copy_region))
+        ami_fixture_id:             ((test__ami_fixture_id))
+        kms_key_id:                 ((test__kms_key_id))
+        existing_volume_id:         ((test__volume_fixture_id))
+        existing_snapshot_id:       ((test__snapshot_fixture_id))
+        uploaded_machine_image_url: ((test__machine_image_fixture_url))
+
+- name: test-integration
+  serial: true
+  plan:
+    - get: builder-src
+      resource: builder-src
+      trigger: true
+    - task: test
+      file: builder-src/ci/tasks/test-integration.yml
+      params:
+        access_key:                 ((test__access_key))
+        secret_key:                 ((test__secret_key))
+        bucket_name:                ((test__bucket_name))
+        region:                     ((test__region))
+        copy_region:                ((test__copy_region))
+        cn_access_key:              ((test__cn_access_key))
+        cn_secret_key:              ((test__cn_secret_key))
+        cn_bucket_name:             ((test__cn_bucket_name))
+        cn_region:                  ((test__cn_region))
+
+- name: build-test-publish-ubuntu-trusty-3363
+  serial: true
+  plan:
+  - aggregate:
+    - *get-us-builder-src
+    - <<: *get-china-stemcell
+      resource: ubuntu-trusty-stemcell-3363-lts
+    - *get-china-builder-src
+    - <<: *get-us-stemcell
+      resource: ubuntu-trusty-stemcell-3363-lts
+  - aggregate:
+    - *build-china-north-stemcell-task
+    - *build-china-northwest-stemcell-task
+    - *build-us-stemcell-task
+  - *merge-builds-task
+  - do:
+    - *get-test-resources
+    - *create-env
+    - *prepare-director
+    - *deploy-director
+    - *run-upload-test
+    ensure:
+      do:
+      - *teardown
+      - *ensure-terminated
+      - *delete-env
+  - *put-stemcells-lts-index
+
+- name: build-test-publish-ubuntu-trusty-3421
+  serial: true
+  plan:
+  - aggregate:
+    - do:
+      - aggregate:
+        - <<: *get-china-stemcell
+          resource: ubuntu-trusty-stemcell-3421-lts
+        - *get-china-builder-src
+      - aggregate:
+        - <<: *build-china-north-stemcell-task
+        - <<: *build-china-northwest-stemcell-task
+    - do:
+      - aggregate:
+        - <<: *get-us_gov-stemcell
+          resource: ubuntu-trusty-stemcell-3421-lts
+        - *get-us_gov-builder-src
+      - *build-us_gov-stemcell-task
+    - do:
+      - aggregate:
+        - <<: *get-us-stemcell
+          resource: ubuntu-trusty-stemcell-3421-lts
+        - *get-us-builder-src
+      - *build-us-stemcell-task
+  - *us_gov-merge-builds-task
+  - do:
+    - *get-test-resources
+    - *create-env
+    - *prepare-director
+    - *deploy-director
+    - *run-upload-test
+    ensure:
+      do:
+      - *teardown
+      - *ensure-terminated
+      - *delete-env
+  - *put-stemcells-lts-index
+
+- name: build-test-publish-ubuntu-trusty-3445
+  serial: true
+  plan:
+  - aggregate:
+    - do:
+      - aggregate:
+        - <<: *get-china-stemcell
+          resource: ubuntu-trusty-stemcell-3445-lts
+        - *get-china-builder-src
+      - aggregate:
+        - <<: *build-china-north-stemcell-task
+        - <<: *build-china-northwest-stemcell-task
+    - do:
+      - aggregate:
+        - <<: *get-us_gov-stemcell
+          resource: ubuntu-trusty-stemcell-3445-lts
+        - *get-us_gov-builder-src
+      - *build-us_gov-stemcell-task
+    - do:
+      - aggregate:
+        - <<: *get-us-stemcell
+          resource: ubuntu-trusty-stemcell-3445-lts
+        - *get-us-builder-src
+      - *build-us-stemcell-task
+  - *us_gov-merge-builds-task
+  - do:
+    - *get-test-resources
+    - *create-env
+    - *prepare-director
+    - *deploy-director
+    - *run-upload-test
+    ensure:
+      do:
+      - *teardown
+      - *ensure-terminated
+      - *delete-env
+  - *put-stemcells-lts-index
+
+- name: build-test-publish-ubuntu-trusty-3468
+  serial: true
+  plan:
+  - aggregate:
+    - do:
+      - aggregate:
+        - <<: *get-china-stemcell
+          resource: ubuntu-trusty-stemcell-3468-lts
+        - *get-china-builder-src
+      - aggregate:
+        - <<: *build-china-north-stemcell-task
+        - <<: *build-china-northwest-stemcell-task
+    - do:
+      - aggregate:
+        - <<: *get-us_gov-stemcell
+          resource: ubuntu-trusty-stemcell-3468-lts
+        - *get-us_gov-builder-src
+      - *build-us_gov-stemcell-task
+    - do:
+      - aggregate:
+        - <<: *get-us-stemcell
+          resource: ubuntu-trusty-stemcell-3468-lts
+        - *get-us-builder-src
+      - *build-us-stemcell-task
+  - *us_gov-merge-builds-task
+  - do:
+    - *get-test-resources
+    - *create-env
+    - *prepare-director
+    - *deploy-director
+    - *run-upload-test
+    ensure:
+      do:
+      - *teardown
+      - *ensure-terminated
+      - *delete-env
+  - *put-stemcells-lts-index
+
+- name: build-test-publish-ubuntu-trusty-3541
+  serial: true
+  plan:
+    - aggregate:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-trusty-stemcell-3541-lts
+          - *get-china-builder-src
+        - aggregate:
+          - <<: *build-china-north-stemcell-task
+          - <<: *build-china-northwest-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-trusty-stemcell-3541-lts
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-trusty-stemcell-3541-lts
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+    - *us_gov-merge-builds-task
+    - do:
+      - *get-test-resources
+      - *create-env
+      - *prepare-director
+      - *deploy-director
+      - *run-upload-test
+      ensure:
+        do:
+        - *teardown
+        - *ensure-terminated
+        - *delete-env
+    - put: stemcells-lts-index
+      params:
+        files:
+        - light-stemcell/*.tgz
+        version: us-input-stemcell/.resource/version
+
+- name: build-test-publish-centos-7-3586
+  serial: true
+  plan:
+    - aggregate:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: centos-7-stemcell-3586
+          - *get-china-builder-src
+        - aggregate:
+          - <<: *build-china-north-stemcell-task
+          - <<: *build-china-northwest-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: centos-7-stemcell-3586
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: centos-7-stemcell-3586
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+    - *us_gov-merge-builds-task
+    - get: stemcells-index
+    - *publish-stemcell-and-checksum
+    - *put-stemcells-index
+
+- name: build-test-publish-ubuntu-trusty-3586
+  serial: true
+  plan:
+    - aggregate:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-trusty-stemcell-3586
+          - *get-china-builder-src
+        - aggregate:
+          - <<: *build-china-north-stemcell-task
+          - <<: *build-china-northwest-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-trusty-stemcell-3586
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-trusty-stemcell-3586
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+    - *us_gov-merge-builds-task
+    - do:
+      - *get-test-resources
+      - *create-env
+      - *prepare-director
+      - *deploy-director
+      - *run-upload-test
+      ensure:
+        do:
+        - *teardown
+        - *ensure-terminated
+        - *delete-env
+    - get: stemcells-index
+    - *publish-stemcell-and-checksum
+    - *put-stemcells-index
+
+- name: build-test-publish-ubuntu-xenial-97
+  serial: true
+  plan:
+    - aggregate:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-xenial-stemcell-97
+          - *get-china-builder-src
+        - aggregate:
+          - <<: *build-china-north-stemcell-task
+          - <<: *build-china-northwest-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-xenial-stemcell-97
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-xenial-stemcell-97
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+    - *us_gov-merge-builds-task
+    - do:
+      - *get-test-resources
+      - *create-env
+      - *prepare-director
+      - *deploy-director
+      - *run-upload-test
+      ensure:
+        do:
+        - *teardown
+        - *ensure-terminated
+        - *delete-env
+    - get: stemcells-index
+    - *publish-stemcell-and-checksum
+    - *put-stemcells-index
+
+- name: build-test-publish-ubuntu-xenial-170
+  serial: true
+  plan:
+    - aggregate:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-xenial-stemcell-170
+          - *get-china-builder-src
+        - aggregate:
+          - <<: *build-china-north-stemcell-task
+          - <<: *build-china-northwest-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-xenial-stemcell-170
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-xenial-stemcell-170
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+    - *us_gov-merge-builds-task
+    - do:
+      - *get-test-resources
+      - *create-env
+      - *prepare-director
+      - *deploy-director
+      - *run-upload-test
+      ensure:
+        do:
+        - *teardown
+        - *ensure-terminated
+        - *delete-env
+    - get: stemcells-index
+    - *publish-stemcell-and-checksum
+    - *put-stemcells-index
+
+- name: build-test-publish-ubuntu-xenial-250
+  serial: true
+  plan:
+    - aggregate:
+      - do:
+        - aggregate:
+          - <<: *get-china-stemcell
+            resource: ubuntu-xenial-stemcell-250
+          - *get-china-builder-src
+        - aggregate:
+          - <<: *build-china-north-stemcell-task
+          - <<: *build-china-northwest-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us_gov-stemcell
+            resource: ubuntu-xenial-stemcell-250
+          - *get-us_gov-builder-src
+        - *build-us_gov-stemcell-task
+      - do:
+        - aggregate:
+          - <<: *get-us-stemcell
+            resource: ubuntu-xenial-stemcell-250
+          - *get-us-builder-src
+        - *build-us-stemcell-task
+    - *us_gov-merge-builds-task
+    - do:
+      - *get-test-resources
+      - *create-env
+      - *prepare-director
+      - *deploy-director
+      - *run-upload-test
+      ensure:
+        do:
+        - *teardown
+        - *ensure-terminated
+        - *delete-env
+    - get: stemcells-index
+    - *publish-stemcell-and-checksum
+    - *put-stemcells-index
+
+resources:
+- name: stemcells-index
+  type: git
+  source:
+    uri: git@github.com:bosh-io/stemcells-cpi-index.git
+    branch: master
+    private_key: ((stemcells_index__github_key))
+- name: builder-src
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder
+    branch: master
+- name: stemcells-lts-index
+  type: metalink-repository
+  source:
+    uri: ((lts_light_stemcells_uri))
+    options:
+      private_key: ((lts_stemcells_private_key))
+    url_handlers:
+    - type: s3
+      include:
+      - (s3|https)://.*
+      options:
+        access_key: ((lts_light_bucket_access_key))
+        secret_key: ((lts_light_bucket_secret_key))
+    mirror_files:
+    - destination: "s3://s3.amazonaws.com/((lts_light_bucket_name))/aws/light/{{.Name}}"
+
+- name: ubuntu-trusty-stemcell-3363-lts
+  type: metalink-repository
+  source:
+    uri: ((lts_stemcells_uri))
+    options:
+      private_key: ((lts_stemcells_private_key))
+    version: 3363.x
+    include_files:
+    - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+    url_handlers:
+    - type: s3
+      include:
+      - (s3|https)://.*
+      options:
+        access_key: ((lts_heavy_bucket_access_key))
+        secret_key: ((lts_heavy_bucket_secret_key))
+
+- name: ubuntu-trusty-stemcell-3421-lts
+  type: metalink-repository
+  source:
+    uri: ((lts_stemcells_uri))
+    options:
+      private_key: ((lts_stemcells_private_key))
+    version: 3421.x
+    include_files:
+    - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+    url_handlers:
+    - type: s3
+      include:
+      - (s3|https)://.*
+      options:
+        access_key: ((lts_heavy_bucket_access_key))
+        secret_key: ((lts_heavy_bucket_secret_key))
+
+- name: ubuntu-trusty-stemcell-3445-lts
+  type: metalink-repository
+  source:
+    uri: ((lts_stemcells_uri))
+    options:
+      private_key: ((lts_stemcells_private_key))
+    version: 3445.x
+    include_files:
+    - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+    url_handlers:
+    - type: s3
+      include:
+      - (s3|https)://.*
+      options:
+        access_key: ((lts_heavy_bucket_access_key))
+        secret_key: ((lts_heavy_bucket_secret_key))
+
+- name: ubuntu-trusty-stemcell-3468-lts
+  type: metalink-repository
+  source:
+    uri: ((lts_stemcells_uri))
+    options:
+      private_key: ((lts_stemcells_private_key))
+    version: 3468.x
+    include_files:
+    - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+    url_handlers:
+    - type: s3
+      include:
+      - (s3|https)://.*
+      options:
+        access_key: ((lts_heavy_bucket_access_key))
+        secret_key: ((lts_heavy_bucket_secret_key))
+
+- name: ubuntu-trusty-stemcell-3541-lts
+  type: metalink-repository
+  source:
+    uri: ((lts_stemcells_uri))
+    options:
+      private_key: ((lts_stemcells_private_key))
+    version: 3541.x
+    include_files:
+    - bosh-stemcell-*-aws-xen-hvm-ubuntu-trusty-go_agent.tgz
+    url_handlers:
+    - type: s3
+      include:
+      - (s3|https)://.*
+      options:
+        access_key: ((lts_heavy_bucket_access_key))
+        secret_key: ((lts_heavy_bucket_secret_key))
+
+- name: ubuntu-trusty-stemcell-3586
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+    force_regular: true
+    version_family: "3586"
+
+- name: centos-7-stemcell-3586
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-centos-7-go_agent
+    force_regular: true
+    version_family: "3586"
+
+- name: ubuntu-xenial-stemcell-97
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
+    force_regular: true
+    version_family: "97"
+
+- name: ubuntu-xenial-stemcell-170
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
+    force_regular: true
+    version_family: "170"
+
+- name: ubuntu-xenial-stemcell-250
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
+    force_regular: true
+    version_family: "250"
+
+- name: bosh-cpi-src-in
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/bosh-aws-cpi-release.git
+    branch: master
+    ignore_paths:
+      - .final_builds/**/*.yml
+      - releases/**/*.yml
+- name: environment
+  type: terraform_type
+  source:
+    storage:
+      access_key_id:     ((alpha_aws_access_key__primary))
+      secret_access_key: ((alpha_aws_secret_key__primary))
+      bucket:            ((alpha_terraform_bucket))
+      bucket_path:       terraform-state
+    vars:
+      access_key: ((alpha_aws_access_key__primary))
+      secret_key: ((alpha_aws_secret_key__primary))
+      region:     ((alpha_aws_region__primary))
+      public_key: ((alpha_pipeline_public_key))
+- name: pipelines
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/bosh-cpi-certification
+    branch: master
+- name: bosh-cli
+  type: s3
+  source:
+    regexp: bosh-cli-([0-9.]+)-linux-amd64
+    bucket: bosh-cli-artifacts
+    region_name: us-east-1
+- name: precompiled-bosh-release
+  type: s3
+  source:
+    bucket: bosh-compiled-release-tarballs
+    regexp: bosh-(262)-ubuntu-trusty-3421.3-20170601-224719-625105306-20170601224724.tgz
+- name: bosh-deployment
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-deployment
+    branch: master
+- name: bosh-cpi-dev-artifacts
+  type: s3
+  source:
+    regexp: bosh-aws-cpi-(\d+\.\d+\.\d+)\.tgz
+    bucket: bosh-aws-cpi-pipeline
+    region_name: us-east-1
+    access_key_id: ((alpha_cpi_access_key__primary))
+    secret_access_key: ((alpha_cpi_secret_key__primary))
+
+resource_types:
+- name: metalink-repository
+  type: docker-image
+  source:
+    repository: dpb587/metalink-repository-resource
+- name: terraform_type
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
