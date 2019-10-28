@@ -57,13 +57,6 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 
 	var reqInput *ec2.RegisterImageInput
 	switch driverConfig.VirtualizationType {
-	case resources.PvAmiVirtualization:
-		kernelID, err := d.findLatestKernelImage()
-		if err != nil {
-			return resources.Ami{}, fmt.Errorf("generating register image request for PV AMI: %s", err)
-		}
-
-		reqInput = reqinputs.NewPVAmiRequest(amiName, driverConfig.Description, driverConfig.SnapshotID, kernelID)
 	case resources.HvmAmiVirtualization:
 		reqInput = reqinputs.NewHVMAmiRequestInput(amiName, driverConfig.Description, driverConfig.SnapshotID)
 	}

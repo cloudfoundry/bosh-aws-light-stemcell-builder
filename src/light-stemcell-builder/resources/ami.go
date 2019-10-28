@@ -6,7 +6,6 @@ const (
 	PrivateAmiAccessibility = "private"
 	AmiArchitecture         = "x86_64"
 	HvmAmiVirtualization    = "hvm"
-	PvAmiVirtualization     = "paravirtual"
 )
 
 // AmiDriver abstracts the API calls required to build an AMI

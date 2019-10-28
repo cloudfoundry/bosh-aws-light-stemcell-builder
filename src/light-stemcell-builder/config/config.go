@@ -7,7 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -17,7 +17,6 @@ const (
 
 const (
 	HardwareAssistedVirtualization = "hvm"
-	Paravirtualization             = "paravirtual"
 )
 
 var isolated = map[string]bool{
@@ -107,10 +106,9 @@ func (config *Config) validate() error {
 
 	validVirtualization := map[string]bool{
 		HardwareAssistedVirtualization: true,
-		Paravirtualization:             true,
 	}
 	if !validVirtualization[config.AmiConfiguration.VirtualizationType] {
-		return errors.New("virtualization_type must be one of: ['hvm', 'paravirtual']")
+		return errors.New("virtualization_type must be one of: ['hvm']")
 	}
 
 	validVisibility := map[string]bool{
