@@ -79,15 +79,7 @@ func (d *SDKCreateMachineImageDriver) Create(driverConfig resources.MachineImage
 
 	d.logger.Printf("finished uploaded image to s3 after %f minutes\n", time.Since(uploadStartTime).Minutes())
 
-	getReq, _ := d.s3Client.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(driverConfig.BucketName),
-		Key:    aws.String(keyName),
-	})
-
-	machineImageGetURL, err := getReq.Presign(2 * time.Hour)
-	if err != nil {
-		return resources.MachineImage{}, fmt.Errorf("failed to sign GET request: %s", err)
-	}
+	machineImageGetURL := "s3://" + driverConfig.BucketName + "/" + keyName
 
 	d.logger.Printf("generated presigned GET URL %s\n", machineImageGetURL)
 
