@@ -35,10 +35,7 @@ var _ = Describe("Main", func() {
 
 		// US Region
 		usAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(usAccessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
-
 		usSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(usSecretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
 
 		usRegion := os.Getenv("AWS_REGION")
 		Expect(usRegion).ToNot(BeEmpty(), "AWS_REGION must be set")
@@ -64,10 +61,7 @@ var _ = Describe("Main", func() {
 
 		// China Region
 		cnAccessKey := os.Getenv("AWS_CN_ACCESS_KEY_ID")
-		Expect(cnAccessKey).ToNot(BeEmpty(), "AWS_CN_ACCESS_KEY_ID must be set")
-
 		cnSecretKey := os.Getenv("AWS_CN_SECRET_ACCESS_KEY")
-		Expect(cnSecretKey).ToNot(BeEmpty(), "AWS_CN_SECRET_ACCESS_KEY must be set")
 
 		cnRegion := os.Getenv("AWS_CN_REGION")
 		Expect(cnRegion).ToNot(BeEmpty(), "AWS_CN_REGION must be set")

@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -30,7 +29,7 @@ type SDKCreateVolumeDriver struct {
 func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCreateVolumeDriver {
 	logger := log.New(logDest, "SDKCreateVolumeDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
+		WithCredentials(awsCreds(creds)).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 

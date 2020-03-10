@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -34,7 +33,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	dstRegion := driverConfig.DestinationRegion
 
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(d.creds.AccessKey, d.creds.SecretKey, "")).
+		WithCredentials(awsCreds(d.creds)).
 		WithRegion(dstRegion).
 		WithLogger(newDriverLogger(d.logger))
 

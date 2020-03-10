@@ -118,20 +118,6 @@ var _ = Describe("Config", func() {
 			})
 		})
 
-		Context("given a 'region' config with invalid 'credentials'", func() {
-			It("returns an error", func() {
-				_, err := parseConfig(baseJSON, func(c *config.Config) {
-					c.AmiRegions[0].Credentials.AccessKey = ""
-				})
-				Expect(err).To(MatchError("access_key must be specified for credentials"))
-
-				_, err = parseConfig(baseJSON, func(c *config.Config) {
-					c.AmiRegions[0].Credentials.SecretKey = ""
-				})
-				Expect(err).To(MatchError("secret_key must be specified for credentials"))
-			})
-		})
-
 		Context("given a 'region' config without 'bucket_name'", func() {
 			It("returns an error", func() {
 				_, err := parseConfig(baseJSON, func(c *config.Config) {
