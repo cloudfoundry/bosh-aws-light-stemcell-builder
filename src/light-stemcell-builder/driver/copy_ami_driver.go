@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -154,30 +154,10 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 }
 
 func (d *SDKCopyAmiDriver) waitUntilImageAvailable(input *ec2.DescribeImagesInput, c *ec2.EC2) error {
-	waiterCfg := waiter.Config{
-		Operation:   "DescribeImages",
-		Delay:       15,
-		MaxAttempts: 240,
-		Acceptors: []waiter.WaitAcceptor{
-			{
-				State:    "success",
-				Matcher:  "pathAll",
-				Argument: "Images[].State",
-				Expected: "available",
-			},
-			{
-				State:    "failure",
-				Matcher:  "pathAny",
-				Argument: "Images[].State",
-				Expected: "failed",
-			},
-		},
+	ctx := aws.BackgroundContext()
+	opts := []request.WaiterOption{
+		request.WithWaiterDelay(request.ConstantWaiterDelay(15 * time.Second)),
+		request.WithWaiterMaxAttempts(240),
 	}
-
-	w := waiter.Waiter{
-		Client: c,
-		Input:  input,
-		Config: waiterCfg,
-	}
-	return w.Wait()
+	return c.WaitUntilImageAvailableWithContext(ctx, input, opts...)
 }

@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -110,7 +110,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	}
 
 	waitStartTime := time.Now()
-	err = d.waitUntilImageConversionTaskCompleted(taskFilter)
+	err = d.waitUntilImageConversionTaskCompleted(taskFilter, d.ec2Client)
 	d.logger.Printf("waited on import task %s for %f minutes\n", *conversionTaskIDptr, time.Since(waitStartTime).Minutes())
 
 	if err != nil {
@@ -135,37 +135,11 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	return resources.Volume{ID: *volumeIDptr}, nil
 }
 
-func (d *SDKCreateVolumeDriver) waitUntilImageConversionTaskCompleted(input *ec2.DescribeConversionTasksInput) error {
-	waiterCfg := waiter.Config{
-		Operation:   "DescribeConversionTasks",
-		Delay:       15,
-		MaxAttempts: 120,
-		Acceptors: []waiter.WaitAcceptor{
-			{
-				State:    "success",
-				Matcher:  "pathAll",
-				Argument: "ConversionTasks[].State",
-				Expected: "completed",
-			},
-			{
-				State:    "failure",
-				Matcher:  "pathAny",
-				Argument: "ConversionTasks[].State",
-				Expected: "cancelled",
-			},
-			{
-				State:    "failure",
-				Matcher:  "pathAny",
-				Argument: "ConversionTasks[].State",
-				Expected: "cancelling",
-			},
-		},
+func (d *SDKCreateVolumeDriver) waitUntilImageConversionTaskCompleted(input *ec2.DescribeConversionTasksInput, c *ec2.EC2) error {
+	ctx := aws.BackgroundContext()
+	opts := []request.WaiterOption{
+		request.WithWaiterDelay(request.ConstantWaiterDelay(15 * time.Second)),
+		request.WithWaiterMaxAttempts(120),
 	}
-
-	w := waiter.Waiter{
-		Client: d.ec2Client,
-		Input:  input,
-		Config: waiterCfg,
-	}
-	return w.Wait()
+	return c.WaitUntilConversionTaskCompletedWithContext(ctx, input, opts...)
 }

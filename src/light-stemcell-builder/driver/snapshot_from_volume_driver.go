@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -65,7 +65,7 @@ func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriv
 	waitStartTime := time.Now()
 	err = d.waitUntilSnapshotCompleted(&ec2.DescribeSnapshotsInput{
 		SnapshotIds: []*string{reqOutput.SnapshotId},
-	})
+	}, d.ec2Client)
 	if err != nil {
 		return resources.Snapshot{}, fmt.Errorf("waiting for snapshot to complete: %s", err)
 	}
@@ -76,25 +76,11 @@ func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriv
 	return resources.Snapshot{ID: *reqOutput.SnapshotId}, nil
 }
 
-func (d *SDKSnapshotFromVolumeDriver) waitUntilSnapshotCompleted(input *ec2.DescribeSnapshotsInput) error {
-	waiterCfg := waiter.Config{
-		Operation:   "DescribeSnapshots",
-		Delay:       15,
-		MaxAttempts: 60, //Default MaxAttempts is 40
-		Acceptors: []waiter.WaitAcceptor{
-			{
-				State:    "success",
-				Matcher:  "pathAll",
-				Argument: "Snapshots[].State",
-				Expected: "completed",
-			},
-		},
+func (d *SDKSnapshotFromVolumeDriver) waitUntilSnapshotCompleted(input *ec2.DescribeSnapshotsInput, c *ec2.EC2) error {
+	ctx := aws.BackgroundContext()
+	opts := []request.WaiterOption{
+		request.WithWaiterDelay(request.ConstantWaiterDelay(15 * time.Second)),
+		request.WithWaiterMaxAttempts(60),
 	}
-
-	w := waiter.Waiter{
-		Client: d.ec2Client,
-		Input:  input,
-		Config: waiterCfg,
-	}
-	return w.Wait()
+	return c.WaitUntilSnapshotCompletedWithContext(ctx, input, opts...)
 }
