@@ -62,12 +62,8 @@ var _ = Describe("Main", func() {
 		// China Region
 		cnAccessKey := os.Getenv("AWS_CN_ACCESS_KEY_ID")
 		cnSecretKey := os.Getenv("AWS_CN_SECRET_ACCESS_KEY")
-
 		cnRegion := os.Getenv("AWS_CN_REGION")
-		Expect(cnRegion).ToNot(BeEmpty(), "AWS_CN_REGION must be set")
-
 		cnBucket := os.Getenv("AWS_CN_BUCKET_NAME")
-		Expect(cnBucket).ToNot(BeEmpty(), "AWS_CN_BUCKET_NAME must be set")
 
 		cfg = config.Config{
 			AmiConfiguration: config.AmiConfiguration{
@@ -85,18 +81,23 @@ var _ = Describe("Main", func() {
 					BucketName:   usBucket,
 					Destinations: usDestinations,
 				},
-				config.AmiRegion{
-					RegionName: cnRegion,
-					Credentials: config.Credentials{
-						AccessKey: cnAccessKey,
-						SecretKey: cnSecretKey,
-					},
-					BucketName: cnBucket,
-				},
 			},
 		}
 
-		expectedRegions = append(usDestinations, usRegion, cnRegion)
+		expectedRegions = append(usDestinations, usRegion)
+
+		if cnRegion != "" && cnBucket != "" {
+			cfg.AmiRegions = append(cfg.AmiRegions, config.AmiRegion{
+				RegionName: cnRegion,
+				Credentials: config.Credentials{
+					AccessKey: cnAccessKey,
+					SecretKey: cnSecretKey,
+				},
+				BucketName: cnBucket,
+			})
+
+			expectedRegions = append(expectedRegions, cnRegion)
+		}
 
 		integrationConfig, err := json.Marshal(cfg)
 		Expect(err).ToNot(HaveOccurred())
@@ -190,17 +191,15 @@ cloud_properties:
 			Expect(amis[region]).ToNot(BeEmpty())
 		}
 
-		usCreds := credentials.NewStaticCredentials(cfg.AmiRegions[0].Credentials.AccessKey, cfg.AmiRegions[0].Credentials.SecretKey, "")
-		cnCreds := credentials.NewStaticCredentials(cfg.AmiRegions[1].Credentials.AccessKey, cfg.AmiRegions[1].Credentials.SecretKey, "")
-
 		for region, amiID := range amis {
-
 			var awsConfig *aws.Config
 			if region == "cn-north-1" {
+				cnCreds := credentials.NewStaticCredentials(cfg.AmiRegions[1].Credentials.AccessKey, cfg.AmiRegions[1].Credentials.SecretKey, "")
 				awsConfig = aws.NewConfig().
 					WithCredentials(cnCreds).
 					WithRegion(region)
 			} else {
+				usCreds := credentials.NewStaticCredentials(cfg.AmiRegions[0].Credentials.AccessKey, cfg.AmiRegions[0].Credentials.SecretKey, "")
 				awsConfig = aws.NewConfig().
 					WithCredentials(usCreds).
 					WithRegion(region)
