@@ -39,11 +39,10 @@ wget -O ${MACHINE_IMAGE_PATH} http://tinycorelinux.net/7.x/x86_64/archive/7.1/Ti
 
 echo "Running integration tests"
 
-pushd ${release_dir} > /dev/null
-  . .envrc
+pushd ${release_dir}/src/light-stemcell-builder > /dev/null
   # TODO: re-enable errcheck (need to resolve errors found when `go get`ing)
   # go get github.com/kisielk/errcheck
   # errcheck light-stemcell-builder/...
 
-  ginkgo -v -r src/light-stemcell-builder/integration
+  ginkgo -v -r integration
 popd
