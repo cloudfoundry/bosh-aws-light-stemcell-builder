@@ -143,14 +143,6 @@ func (r *AmiRegion) validate() error {
 		return errors.New("bucket_name must be specified for ami_regions entries")
 	}
 
-	if r.Credentials.AccessKey == "" {
-		return errors.New("access_key must be specified for credentials")
-	}
-
-	if r.Credentials.SecretKey == "" {
-		return errors.New("secret_key must be specified for credentials")
-	}
-
 	if r.Credentials.Region == "" {
 		return errors.New("region must be specified for credentials")
 	}

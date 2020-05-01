@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
@@ -35,7 +34,7 @@ type SDKCreateAmiDriver struct {
 func NewCreateAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCreateAmiDriver {
 	logger := log.New(logDest, "SDKCreateAmiDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
+		WithCredentials(awsCreds(creds)).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 

@@ -9,9 +9,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -27,7 +26,7 @@ type SDKSnapshotFromImageDriver struct {
 func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SDKSnapshotFromImageDriver {
 	logger := log.New(logDest, "SDKSnapshotFromImageDriver ", log.LstdFlags)
 	awsConfig := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")).
+		WithCredentials(awsCreds(creds)).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
@@ -60,7 +59,7 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	}
 
 	waitStartTime := time.Now()
-	err = d.waitUntilImportSnapshotTaskCompleted(taskFilter)
+	err = d.waitUntilImportSnapshotTaskCompleted(taskFilter, d.ec2Client)
 	if err != nil {
 		return resources.Snapshot{}, fmt.Errorf("waiting for snapshot to become available: %s", err)
 	}
@@ -95,37 +94,45 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	return resources.Snapshot{ID: *snapshotIDptr}, nil
 }
 
-func (d *SDKSnapshotFromImageDriver) waitUntilImportSnapshotTaskCompleted(input *ec2.DescribeImportSnapshotTasksInput) error {
-	waiterCfg := waiter.Config{
-		Operation:   "DescribeImportSnapshotTasks",
-		Delay:       60,
+func (d *SDKSnapshotFromImageDriver) waitUntilImportSnapshotTaskCompleted(input *ec2.DescribeImportSnapshotTasksInput, c *ec2.EC2) error {
+	ctx := aws.BackgroundContext()
+	w := request.Waiter{
+		Name:        "WaitUntilImportSnapshotTasksCompleted",
 		MaxAttempts: 60,
-		Acceptors: []waiter.WaitAcceptor{
+		Delay:       request.ConstantWaiterDelay(60 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
 			{
-				State:    "success",
-				Matcher:  "pathAll",
+				State:    request.SuccessWaiterState,
+				Matcher:  request.PathAllWaiterMatch,
 				Argument: "ImportSnapshotTasks[].SnapshotTaskDetail.Status",
 				Expected: "completed",
 			},
 			{
-				State:    "failure",
-				Matcher:  "pathAny",
+				State:    request.FailureWaiterState,
+				Matcher:  request.PathAnyWaiterMatch,
 				Argument: "ImportSnapshotTasks[].SnapshotTaskDetail.Status",
 				Expected: "deleted",
 			},
 			{
-				State:    "failure",
-				Matcher:  "pathAny",
+				State:    request.FailureWaiterState,
+				Matcher:  request.PathAnyWaiterMatch,
 				Argument: "ImportSnapshotTasks[].SnapshotTaskDetail.Status",
 				Expected: "deleting",
 			},
 		},
+		Logger: c.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+			var inCpy *ec2.DescribeImportSnapshotTasksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeImportSnapshotTasksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
 	}
 
-	w := waiter.Waiter{
-		Client: d.ec2Client,
-		Input:  input,
-		Config: waiterCfg,
-	}
-	return w.Wait()
+	return w.WaitWithContext(ctx)
 }
