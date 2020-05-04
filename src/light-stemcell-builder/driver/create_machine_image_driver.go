@@ -81,7 +81,7 @@ func (d *SDKCreateMachineImageDriver) Create(driverConfig resources.MachineImage
 
 	machineImageGetURL := "s3://" + driverConfig.BucketName + "/" + keyName
 
-	d.logger.Printf("generated presigned GET URL %s\n", machineImageGetURL)
+	d.logger.Printf("generated S3 URL %s\n", machineImageGetURL)
 
 	deleteReq, _ := d.s3Client.DeleteObjectRequest(&s3.DeleteObjectInput{
 		Bucket: aws.String(driverConfig.BucketName),
@@ -93,7 +93,7 @@ func (d *SDKCreateMachineImageDriver) Create(driverConfig resources.MachineImage
 		return resources.MachineImage{}, fmt.Errorf("failed to sign DELETE request: %s", err)
 	}
 
-	d.logger.Printf("generated presigned GET URL %s\n", machineImageDeleteURL)
+	d.logger.Printf("generated presigned Delete URL %s\n", machineImageDeleteURL)
 
 	machineImage := resources.MachineImage{
 		GetURL:     machineImageGetURL,

@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,12 +23,12 @@ import (
 var _ = Describe("Machine Image Lifecycle", func() {
 
 	var (
-		s3Client                  *s3.S3
-		creds                     config.Credentials
-		imagePath                 string
-		imageFormat               string
-		bucketName                string
-		testMachineImageLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage))
+		s3Client                          *s3.S3
+		creds                             config.Credentials
+		imagePath                         string
+		imageFormat                       string
+		bucketName                        string
+		testMachineImageLifecycle         func(resources.MachineImageDriverConfig, ...func(resources.MachineImage))
 		testMachineImageManifestLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage, manifests.ImportVolumeManifest))
 	)
 
@@ -59,7 +60,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		Expect(bucketName).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 	})
 
-	It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
+	It("uploads a machine image to S3 with s3 URLs for GET and DELETE", func() {
 		driverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: imagePath,
 			BucketName:       bucketName,
@@ -69,7 +70,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	})
 
 	Context("when ServerSideEncryption is specified", func() {
-		It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
+		It("uploads a machine image to S3 with s3 URLs for GET and DELETE", func() {
 			driverConfig := resources.MachineImageDriverConfig{
 				MachineImagePath:     imagePath,
 				BucketName:           bucketName,
@@ -91,7 +92,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		})
 	})
 
-	It("uploads a machine image w/manifest to S3 with pre-signed URLs for GET and DELETE", func() {
+	It("uploads a machine image w/manifest to S3 with s3 URLs for GET and DELETE", func() {
 		driverConfig := resources.MachineImageDriverConfig{
 			MachineImagePath: imagePath,
 			FileFormat:       imageFormat,
@@ -103,7 +104,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	})
 
 	Context("when ServerSideEncryption is specified", func() {
-		It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
+		It("uploads a machine image to S3 with s3 URLs for GET and DELETE", func() {
 			driverConfig := resources.MachineImageDriverConfig{
 				MachineImagePath:     imagePath,
 				FileFormat:           imageFormat,
@@ -144,11 +145,15 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		machineImage, err := createDriver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		resp, err := http.Get(machineImage.GetURL)
-		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close()
+		imageURL, err := url.Parse(machineImage.GetURL)
 
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		input := &s3.GetObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(imageURL.Path),
+		}
+
+		_, err = s3Client.GetObject(input)
+		Expect(err).ToNot(HaveOccurred())
 
 		if len(cb) > 0 {
 			cb[0](machineImage)
@@ -159,9 +164,11 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		err = deleteDriver.Delete(machineImage)
 		Expect(err).ToNot(HaveOccurred())
 
-		resp, err = http.Get(machineImage.GetURL)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+		_, err = s3Client.GetObject(input)
+		Expect(err).ToHaveOccurred())
+		aerr, ok := err.(awserr.Error)
+		Expect(ok).To(BeTrue())
+		Expect(aerr.Code()).To(Equal(s3.ErrCodeNoSuchKey))
 	}
 
 	testMachineImageManifestLifecycle = func(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage, manifests.ImportVolumeManifest)) {
