@@ -165,7 +165,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		_, err = s3Client.GetObject(input)
-		Expect(err).ToHaveOccurred())
+		Expect(err).To(HaveOccurred())
 		aerr, ok := err.(awserr.Error)
 		Expect(ok).To(BeTrue())
 		Expect(aerr.Code()).To(Equal(s3.ErrCodeNoSuchKey))
