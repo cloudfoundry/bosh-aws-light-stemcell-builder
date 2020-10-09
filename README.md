@@ -18,7 +18,8 @@ Any AWS region including China is supported.
     ```
     Note: The arn for AWS GovCloud region is `aws-us-gov`. It looks like this: `"arn:aws-us-gov:s3:::<disk-image-file-bucket>"`
 1. Create an AWS IAM user and attach the policy created in steps 2, 3.
-1. Create the `vmimport` AWS role as detailed [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/VMImportPrerequisites.html#iam-permissions-image), specifying the previously created bucket in place of `<disk-image-file-bucket>`; see [example IAM policy](iam-policy.json).
+1. Create the `vmimport` AWS role as detailed [here](https://web.archive.org/web/20181210011548/https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html#import-image-prereqs), specifying the previously created bucket in place of `<disk-image-file-bucket>`; see [example IAM policy](iam-policy.json).
+  1. Updated docs are split over [vm-import](https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html) and [roles](https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#vmimport-role) now.
 1. Replicate these steps in a separate AWS China account if publishing to China.
 
 #### IAM User Setup for Integration Testing
