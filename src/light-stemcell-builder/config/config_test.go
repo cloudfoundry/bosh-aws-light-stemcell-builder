@@ -142,7 +142,7 @@ var _ = Describe("Config", func() {
 
 		Context("when given an isolated region", func() {
 			It("sets IsolatedRegion to true", func() {
-				isolatedRegions := []string{"cn-north-1", "us-gov-west-1"}
+				isolatedRegions := []string{"cn-north-1"}
 				for _, region := range isolatedRegions {
 					c, err := parseConfig(baseJSON, func(c *config.Config) {
 						c.AmiRegions[0].RegionName = region
