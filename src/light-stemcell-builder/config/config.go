@@ -20,8 +20,7 @@ const (
 )
 
 var isolated = map[string]bool{
-	"cn-north-1":    true,
-	"us-gov-west-1": true,
+	"cn-north-1": true,
 }
 
 // Convention:
