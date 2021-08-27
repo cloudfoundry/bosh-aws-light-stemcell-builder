@@ -10,6 +10,7 @@ import (
 	"light-stemcell-builder/resources"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -86,7 +87,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 		AvailabilityZone: availabilityZone,
 		Image: &ec2.DiskImageDetail{
 			ImportManifestUrl: aws.String(driverConfig.MachineImageManifestURL),
-			Format:            aws.String(m.FileFormat),
+			Format:            aws.String(strings.ToUpper(m.FileFormat)),
 			Bytes:             aws.Int64(m.VolumeSizeGB),
 		},
 		Volume: &ec2.VolumeDetail{
