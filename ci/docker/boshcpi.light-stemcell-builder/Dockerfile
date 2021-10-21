@@ -2,7 +2,7 @@ FROM ubuntu:16.04
 
 ENV BOSH_CLI_VERSION 6.2.1-linux-amd64
 ENV METALINK_VERSION 0.3.0-linux-amd64
-ENV GO_VERSION go1.13.10.linux-amd64
+ENV GO_VERSION go1.17.2.linux-amd64
 
 RUN apt update; apt -y upgrade; apt-get clean
 RUN apt install -y \
