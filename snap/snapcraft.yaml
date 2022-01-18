@@ -1,0 +1,24 @@
+name: bosh-aws-light-stemcell-builder
+summary: BOSH Light Stemcell Builder for AWS
+description: |
+  This tool takes a raw machine image and a configuration file and creates a collection of AMIs.
+  Any AWS region including China is supported.
+version: git
+grade: devel
+base: core20
+confinement: classic
+
+apps:
+  light-stemcell-builder:
+    command: light-stemcell-builder
+parts:
+  light-stemcell-builder:
+    plugin: nil
+    source-type: git
+    source: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder
+    override-build: |
+      cd src/light-stemcell-builder
+      go build
+      mv $SNAPCRAFT_PART_BUILD/src/light-stemcell-builder/light-stemcell-builder $SNAPCRAFT_PART_INSTALL/
+      snapcraftctl build
+
