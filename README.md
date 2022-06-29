@@ -43,7 +43,11 @@ Example config:
   "ami_configuration": {
     "description":          "Your description here",
     "virtualization_type":  "hvm",
-    "visibility":           "public"
+    "visibility":           "public",
+    "tags" : {
+      "distro":               "distro name, e.g. ubuntu-jammy",
+      "version":              "e.g. 1.0.0"
+    }
   },
   "ami_regions": [
     {

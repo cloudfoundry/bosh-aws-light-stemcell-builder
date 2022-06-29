@@ -33,6 +33,7 @@ func NewStandardRegionPublisher(logDest io.Writer, c Config) *StandardRegionPubl
 			VirtualizationType: c.VirtualizationType,
 			Encrypted:          c.Encrypted,
 			KmsKeyId:           c.KmsKeyId,
+			Tags:               c.Tags,
 		},
 		logger: log.New(logDest, "StandardRegionPublisher ", log.LstdFlags),
 	}

@@ -73,13 +73,50 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to be available: %s", *amiIDptr, err)
 	}
 
+	var published *string
+	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
+		published = aws.String("true")
+	} else {
+		published = aws.String("false")
+	}
+	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"])
+	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])
+	version := aws.String(driverConfig.AmiProperties.Tags["version"])
+	tags := &ec2.CreateTagsInput{
+		Resources: []*string{
+			amiIDptr,
+		},
+		Tags: []*ec2.Tag{
+			{
+				Key:   aws.String("name"),
+				Value: name,
+			},
+			{
+				Key:   aws.String("distro"),
+				Value: distro,
+			},
+			{
+				Key:   aws.String("version"),
+				Value: version,
+			},
+			{
+				Key:   aws.String("published"),
+				Value: published,
+			},
+		},
+	}
+	d.logger.Printf("tagging AMI: %s, with %s", *amiIDptr, tags)
+	_, err = ec2Client.CreateTags(tags)
+	if err != nil {
+		d.logger.Printf("Error tagging AMI: %s, Error: %s ", *amiIDptr, err.Error())
+	}
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
 		d.logger.Printf("making AMI: %s public", *amiIDptr)
 		ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{
 			ImageId: amiIDptr,
 			LaunchPermission: &ec2.LaunchPermissionModifications{
 				Add: []*ec2.LaunchPermission{
-					&ec2.LaunchPermission{
+					{
 						Group: aws.String(publicGroup),
 					},
 				},
@@ -97,7 +134,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	for i := 0; i < 100; i++ {
 		describeImagesOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{
 			Filters: []*ec2.Filter{
-				&ec2.Filter{
+				{
 					Name:   aws.String("image-id"),
 					Values: []*string{aws.String(*amiIDptr)},
 				},

@@ -77,6 +77,44 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to exist: %s", *amiIDptr, err)
 	}
+	var published *string
+	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
+		published = aws.String("true")
+	} else {
+		published = aws.String("false")
+	}
+	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"])
+	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])
+	version := aws.String(driverConfig.AmiProperties.Tags["version"])
+	tags := &ec2.CreateTagsInput{
+		Resources: []*string{
+			amiIDptr,
+		},
+		Tags: []*ec2.Tag{
+			{
+				Key:   aws.String("name"),
+				Value: name,
+			},
+			{
+				Key:   aws.String("distro"),
+				Value: distro,
+			},
+			{
+				Key:   aws.String("version"),
+				Value: version,
+			},
+			{
+				Key:   aws.String("published"),
+				Value: published,
+			},
+		},
+	}
+	d.logger.Printf("tagging AMI: %s, with %s", *amiIDptr, tags)
+	d.logger.Printf("tagging AMI: %s, with %s", *amiIDptr, tags)
+	_, err = d.ec2Client.CreateTags(tags)
+	if err != nil {
+		d.logger.Printf("Error tagging AMI: %s, Error: %s ", *amiIDptr, err.Error())
+	}
 
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
 	err = d.ec2Client.WaitUntilImageAvailable(&ec2.DescribeImagesInput{
@@ -92,7 +130,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 			ImageId: amiIDptr,
 			LaunchPermission: &ec2.LaunchPermissionModifications{
 				Add: []*ec2.LaunchPermission{
-					&ec2.LaunchPermission{
+					{
 						Group: aws.String(publicGroup),
 					},
 				},
@@ -113,7 +151,7 @@ func (d *SDKCreateAmiDriver) findLatestKernelImage() (string, error) {
 	describeImagesOutput, err := d.ec2Client.DescribeImages(&ec2.DescribeImagesInput{
 		Owners: []*string{aws.String(amazonOwner)},
 		Filters: []*ec2.Filter{
-			&ec2.Filter{
+			{
 				Name:   aws.String("name"),
 				Values: []*string{aws.String("pv-grub-hd0_*-x86_64.gz")},
 			},
