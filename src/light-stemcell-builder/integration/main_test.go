@@ -211,6 +211,12 @@ cloud_properties:
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(reqOutput.Images).To(HaveLen(1))
+			Expect(reqOutput.Images[0].Tags).To(HaveLen(4))
+			for _, tag := range reqOutput.Images[0].Tags {
+				if tag.Key == aws.String("name") {
+					Expect(tag.Value).To(Equal(aws.String("ubuntu-trusty-9999")))
+				}
+			}
 			snapshotID := reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId
 			Expect(snapshotID).ToNot(BeNil())
 			Expect(aws.BoolValue(reqOutput.Images[0].EnaSupport)).To(BeTrue())
