@@ -94,8 +94,12 @@ func main() {
 		logger.Fatalf("reading manifest: %s", err)
 	}
 
-	c.AmiConfiguration.Tags["version"] = m.Version
-	c.AmiConfiguration.Tags["distro"] = m.OperatingSystem
+	if c.AmiConfiguration.Tags == nil {
+		c.AmiConfiguration.Tags = map[string]string{
+			"version": m.Version,
+			"distro":  m.OperatingSystem,
+		}
+	}
 
 	amiCollection := collection.Ami{}
 	errCollection := collection.Error{}
