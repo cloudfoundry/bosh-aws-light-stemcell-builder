@@ -77,12 +77,6 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to exist: %s", *amiIDptr, err)
 	}
-	var published *string
-	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
-		published = aws.String("true")
-	} else {
-		published = aws.String("false")
-	}
 	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"])
 	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])
 	version := aws.String(driverConfig.AmiProperties.Tags["version"])
@@ -105,7 +99,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 			},
 			{
 				Key:   aws.String("published"),
-				Value: published,
+				Value: aws.String("false"),
 			},
 		},
 	}
