@@ -42,8 +42,11 @@ var _ = Describe("SnapshotFromVolumeDriver", func() {
 
 		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
+		awsSession, err := session.NewSession()
+		Expect(err).To(BeNil())
 
-		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
+		ec2Client := ec2.New(awsSession, &aws.Config{Region: aws.String(region)})
+
 		reqOutput, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{&snapshot.ID}})
 		Expect(err).ToNot(HaveOccurred())
 
@@ -56,5 +59,11 @@ var _ = Describe("SnapshotFromVolumeDriver", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(1))
 		Expect(*snapshotAttributes.CreateVolumePermissions[0].Group).To(Equal("all"))
+
+		//cleanup
+		_, err = ec2Client.DeleteSnapshot(&ec2.DeleteSnapshotInput{
+			SnapshotId: aws.String(snapshot.ID),
+		})
+		Expect(err).To(BeNil())
 	})
 })
