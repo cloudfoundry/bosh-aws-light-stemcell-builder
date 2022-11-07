@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
 )
@@ -56,8 +56,9 @@ var _ = Describe("CreateAmiDriver", func() {
 		ami, err := amiDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(ami.VirtualizationType).To(Equal(resources.HvmAmiVirtualization))
-
-		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(ami.Region)})
+		awsSession, err := session.NewSession()
+		Expect(err).To(BeNil())
+		ec2Client := ec2.New(awsSession, &aws.Config{Region: aws.String(ami.Region)})
 		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(ami.ID)}})
 		Expect(err).ToNot(HaveOccurred())
 
@@ -67,7 +68,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(ami.VirtualizationType))
 		Expect(*reqOutput.Images[0].EnaSupport).To(BeTrue())
 		Expect(*reqOutput.Images[0].SriovNetSupport).To(Equal("simple"))
-		Expect(*reqOutput.Images[0].Public).To(BeTrue())
+		Expect(*reqOutput.Images[0].Public).To(Equal(true))
 
 		instanceReservation, err := ec2Client.RunInstances(&ec2.RunInstancesInput{
 			ImageId:      aws.String(ami.ID),
@@ -75,7 +76,7 @@ var _ = Describe("CreateAmiDriver", func() {
 			MinCount:     aws.Int64(1),
 			MaxCount:     aws.Int64(1),
 			NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{
-				&ec2.InstanceNetworkInterfaceSpecification{
+				{
 					DeviceIndex:              aws.Int64(0),
 					AssociatePublicIpAddress: aws.Bool(true), // Associate a public address to avoid explicitly defining subnet information
 				},

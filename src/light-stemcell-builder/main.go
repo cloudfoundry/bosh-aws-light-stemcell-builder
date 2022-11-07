@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"light-stemcell-builder/collection"
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
@@ -84,7 +83,7 @@ func main() {
 		logger.Fatalf("manifest not found at: %s", *manifestPath)
 	}
 
-	manifestBytes, err := ioutil.ReadFile(*manifestPath)
+	manifestBytes, err := os.ReadFile(*manifestPath)
 	if err != nil {
 		logger.Fatalf("opening manifest: %s", err)
 	}
@@ -127,7 +126,7 @@ func main() {
 
 				amis, err := p.Publish(ds, imageConfig)
 				if err != nil {
-					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
+					errCollection.Add(fmt.Errorf("publishing AMIs to %s: %s", regionConfig.RegionName, err))
 				} else {
 					amiCollection.Merge(amis)
 				}
@@ -140,7 +139,7 @@ func main() {
 
 				amis, err := p.Publish(ds, imageConfig)
 				if err != nil {
-					errCollection.Add(fmt.Errorf("Error publishing AMIs to %s: %s", regionConfig.RegionName, err))
+					errCollection.Add(fmt.Errorf("publishing AMIs to %s: %s", regionConfig.RegionName, err))
 				} else {
 					amiCollection.Merge(amis)
 				}
