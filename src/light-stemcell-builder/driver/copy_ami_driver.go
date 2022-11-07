@@ -37,7 +37,11 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		WithRegion(dstRegion).
 		WithLogger(newDriverLogger(d.logger))
 
-	ec2Client := ec2.New(session.New(), awsConfig)
+	awsSession, err := session.NewSession()
+	if err != nil {
+		return resources.Ami{}, err
+	}
+	ec2Client := ec2.New(awsSession, awsConfig)
 
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
@@ -82,7 +86,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		},
 		Tags: []*ec2.Tag{
 			{
-				Key:   aws.String("name"),
+				Key:   aws.String("Name"),
 				Value: name,
 			},
 			{
@@ -167,6 +171,34 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	}
 
 	d.logger.Printf("snapshot %s for image %s found\n", *snapshotIDptr, *amiIDptr)
+	tags = &ec2.CreateTagsInput{
+		Resources: []*string{
+			snapshotIDptr,
+		},
+		Tags: []*ec2.Tag{
+			{
+				Key:   aws.String("Name"),
+				Value: amiIDptr,
+			},
+			{
+				Key:   aws.String("ami_id"),
+				Value: amiIDptr,
+			},
+			{
+				Key:   aws.String("distro"),
+				Value: distro,
+			},
+			{
+				Key:   aws.String("version"),
+				Value: version,
+			},
+		},
+	}
+	d.logger.Printf("tagging Snapshot: %s, with %s", *snapshotIDptr, tags)
+	_, err = ec2Client.CreateTags(tags)
+	if err != nil {
+		d.logger.Printf("Error tagging Snapshot: %s, Error: %s ", *snapshotIDptr, err.Error())
+	}
 
 	modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
 		SnapshotId:    snapshotIDptr,

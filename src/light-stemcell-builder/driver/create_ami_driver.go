@@ -37,8 +37,11 @@ func NewCreateAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCreateA
 		WithCredentials(awsCreds(creds)).
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
-
-	ec2Client := ec2.New(session.New(), awsConfig)
+	awsSession, err := session.NewSession()
+	if err != nil {
+		logger.Println(err)
+	}
+	ec2Client := ec2.New(awsSession, awsConfig)
 	return &SDKCreateAmiDriver{ec2Client: ec2Client, region: creds.Region, logger: logger}
 }
 
@@ -86,7 +89,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 		},
 		Tags: []*ec2.Tag{
 			{
-				Key:   aws.String("name"),
+				Key:   aws.String("Name"),
 				Value: name,
 			},
 			{
@@ -104,10 +107,38 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 		},
 	}
 	d.logger.Printf("tagging AMI: %s, with %s", *amiIDptr, tags)
-	d.logger.Printf("tagging AMI: %s, with %s", *amiIDptr, tags)
 	_, err = d.ec2Client.CreateTags(tags)
 	if err != nil {
 		d.logger.Printf("Error tagging AMI: %s, Error: %s ", *amiIDptr, err.Error())
+	}
+
+	tags = &ec2.CreateTagsInput{
+		Resources: []*string{
+			aws.String(driverConfig.SnapshotID),
+		},
+		Tags: []*ec2.Tag{
+			{
+				Key:   aws.String("Name"),
+				Value: name,
+			},
+			{
+				Key:   aws.String("distro"),
+				Value: distro,
+			},
+			{
+				Key:   aws.String("version"),
+				Value: version,
+			},
+			{
+				Key:   aws.String("ami_id"),
+				Value: amiIDptr,
+			},
+		},
+	}
+	d.logger.Printf("tagging Snapshot: %s, with %s", driverConfig.SnapshotID, tags)
+	_, err = d.ec2Client.CreateTags(tags)
+	if err != nil {
+		d.logger.Printf("Error tagging Snapshot: %s, Error: %s ", driverConfig.SnapshotID, err.Error())
 	}
 
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
