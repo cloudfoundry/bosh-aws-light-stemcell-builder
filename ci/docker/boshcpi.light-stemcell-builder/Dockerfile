@@ -1,14 +1,14 @@
-FROM ubuntu:16.04
+FROM ubuntu:22.04
 
 ENV BOSH_CLI_VERSION 6.2.1-linux-amd64
 ENV METALINK_VERSION 0.3.0-linux-amd64
-ENV GO_VERSION go1.17.2.linux-amd64
+ENV GO_VERSION go1.19.3.linux-amd64
 
 RUN apt update; apt -y upgrade; apt-get clean
 RUN apt install -y \
-  git tar curl wget make ruby unzip qemu-utils python python-pip jq && \
+  git tar curl wget make ruby unzip qemu-utils python3 python3-pip jq && \
   apt-get clean
-RUN pip install awscli
+RUN pip3 install awscli
 
 RUN cd /tmp && \
     wget -nv "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${BOSH_CLI_VERSION}" && \
@@ -31,7 +31,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     wget -nv "https://dl.google.com/go/${GO_VERSION}.tar.gz" && \
     ( \
-        echo "8a4cbc9f2b95d114c38f6cbe94a45372d48c604b707db2057c787398dfbf8e7f ${GO_VERSION}.tar.gz" | \
+        echo "74b9640724fd4e6bb0ed2a1bc44ae813a03f1e72a4c76253e2d5c015494430ba ${GO_VERSION}.tar.gz" | \
         sha256sum -c - \
     ) && \
     tar -C /usr/local -xzf go*.tar.gz && \
@@ -41,4 +41,4 @@ ENV GOPATH /opt/go
 
 ENV PATH /usr/local/go/bin:/opt/go/bin:$PATH
 
-RUN mkdir /opt/go && go get github.com/onsi/ginkgo/ginkgo
+RUN mkdir /opt/go && go install github.com/onsi/ginkgo/ginkgo@latest
