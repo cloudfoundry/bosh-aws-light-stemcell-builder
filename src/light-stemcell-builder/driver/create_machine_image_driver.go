@@ -25,10 +25,11 @@ type SDKCreateMachineImageDriver struct {
 func NewCreateMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKCreateMachineImageDriver {
 	logger := log.New(logDest, "SDKCreateMachineImageDriver ", log.LstdFlags)
 
+	driverLggr := newDriverLogger(logger)
 	awsConfig := aws.NewConfig().
-		WithCredentials(awsCreds(creds)).
+		WithCredentials(awsCreds(creds, driverLggr)).
 		WithRegion(creds.Region).
-		WithLogger(newDriverLogger(logger))
+		WithLogger(driverLggr)
 
 	s3Retryer := S3Retryer{}
 	s3Retryer.NumMaxRetries = 50

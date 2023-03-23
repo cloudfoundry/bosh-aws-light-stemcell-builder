@@ -33,10 +33,11 @@ type SDKCreateAmiDriver struct {
 // NewCreateAmiDriver creates a SDKCreateAmiDriver for an AMI from a snapshot in EC2
 func NewCreateAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCreateAmiDriver {
 	logger := log.New(logDest, "SDKCreateAmiDriver ", log.LstdFlags)
+	driverLggr := newDriverLogger(logger)
 	awsConfig := aws.NewConfig().
-		WithCredentials(awsCreds(creds)).
+		WithCredentials(awsCreds(creds, driverLggr)).
 		WithRegion(creds.Region).
-		WithLogger(newDriverLogger(logger))
+		WithLogger(driverLggr)
 	awsSession, err := session.NewSession()
 	if err != nil {
 		logger.Println(err)

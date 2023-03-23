@@ -32,10 +32,11 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	srcRegion := d.creds.Region
 	dstRegion := driverConfig.DestinationRegion
 
+	logger := newDriverLogger(d.logger)
 	awsConfig := aws.NewConfig().
-		WithCredentials(awsCreds(d.creds)).
+		WithCredentials(awsCreds(d.creds, logger)).
 		WithRegion(dstRegion).
-		WithLogger(newDriverLogger(d.logger))
+		WithLogger(logger)
 
 	awsSession, err := session.NewSession()
 	if err != nil {
