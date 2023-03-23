@@ -10,11 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-func awsCreds(creds config.Credentials, logger aws.Logger) *credentials.Credentials {
+func awsCreds(creds config.Credentials) *credentials.Credentials {
 	return credentials.NewChainCredentials(
 		[]credentials.Provider{
 			&ec2rolecreds.EC2RoleProvider{
-				Client: ec2metadata.New(session.New(aws.NewConfig().WithLogger(logger))),
+				Client: ec2metadata.New(session.New(&aws.Config{})),
 			},
 			&credentials.StaticProvider{Value: credentials.Value{
 				AccessKeyID:     creds.AccessKey,

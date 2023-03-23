@@ -26,11 +26,10 @@ type SDKDeleteMachineImageDriver struct {
 func NewDeleteMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKDeleteMachineImageDriver {
 	logger := log.New(logDest, "SDKDeleteMachineImageDriver ", log.LstdFlags)
 
-	driverLggr := newDriverLogger(logger)
 	awsConfig := aws.NewConfig().
-		WithCredentials(awsCreds(creds, driverLggr)).
+		WithCredentials(awsCreds(creds)).
 		WithRegion(creds.Region).
-		WithLogger(driverLggr)
+		WithLogger(newDriverLogger(logger))
 
 	s3Session := session.New(awsConfig)
 	s3Client := s3.New(s3Session)
