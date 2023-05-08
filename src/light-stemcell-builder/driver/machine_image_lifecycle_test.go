@@ -48,9 +48,9 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			Region:    region,
 		}
 
-		newSession, err := session.NewSession()
+		awsSession, err := session.NewSession()
 		Expect(err).ToNot(HaveOccurred())
-		s3Client = s3.New(newSession)
+		s3Client = s3.New(awsSession)
 
 		imagePath = os.Getenv("MACHINE_IMAGE_PATH")
 		Expect(imagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
