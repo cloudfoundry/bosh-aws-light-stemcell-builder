@@ -205,7 +205,9 @@ cloud_properties:
 					WithRegion(region)
 			}
 
-			ec2Client := ec2.New(session.New(), awsConfig) //nolint:staticcheck
+			newSession, err := session.NewSession()
+			Expect(err).ToNot(HaveOccurred())
+			ec2Client := ec2.New(newSession, awsConfig)
 
 			reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(amiID)}})
 			Expect(err).ToNot(HaveOccurred())

@@ -31,7 +31,8 @@ func NewSnapshotFromVolumeDriver(logDest io.Writer, creds config.Credentials) *S
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.New(), awsConfig) //nolint:staticcheck
+	newSession, _ := session.NewSession() //nolint:errcheck
+	ec2Client := ec2.New(newSession, awsConfig)
 	return &SDKSnapshotFromVolumeDriver{ec2Client: ec2Client, logger: logger}
 }
 
