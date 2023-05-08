@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"light-stemcell-builder/resources"
 	"strings"
+
+	"light-stemcell-builder/resources"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -36,7 +36,7 @@ type CloudProperties struct {
 
 // NewFromReader creates a new manifest from the YAML stored in the reader
 func NewFromReader(reader io.Reader) (*Manifest, error) {
-	manifestBytes, err := ioutil.ReadAll(reader)
+	manifestBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("reading manifest: %s", err)
 	}

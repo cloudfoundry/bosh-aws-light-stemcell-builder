@@ -2,10 +2,11 @@ package driver
 
 import (
 	"io"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/resources"
 	"log"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -26,7 +27,7 @@ func NewDeleteVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKDele
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.New(), awsConfig)
+	ec2Client := ec2.New(session.New(), awsConfig) //nolint:staticcheck
 	return &SDKDeleteVolumeDriver{ec2Client: ec2Client, logger: logger}
 }
 

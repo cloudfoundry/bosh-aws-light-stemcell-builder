@@ -1,0 +1,31 @@
+name: Go
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version-file: src/light-stemcell-builder/go.mod
+    - run: go generate ./...
+    - uses: golangci/golangci-lint-action@v3.4.0
+      with:
+        args: --verbose
+        working-directory: src/light-stemcell-builder/
+
+  test-unit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version-file: src/light-stemcell-builder/go.mod
+    - run: |
+        cd src/light-stemcell-builder
+        go run github.com/onsi/ginkgo/v2/ginkgo run -p -r --skip-package integration \
+          $(ls -d */ | egrep -v '^driver/$'| paste -sd' ' -)

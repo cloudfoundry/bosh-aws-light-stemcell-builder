@@ -1,10 +1,10 @@
 package collection_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
 func TestCollection(t *testing.T) {

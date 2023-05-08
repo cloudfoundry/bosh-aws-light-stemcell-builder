@@ -4,14 +4,14 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/driver/manifests"
-	"light-stemcell-builder/resources"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/driver/manifests"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -34,7 +34,7 @@ func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCrea
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.New(), awsConfig)
+	ec2Client := ec2.New(session.New(), awsConfig) //nolint:staticcheck
 	return &SDKCreateVolumeDriver{ec2Client: ec2Client, logger: logger}
 }
 
@@ -47,7 +47,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 
 	availabilityZoneOutput, err := d.ec2Client.DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{
 		Filters: []*ec2.Filter{
-			&ec2.Filter{Name: aws.String("state"), Values: []*string{aws.String("available")}},
+			{Name: aws.String("state"), Values: []*string{aws.String("available")}},
 		},
 	})
 	if err != nil {
@@ -64,8 +64,8 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 		return resources.Volume{}, fmt.Errorf("fetching import volume manifest: %s", err)
 	}
 
-	defer fetchManifestResp.Body.Close()
-	manifestBytes, err := ioutil.ReadAll(fetchManifestResp.Body)
+	defer fetchManifestResp.Body.Close() //nolint:errcheck
+	manifestBytes, err := io.ReadAll(fetchManifestResp.Body)
 	if err != nil {
 		return resources.Volume{}, fmt.Errorf("reading import volume manifest from response: %s", err)
 	}
@@ -130,7 +130,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 
 	d.logger.Printf("waiting for volume to be available: %s\n", *volumeIDptr)
 	waitStartTime = time.Now()
-	err = d.ec2Client.WaitUntilVolumeAvailable(&ec2.DescribeVolumesInput{VolumeIds: []*string{volumeIDptr}})
+	err = d.ec2Client.WaitUntilVolumeAvailable(&ec2.DescribeVolumesInput{VolumeIds: []*string{volumeIDptr}}) //nolint:ineffassign,staticcheck
 	d.logger.Printf("waited on volume %s for %f seconds\n", *volumeIDptr, time.Since(waitStartTime).Seconds())
 
 	return resources.Volume{ID: *volumeIDptr}, nil

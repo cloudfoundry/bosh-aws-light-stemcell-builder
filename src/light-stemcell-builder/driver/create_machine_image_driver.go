@@ -3,11 +3,12 @@ package driver
 import (
 	"fmt"
 	"io"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/resources"
 	"log"
 	"os"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -35,7 +36,7 @@ func NewCreateMachineImageDriver(logDest io.Writer, creds config.Credentials) *S
 
 	awsConfig.Retryer = s3Retryer
 
-	s3Session := session.New(awsConfig)
+	s3Session := session.New(awsConfig) //nolint:staticcheck
 	s3Client := s3.New(s3Session)
 
 	return &SDKCreateMachineImageDriver{

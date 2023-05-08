@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -60,7 +59,7 @@ type Config struct {
 func NewFromReader(r io.Reader) (Config, error) {
 	c := Config{}
 
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return Config{}, err
 	}

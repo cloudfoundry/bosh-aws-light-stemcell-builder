@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/manifest"
-	"light-stemcell-builder/resources"
 	"os"
 	"os/exec"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/manifest"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -72,7 +72,7 @@ var _ = Describe("Main", func() {
 				Visibility:         "private",
 			},
 			AmiRegions: []config.AmiRegion{
-				config.AmiRegion{
+				{
 					RegionName: usRegion,
 					Credentials: config.Credentials{
 						AccessKey: usAccessKey,
@@ -102,9 +102,9 @@ var _ = Describe("Main", func() {
 		integrationConfig, err := json.Marshal(cfg)
 		Expect(err).ToNot(HaveOccurred())
 
-		configFile, err := ioutil.TempFile("", "integration-config.json")
+		configFile, err := os.CreateTemp("", "integration-config.json")
 		Expect(err).ToNot(HaveOccurred())
-		defer configFile.Close()
+		defer configFile.Close() //nolint:errcheck
 
 		_, err = configFile.Write(integrationConfig)
 		Expect(err).ToNot(HaveOccurred())
@@ -133,9 +133,9 @@ cloud_properties:
   root_device_name: /dev/sda1
 `
 
-		manifestFile, err := ioutil.TempFile("", "stemcell.MF")
+		manifestFile, err := os.CreateTemp("", "stemcell.MF")
 		Expect(err).ToNot(HaveOccurred())
-		defer manifestFile.Close()
+		defer manifestFile.Close() //nolint:errcheck
 
 		_, err = manifestFile.Write([]byte(rawManifest))
 		Expect(err).ToNot(HaveOccurred())
@@ -205,7 +205,7 @@ cloud_properties:
 					WithRegion(region)
 			}
 
-			ec2Client := ec2.New(session.New(), awsConfig)
+			ec2Client := ec2.New(session.New(), awsConfig) //nolint:staticcheck
 
 			reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(amiID)}})
 			Expect(err).ToNot(HaveOccurred())
@@ -223,11 +223,11 @@ cloud_properties:
 
 			_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(amiID)})
 			if err != nil {
-				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deregistering image %s in %s: %s", amiID, region, err)))
+				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deregistering image %s in %s: %s", amiID, region, err))) //nolint:errcheck
 			}
 			_, err = ec2Client.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: snapshotID})
 			if err != nil {
-				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deleting snapshot %s in %s: %s", *snapshotID, region, err)))
+				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deleting snapshot %s in %s: %s", *snapshotID, region, err))) //nolint:errcheck
 			}
 		}
 	})

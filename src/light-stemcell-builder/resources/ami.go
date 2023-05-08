@@ -9,6 +9,7 @@ const (
 )
 
 // AmiDriver abstracts the API calls required to build an AMI
+//
 //go:generate counterfeiter -o fakes/fake_ami_driver.go . AmiDriver
 type AmiDriver interface {
 	Create(AmiDriverConfig) (Ami, error)

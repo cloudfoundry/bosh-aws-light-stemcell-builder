@@ -1,8 +1,9 @@
 package collection
 
 import (
-	"light-stemcell-builder/resources"
 	"sync"
+
+	"light-stemcell-builder/resources"
 )
 
 type Ami struct {

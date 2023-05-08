@@ -6,13 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/driver/manifests"
-	"light-stemcell-builder/resources"
 	"log"
 	"math"
 	"os"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/driver/manifests"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -26,7 +27,7 @@ const gbInBytes = 1 << 30
 type SDKCreateMachineImageManifestDriver struct {
 	s3Client    *s3.S3
 	logger      *log.Logger
-	genManifest bool
+	genManifest bool //nolint:unused
 }
 
 // NewCreateMachineImageManifestDriver creates a MachineImageDriver machine image manifest generation
@@ -43,7 +44,7 @@ func NewCreateMachineImageManifestDriver(logDest io.Writer, creds config.Credent
 
 	awsConfig.Retryer = s3Retryer
 
-	s3Session := session.New(awsConfig)
+	s3Session := session.New(awsConfig) //nolint:staticcheck
 	s3Client := s3.New(s3Session)
 
 	return &SDKCreateMachineImageManifestDriver{
@@ -112,7 +113,7 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 		return resources.MachineImage{}, fmt.Errorf("Failed to generate machine image manifest: %s", err)
 	}
 
-	manifestURL, err := d.uploadManifest(driverConfig.BucketName, driverConfig.ServerSideEncryption, m)
+	manifestURL, err := d.uploadManifest(driverConfig.BucketName, driverConfig.ServerSideEncryption, m) //nolint:ineffassign,staticcheck
 
 	machineImage := resources.MachineImage{
 		GetURL:     manifestURL,

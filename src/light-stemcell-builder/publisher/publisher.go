@@ -1,10 +1,12 @@
 package publisher
 
-import "light-stemcell-builder/config"
+import (
+	"light-stemcell-builder/config"
+)
 
 type Config struct {
 	config.AmiRegion
-	config.AmiConfiguration
+	config.AmiConfiguration //nolint:vet
 }
 
 type MachineImageConfig struct {
