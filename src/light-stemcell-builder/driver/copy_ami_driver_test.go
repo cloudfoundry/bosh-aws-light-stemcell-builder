@@ -2,18 +2,19 @@ package driver_test
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
-	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 var _ = Describe("CopyAmiDriver", func() {
@@ -64,7 +65,7 @@ var _ = Describe("CopyAmiDriver", func() {
 		copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(dstRegion)})
+		ec2Client := ec2.New(session.New(), &aws.Config{Region: aws.String(dstRegion)}) //nolint:staticcheck
 		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
 		Expect(err).ToNot(HaveOccurred())
 

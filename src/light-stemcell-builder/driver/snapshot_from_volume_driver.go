@@ -3,10 +3,11 @@ package driver
 import (
 	"fmt"
 	"io"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/resources"
 	"log"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -30,11 +31,11 @@ func NewSnapshotFromVolumeDriver(logDest io.Writer, creds config.Credentials) *S
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.New(), awsConfig)
+	ec2Client := ec2.New(session.New(), awsConfig) //nolint:staticcheck
 	return &SDKSnapshotFromVolumeDriver{ec2Client: ec2Client, logger: logger}
 }
 
-// Create produces a snapshot in EC2 from a previoulsy created EBS volume
+// Create produces a snapshot in EC2 from a previously created EBS volume
 func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriverConfig) (resources.Snapshot, error) {
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {

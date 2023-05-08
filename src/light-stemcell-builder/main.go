@@ -6,20 +6,21 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
+	"os"
+	"sync"
+
 	"light-stemcell-builder/collection"
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/manifest"
 	"light-stemcell-builder/publisher"
 	"light-stemcell-builder/resources"
-	"log"
-	"os"
-	"sync"
 )
 
 func usage(message string) {
-	fmt.Fprintln(os.Stderr, message)
-	fmt.Fprintln(os.Stderr, "Usage of light-stemcell-builder/main.go")
+	fmt.Fprintln(os.Stderr, message)                                   //nolint:errcheck
+	fmt.Fprintln(os.Stderr, "Usage of light-stemcell-builder/main.go") //nolint:errcheck
 	flag.PrintDefaults()
 	os.Exit(1)
 }

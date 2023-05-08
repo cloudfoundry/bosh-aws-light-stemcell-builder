@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/driver/reqinputs"
-	"light-stemcell-builder/resources"
 	"log"
 	"sort"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/driver/reqinputs"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -151,7 +152,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
 		d.logger.Printf("making AMI: %s public", *amiIDptr)
-		d.ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{
+		d.ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{ //nolint:errcheck
 			ImageId: amiIDptr,
 			LaunchPermission: &ec2.LaunchPermissionModifications{
 				Add: []*ec2.LaunchPermission{
@@ -172,7 +173,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 	return ami, nil
 }
 
-func (d *SDKCreateAmiDriver) findLatestKernelImage() (string, error) {
+func (d *SDKCreateAmiDriver) findLatestKernelImage() (string, error) { //nolint:unused
 	describeImagesOutput, err := d.ec2Client.DescribeImages(&ec2.DescribeImagesInput{
 		Owners: []*string{aws.String(amazonOwner)},
 		Filters: []*ec2.Filter{
@@ -196,20 +197,20 @@ func (d *SDKCreateAmiDriver) findLatestKernelImage() (string, error) {
 	return *images[0].ImageId, nil
 }
 
-type imageList []*ec2.Image
+type imageList []*ec2.Image //nolint:unused
 
-func (l imageList) Len() int {
+func (l imageList) Len() int { //nolint:unused
 	return len(l)
 }
 
-func (l imageList) Less(i, j int) bool {
+func (l imageList) Less(i, j int) bool { //nolint:unused
 	iCreationTime, _ := time.Parse(time.RFC3339Nano, *l[i].CreationDate) // swallow error as not supported by sortable interface
 	jCreationTime, _ := time.Parse(time.RFC3339Nano, *l[j].CreationDate) // swallow error as not supported by sortable interface
 	return iCreationTime.After(jCreationTime)                            // ensure oldest time is first
 
 }
 
-func (l imageList) Swap(i, j int) {
+func (l imageList) Swap(i, j int) { //nolint:unused
 	temp := l[i]
 	l[i] = l[j]
 	l[j] = temp

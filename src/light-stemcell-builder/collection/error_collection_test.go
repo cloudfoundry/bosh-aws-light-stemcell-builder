@@ -2,6 +2,7 @@ package collection_test
 
 import (
 	"errors"
+
 	"light-stemcell-builder/collection"
 
 	. "github.com/onsi/ginkgo/v2"

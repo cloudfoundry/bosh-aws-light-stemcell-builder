@@ -2,13 +2,14 @@ package driver_test
 
 import (
 	"fmt"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/driverset"
-	"light-stemcell-builder/resources"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/driverset"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

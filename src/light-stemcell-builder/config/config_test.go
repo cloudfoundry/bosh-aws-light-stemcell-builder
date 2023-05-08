@@ -3,6 +3,7 @@ package config_test
 import (
 	"bytes"
 	"encoding/json"
+
 	"light-stemcell-builder/config"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -11,7 +12,7 @@ import (
 
 type configModifier func(*config.Config)
 
-func identityModifier(c *config.Config) { return }
+func identityModifier(_ *config.Config) {}
 
 func parseConfig(s string, modify configModifier) (config.Config, error) {
 	configJSON := []byte(s)

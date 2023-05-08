@@ -2,14 +2,15 @@ package driver_test
 
 import (
 	"encoding/xml"
-	"io/ioutil"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/driver/manifests"
 	"light-stemcell-builder/resources"
-	"net/http"
-	"net/url"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -22,12 +23,12 @@ import (
 var _ = Describe("Machine Image Lifecycle", func() {
 
 	var (
-		s3Client                  *s3.S3
-		creds                     config.Credentials
-		imagePath                 string
-		imageFormat               string
-		bucketName                string
-		testMachineImageLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage))
+		s3Client                          *s3.S3
+		creds                             config.Credentials
+		imagePath                         string
+		imageFormat                       string
+		bucketName                        string
+		testMachineImageLifecycle         func(resources.MachineImageDriverConfig, ...func(resources.MachineImage))
 		testMachineImageManifestLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage, manifests.ImportVolumeManifest))
 	)
 
@@ -47,7 +48,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			Region:    region,
 		}
 
-		s3Client = s3.New(session.New())
+		s3Client = s3.New(session.New()) //nolint:staticcheck
 
 		imagePath = os.Getenv("MACHINE_IMAGE_PATH")
 		Expect(imagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
@@ -77,7 +78,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			}
 
 			testMachineImageLifecycle(driverConfig, func(machineImage resources.MachineImage) {
-				imageURL, err := url.Parse(machineImage.GetURL)
+				imageURL, err := url.Parse(machineImage.GetURL) //nolint:ineffassign,staticcheck
 
 				params := &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
@@ -113,7 +114,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			}
 
 			testMachineImageManifestLifecycle(driverConfig, func(machineImage resources.MachineImage, manifest manifests.ImportVolumeManifest) {
-				imageURL, err := url.Parse(machineImage.GetURL)
+				imageURL, err := url.Parse(machineImage.GetURL) //nolint:ineffassign,staticcheck
 
 				params := &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
@@ -124,7 +125,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 				Expect(*headResp.ServerSideEncryption).To(Equal("AES256"))
 
-				imageURL, err = url.Parse(manifest.Parts.Part.HeadURL)
+				imageURL, err = url.Parse(manifest.Parts.Part.HeadURL) //nolint:ineffassign,staticcheck
 
 				params = &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
@@ -172,11 +173,11 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 		resp, err := http.Get(machineImage.GetURL)
 		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-		manifestBytes, err := ioutil.ReadAll(resp.Body)
+		manifestBytes, err := io.ReadAll(resp.Body)
 		Expect(err).ToNot(HaveOccurred())
 
 		m := manifests.ImportVolumeManifest{}
@@ -185,7 +186,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 		resp, err = http.Head(m.Parts.Part.HeadURL)
 		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 

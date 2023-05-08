@@ -3,13 +3,13 @@ package driver
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/resources"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -31,7 +31,7 @@ func NewDeleteMachineImageDriver(logDest io.Writer, creds config.Credentials) *S
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	s3Session := session.New(awsConfig)
+	s3Session := session.New(awsConfig) //nolint:staticcheck
 	s3Client := s3.New(s3Session)
 
 	return &SDKDeleteMachineImageDriver{
@@ -64,8 +64,8 @@ func (d *SDKDeleteMachineImageDriver) Delete(machineImage resources.MachineImage
 			return fmt.Errorf("Failed to delete resource '%s': %s", deleteURL, err)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			defer resp.Body.Close()
-			respBody, _ := ioutil.ReadAll(resp.Body) // ignore ReadAll err, return http status code err instead
+			defer resp.Body.Close()              //nolint:errcheck
+			respBody, _ := io.ReadAll(resp.Body) // ignore ReadAll err, return http status code err instead
 			return fmt.Errorf("Received invalid response code '%d' deleting resource '%s': %s", resp.StatusCode, deleteURL, respBody)
 		}
 	}

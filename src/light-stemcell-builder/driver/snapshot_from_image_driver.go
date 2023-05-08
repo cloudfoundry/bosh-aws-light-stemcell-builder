@@ -3,10 +3,11 @@ package driver
 import (
 	"fmt"
 	"io"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/resources"
 	"log"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -30,7 +31,7 @@ func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SD
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.New(), awsConfig)
+	ec2Client := ec2.New(session.New(), awsConfig) //nolint:staticcheck
 	return &SDKSnapshotFromImageDriver{ec2Client: ec2Client, logger: logger}
 }
 
