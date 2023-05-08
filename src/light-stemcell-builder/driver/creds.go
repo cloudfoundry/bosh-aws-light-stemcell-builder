@@ -14,8 +14,10 @@ func awsCreds(creds config.Credentials) *credentials.Credentials {
 	if creds.AccessKey != "" && creds.SecretKey != "" {
 		return credentials.NewStaticCredentials(creds.AccessKey, creds.SecretKey, "")
 	} else {
+		awsSession, _ := session.NewSession(&aws.Config{}) //nolint:errcheck
+
 		return credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
-			Client: ec2metadata.New(session.New(&aws.Config{})), //nolint:staticcheck
+			Client: ec2metadata.New(awsSession),
 		})
 	}
 }
