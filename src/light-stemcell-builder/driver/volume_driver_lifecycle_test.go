@@ -61,7 +61,7 @@ var _ = Describe("Volume Driver Lifecycle", func() {
 		volume, err := createVolumeDriver.Create(volumeDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(&aws.Config{Region: aws.String(region)})
+		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(region))
 		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 

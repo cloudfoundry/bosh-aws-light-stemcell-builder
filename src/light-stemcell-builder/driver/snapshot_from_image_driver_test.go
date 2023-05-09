@@ -48,7 +48,10 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		ec2Client := ec2.New(session.Must(session.NewSession()), &aws.Config{Region: aws.String(region)})
+		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(region))
+		Expect(err).ToNot(HaveOccurred())
+		ec2Client := ec2.New(awsSession)
+
 		reqOutput, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{&snapshot.ID}})
 		Expect(err).ToNot(HaveOccurred())
 

@@ -65,7 +65,7 @@ var _ = Describe("CopyAmiDriver", func() {
 		copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(&aws.Config{Region: aws.String(dstRegion)})
+		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(dstRegion))
 		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
