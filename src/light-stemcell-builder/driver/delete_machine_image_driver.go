@@ -31,8 +31,7 @@ func NewDeleteMachineImageDriver(logDest io.Writer, creds config.Credentials) *S
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	awsSession, _ := session.NewSession(awsConfig) //nolint:errcheck
-	s3Client := s3.New(awsSession)
+	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))
 
 	return &SDKDeleteMachineImageDriver{
 		s3Client: s3Client,

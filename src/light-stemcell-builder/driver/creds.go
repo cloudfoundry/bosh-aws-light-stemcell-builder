@@ -16,10 +16,8 @@ func awsCreds(creds config.Credentials) *credentials.Credentials {
 			credentials.Value{AccessKeyID: creds.AccessKey, SecretAccessKey: creds.SecretKey},
 		)
 	} else {
-		awsSession, _ := session.NewSession(&aws.Config{}) //nolint:errcheck
-
 		return credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
-			Client: ec2metadata.New(awsSession),
+			Client: ec2metadata.New(session.Must(session.NewSession(&aws.Config{}))),
 		})
 	}
 }

@@ -27,8 +27,7 @@ func NewDeleteVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKDele
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	awsSession, _ := session.NewSession() //nolint:errcheck
-	ec2Client := ec2.New(awsSession, awsConfig)
+	ec2Client := ec2.New(session.Must(session.NewSession()), awsConfig)
 	return &SDKDeleteVolumeDriver{ec2Client: ec2Client, logger: logger}
 }
 

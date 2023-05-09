@@ -36,8 +36,7 @@ func NewCreateMachineImageDriver(logDest io.Writer, creds config.Credentials) *S
 
 	awsConfig.Retryer = s3Retryer
 
-	awsSession, _ := session.NewSession(awsConfig) //nolint:errcheck
-	s3Client := s3.New(awsSession)
+	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))
 
 	return &SDKCreateMachineImageDriver{
 		s3Client: s3Client,

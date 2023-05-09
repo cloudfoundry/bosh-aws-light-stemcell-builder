@@ -31,8 +31,7 @@ func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SD
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	awsSession, _ := session.NewSession() //nolint:errcheck
-	ec2Client := ec2.New(awsSession, awsConfig)
+	ec2Client := ec2.New(session.Must(session.NewSession()), awsConfig)
 	return &SDKSnapshotFromImageDriver{ec2Client: ec2Client, logger: logger}
 }
 
