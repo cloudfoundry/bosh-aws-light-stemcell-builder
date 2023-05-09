@@ -31,10 +31,7 @@ func NewCreateMachineImageDriver(logDest io.Writer, creds config.Credentials) *S
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	s3Retryer := S3Retryer{}
-	s3Retryer.NumMaxRetries = 50
-
-	awsConfig.Retryer = s3Retryer
+	awsConfig.Retryer = NewS3RetryerWithRetries(50)
 
 	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))
 

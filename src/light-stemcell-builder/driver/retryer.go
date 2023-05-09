@@ -6,6 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 )
 
+func NewS3RetryerWithRetries(numRetries int) S3Retryer {
+	//s3Retryer := S3Retryer{}
+	//s3Retryer.NumMaxRetries = numRetries
+	return S3Retryer{client.DefaultRetryer{NumMaxRetries: numRetries}}
+}
+
 // S3Retryer handles more error conditions than the default retryer when
 // uploading chunks to S3
 type S3Retryer struct {
