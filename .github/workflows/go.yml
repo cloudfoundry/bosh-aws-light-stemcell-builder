@@ -25,7 +25,4 @@ jobs:
     - uses: actions/setup-go@v3
       with:
         go-version-file: src/light-stemcell-builder/go.mod
-    - run: |
-        cd src/light-stemcell-builder
-        go run github.com/onsi/ginkgo/v2/ginkgo run -p -r --skip-package integration \
-          $(ls -d */ | egrep -v '^driver/$'| paste -sd' ' -)
+    - run: bin/test-unit
