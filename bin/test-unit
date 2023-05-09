@@ -6,10 +6,9 @@ golang_root="${ROOT_DIR}/src/light-stemcell-builder"
 
 (
   cd "${golang_root}"
-  echo "$(find . -depth 1 -type d | grep -Ev 'driver$' | paste -sd' ' -)"
   # shellcheck disable=SC2046
   go run \
     github.com/onsi/ginkgo/v2/ginkgo run -p -r \
     --skip-package integration \
-    $(find . -depth 1 -type d | grep -Ev 'driver$'| paste -sd' ' -)
+    $(find . -maxdepth  1 -type d | grep -Ev 'driver$' | paste -sd' ' -)
 )
