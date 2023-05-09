@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+golang_root="${ROOT_DIR}/src/light-stemcell-builder"
+
+(
+  cd "${golang_root}"
+  # shellcheck disable=SC2046
+  go run \
+    github.com/onsi/ginkgo/v2/ginkgo run -p -r \
+    --skip-package integration \
+    $(find . -depth 1 -type d | grep -Ev 'driver$'| paste -sd' ' -)
+)

@@ -1,8 +1,1 @@
-ci/docker/.vagrant
 .idea
-bin
-pkg
-tmp
-*.iml
-/src/*
-!/src/light-stemcell-builder
