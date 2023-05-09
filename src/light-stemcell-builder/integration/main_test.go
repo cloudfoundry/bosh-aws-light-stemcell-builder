@@ -205,9 +205,7 @@ cloud_properties:
 					WithRegion(region)
 			}
 
-			awsSession, err := session.NewSession()
-			Expect(err).ToNot(HaveOccurred())
-			ec2Client := ec2.New(awsSession, awsConfig)
+			ec2Client := ec2.New(session.Must(session.NewSession()), awsConfig)
 
 			reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(amiID)}})
 			Expect(err).ToNot(HaveOccurred())

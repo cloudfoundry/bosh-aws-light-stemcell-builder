@@ -57,9 +57,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		ami, err := amiDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(ami.VirtualizationType).To(Equal(resources.HvmAmiVirtualization))
-		awsSession, err := session.NewSession()
-		Expect(err).To(BeNil())
-		ec2Client := ec2.New(awsSession, &aws.Config{Region: aws.String(ami.Region)})
+		ec2Client := ec2.New(session.Must(session.NewSession()), &aws.Config{Region: aws.String(ami.Region)})
 		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(ami.ID)}})
 		Expect(err).ToNot(HaveOccurred())
 

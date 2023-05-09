@@ -1,10 +1,11 @@
 package driver_test
 
 import (
+	"os"
+
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -47,10 +48,7 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession()
-		Expect(err).To(BeNil())
-
-		ec2Client := ec2.New(awsSession, &aws.Config{Region: aws.String(region)})
+		ec2Client := ec2.New(session.Must(session.NewSession()), &aws.Config{Region: aws.String(region)})
 		reqOutput, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{&snapshot.ID}})
 		Expect(err).ToNot(HaveOccurred())
 
