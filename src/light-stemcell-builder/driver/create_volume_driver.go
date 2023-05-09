@@ -34,7 +34,7 @@ func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCrea
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.Must(session.NewSession()), awsConfig)
+	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
 	return &SDKCreateVolumeDriver{ec2Client: ec2Client, logger: logger}
 }
 

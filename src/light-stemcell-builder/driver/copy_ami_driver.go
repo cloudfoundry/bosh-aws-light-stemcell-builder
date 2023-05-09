@@ -38,7 +38,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		WithRegion(dstRegion).
 		WithLogger(newDriverLogger(d.logger))
 
-	ec2Client := ec2.New(session.Must(session.NewSession()), awsConfig)
+	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
 
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {

@@ -39,7 +39,7 @@ func NewCreateAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCreateA
 		WithRegion(creds.Region).
 		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.Must(session.NewSession()), awsConfig)
+	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
 	return &SDKCreateAmiDriver{ec2Client: ec2Client, region: creds.Region, logger: logger}
 }
 
