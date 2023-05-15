@@ -225,11 +225,11 @@ cloud_properties:
 
 			_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(amiID)})
 			if err != nil {
-				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deregistering image %s in %s: %s", amiID, region, err))) //nolint:errcheck
+				GinkgoWriter.Printf("Encountered error deregistering image %s in %s: %s", amiID, region, err)
 			}
 			_, err = ec2Client.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: snapshotID})
 			if err != nil {
-				GinkgoWriter.Write([]byte(fmt.Sprintf("Encountered error deleting snapshot %s in %s: %s", *snapshotID, region, err))) //nolint:errcheck
+				GinkgoWriter.Printf("Encountered error deleting snapshot %s in %s: %s", *snapshotID, region, err)
 			}
 		}
 	})
