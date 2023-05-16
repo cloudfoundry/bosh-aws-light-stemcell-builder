@@ -30,8 +30,7 @@ func TestDrivers(t *testing.T) {
 }
 
 var _ = SynchronizedBeforeSuite(
-	func() []byte { return []byte{} },
-	func([]byte) {
+	func() []byte {
 		creds = constructCredentials()
 
 		// Destination Region
@@ -71,7 +70,10 @@ var _ = SynchronizedBeforeSuite(
 		// KMS Key info
 		kmsKeyId = os.Getenv("AWS_KMS_KEY_ID")
 		Expect(kmsKeyId).ToNot(BeEmpty(), "AWS_KMS_KEY_ID must be set")
+
+		return []byte{}
 	},
+	func([]byte) {},
 )
 
 func constructCredentials() config.Credentials {
