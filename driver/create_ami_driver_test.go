@@ -46,12 +46,14 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Images)).To(Equal(1))
-		Expect(*reqOutput.Images[0].Name).To(Equal(amiDriverConfig.Name))
-		Expect(*reqOutput.Images[0].Architecture).To(Equal(resources.AmiArchitecture))
-		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(ami.VirtualizationType))
-		Expect(*reqOutput.Images[0].EnaSupport).To(BeTrue())
-		Expect(*reqOutput.Images[0].SriovNetSupport).To(Equal("simple"))
-		Expect(*reqOutput.Images[0].Public).To(Equal(true))
+
+		firstImage := reqOutput.Images[0]
+		Expect(*firstImage.Name).To(Equal(amiDriverConfig.Name))
+		Expect(*firstImage.Architecture).To(Equal(resources.AmiArchitecture))
+		Expect(*firstImage.VirtualizationType).To(Equal(ami.VirtualizationType))
+		Expect(*firstImage.EnaSupport).To(BeTrue())
+		Expect(*firstImage.SriovNetSupport).To(Equal("simple"))
+		Expect(*firstImage.Public).To(BeTrue())
 
 		instanceReservation, err := ec2Client.RunInstances(&ec2.RunInstancesInput{
 			ImageId:      aws.String(ami.ID),
