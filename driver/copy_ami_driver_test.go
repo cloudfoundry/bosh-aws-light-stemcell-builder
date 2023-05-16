@@ -100,12 +100,12 @@ func cpiAmi(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeIma
 
 	Expect(len(reqOutput.Images)).To(Equal(1))
 
-	firstImage := *reqOutput.Images[0]
-	Expect(firstImage.Name).To(Equal(amiDriverConfig.Name))
-	Expect(firstImage.Architecture).To(Equal(resources.AmiArchitecture))
-	Expect(firstImage.VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
+	firstImage := reqOutput.Images[0]
+	Expect(*firstImage.Name).To(Equal(amiDriverConfig.Name))
+	Expect(*firstImage.Architecture).To(Equal(resources.AmiArchitecture))
+	Expect(*firstImage.VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
 	if !encrypted {
-		Expect(firstImage.Public).To(BeTrue())
+		Expect(*firstImage.Public).To(BeTrue())
 	}
 
 	if len(cb) > 0 {
