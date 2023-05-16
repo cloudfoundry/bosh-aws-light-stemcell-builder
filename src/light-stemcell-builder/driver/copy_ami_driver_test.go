@@ -16,64 +16,6 @@ import (
 )
 
 var _ = Describe("CopyAmiDriver", func() {
-	cpiAmi := func(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
-		accessibility := resources.PublicAmiAccessibility
-		if encrypted {
-			accessibility = resources.PrivateAmiAccessibility
-		}
-
-		amiDriverConfig := resources.AmiDriverConfig{
-			ExistingAmiID:     amiFixtureID,
-			DestinationRegion: destinationRegion,
-			AmiProperties: resources.AmiProperties{
-				Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
-				VirtualizationType: resources.HvmAmiVirtualization,
-				Description:        "bosh cpi test ami",
-				Accessibility:      accessibility,
-				Encrypted:          encrypted,
-				KmsKeyId:           kmsKey,
-			},
-		}
-
-		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
-
-		amiCopyDriver := ds.CopyAmiDriver()
-		copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
-		Expect(err).ToNot(HaveOccurred())
-
-		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(destinationRegion))
-		Expect(err).ToNot(HaveOccurred())
-		ec2Client := ec2.New(awsSession)
-		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
-		Expect(err).ToNot(HaveOccurred())
-
-		Expect(len(reqOutput.Images)).To(Equal(1))
-		Expect(*reqOutput.Images[0].Name).To(Equal(amiDriverConfig.Name))
-		Expect(*reqOutput.Images[0].Architecture).To(Equal(resources.AmiArchitecture))
-		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
-		if !encrypted {
-			Expect(*reqOutput.Images[0].Public).To(BeTrue())
-		}
-
-		if len(cb) > 0 {
-			cb[0](ec2Client, reqOutput)
-		}
-
-		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(copiedAmi.ID)}) // Ignore DeregisterImageOutput
-		Expect(err).ToNot(HaveOccurred())
-	}
-
-	getSnapshotID := func(describeImagesOutput *ec2.DescribeImagesOutput) *string {
-		var snapshotIDptr *string
-		image := describeImagesOutput.Images[0]
-		for _, deviceMapping := range image.BlockDeviceMappings {
-			if *deviceMapping.DeviceName == *image.RootDeviceName {
-				snapshotIDptr = deviceMapping.Ebs.SnapshotId
-			}
-		}
-		return snapshotIDptr
-	}
-
 	It("copies an existing AMI to a new region while preserving its properties", func() {
 		cpiAmi(false, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 			snapshotIDptr := getSnapshotID(reqOutput)
@@ -126,3 +68,61 @@ var _ = Describe("CopyAmiDriver", func() {
 		})
 	})
 })
+
+func cpiAmi(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
+	accessibility := resources.PublicAmiAccessibility
+	if encrypted {
+		accessibility = resources.PrivateAmiAccessibility
+	}
+
+	amiDriverConfig := resources.AmiDriverConfig{
+		ExistingAmiID:     amiFixtureID,
+		DestinationRegion: destinationRegion,
+		AmiProperties: resources.AmiProperties{
+			Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
+			VirtualizationType: resources.HvmAmiVirtualization,
+			Description:        "bosh cpi test ami",
+			Accessibility:      accessibility,
+			Encrypted:          encrypted,
+			KmsKeyId:           kmsKey,
+		},
+	}
+
+	ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
+
+	amiCopyDriver := ds.CopyAmiDriver()
+	copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
+	Expect(err).ToNot(HaveOccurred())
+
+	awsSession, err := session.NewSession(aws.NewConfig().WithRegion(destinationRegion))
+	Expect(err).ToNot(HaveOccurred())
+	ec2Client := ec2.New(awsSession)
+	reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
+	Expect(err).ToNot(HaveOccurred())
+
+	Expect(len(reqOutput.Images)).To(Equal(1))
+	Expect(*reqOutput.Images[0].Name).To(Equal(amiDriverConfig.Name))
+	Expect(*reqOutput.Images[0].Architecture).To(Equal(resources.AmiArchitecture))
+	Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
+	if !encrypted {
+		Expect(*reqOutput.Images[0].Public).To(BeTrue())
+	}
+
+	if len(cb) > 0 {
+		cb[0](ec2Client, reqOutput)
+	}
+
+	_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(copiedAmi.ID)}) // Ignore DeregisterImageOutput
+	Expect(err).ToNot(HaveOccurred())
+}
+
+func getSnapshotID(describeImagesOutput *ec2.DescribeImagesOutput) *string {
+	var snapshotIDptr *string
+	image := describeImagesOutput.Images[0]
+	for _, deviceMapping := range image.BlockDeviceMappings {
+		if *deviceMapping.DeviceName == *image.RootDeviceName {
+			snapshotIDptr = deviceMapping.Ebs.SnapshotId
+		}
+	}
+	return snapshotIDptr
+}

@@ -19,12 +19,7 @@ import (
 )
 
 var _ = Describe("Machine Image Lifecycle", func() {
-
-	var (
-		s3Client                          *s3.S3
-		testMachineImageLifecycle         func(resources.MachineImageDriverConfig, ...func(resources.MachineImage))
-		testMachineImageManifestLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage, manifests.ImportVolumeManifest))
-	)
+	var s3Client *s3.S3
 
 	BeforeEach(func() {
 		awsSession, err := session.NewSession()
@@ -111,78 +106,78 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			})
 		})
 	})
-
-	testMachineImageLifecycle = func(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage)) {
-		createDriver := driver.NewCreateMachineImageDriver(GinkgoWriter, creds)
-
-		machineImage, err := createDriver.Create(driverConfig)
-		Expect(err).ToNot(HaveOccurred())
-
-		resp, err := http.Get(machineImage.GetURL)
-		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close()
-
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
-		if len(cb) > 0 {
-			cb[0](machineImage)
-		}
-
-		deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
-
-		err = deleteDriver.Delete(machineImage)
-		Expect(err).ToNot(HaveOccurred())
-
-		resp, err = http.Get(machineImage.GetURL)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
-	}
-
-	testMachineImageManifestLifecycle = func(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage, manifests.ImportVolumeManifest)) {
-		createDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, creds)
-
-		machineImage, err := createDriver.Create(driverConfig)
-		Expect(err).ToNot(HaveOccurred())
-
-		resp, err := http.Get(machineImage.GetURL)
-		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close() //nolint:errcheck
-
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
-		manifestBytes, err := io.ReadAll(resp.Body)
-		Expect(err).ToNot(HaveOccurred())
-
-		m := manifests.ImportVolumeManifest{}
-		err = xml.Unmarshal(manifestBytes, &m)
-		Expect(err).ToNot(HaveOccurred())
-
-		resp, err = http.Head(m.Parts.Part.HeadURL)
-		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close() //nolint:errcheck
-
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
-		Expect(m.FileFormat).To(Equal(machineImageFormat))
-		Expect(m.VolumeSizeGB).To(Equal(int64(3)))
-
-		if len(cb) > 0 {
-			cb[0](machineImage, m)
-		}
-
-		deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
-
-		err = deleteDriver.Delete(machineImage)
-		Expect(err).ToNot(HaveOccurred())
-
-		resp, err = http.Get(machineImage.GetURL)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
-
-		resp, err = http.Head(m.Parts.Part.HeadURL)
-		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close()
-
-		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
-	}
 })
+
+func testMachineImageLifecycle(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage)) {
+	createDriver := driver.NewCreateMachineImageDriver(GinkgoWriter, creds)
+
+	machineImage, err := createDriver.Create(driverConfig)
+	Expect(err).ToNot(HaveOccurred())
+
+	resp, err := http.Get(machineImage.GetURL)
+	Expect(err).ToNot(HaveOccurred())
+	defer resp.Body.Close()
+
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	if len(cb) > 0 {
+		cb[0](machineImage)
+	}
+
+	deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
+
+	err = deleteDriver.Delete(machineImage)
+	Expect(err).ToNot(HaveOccurred())
+
+	resp, err = http.Get(machineImage.GetURL)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+}
+
+func testMachineImageManifestLifecycle(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage, manifests.ImportVolumeManifest)) {
+	createDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, creds)
+
+	machineImage, err := createDriver.Create(driverConfig)
+	Expect(err).ToNot(HaveOccurred())
+
+	resp, err := http.Get(machineImage.GetURL)
+	Expect(err).ToNot(HaveOccurred())
+	defer resp.Body.Close() //nolint:errcheck
+
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	manifestBytes, err := io.ReadAll(resp.Body)
+	Expect(err).ToNot(HaveOccurred())
+
+	m := manifests.ImportVolumeManifest{}
+	err = xml.Unmarshal(manifestBytes, &m)
+	Expect(err).ToNot(HaveOccurred())
+
+	resp, err = http.Head(m.Parts.Part.HeadURL)
+	Expect(err).ToNot(HaveOccurred())
+	defer resp.Body.Close() //nolint:errcheck
+
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect(m.FileFormat).To(Equal(machineImageFormat))
+	Expect(m.VolumeSizeGB).To(Equal(int64(3)))
+
+	if len(cb) > 0 {
+		cb[0](machineImage, m)
+	}
+
+	deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
+
+	err = deleteDriver.Delete(machineImage)
+	Expect(err).ToNot(HaveOccurred())
+
+	resp, err = http.Get(machineImage.GetURL)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+
+	resp, err = http.Head(m.Parts.Part.HeadURL)
+	Expect(err).ToNot(HaveOccurred())
+	defer resp.Body.Close()
+
+	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+}
