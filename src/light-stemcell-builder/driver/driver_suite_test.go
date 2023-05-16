@@ -85,9 +85,12 @@ func constructCredentials() config.Credentials {
 	region := os.Getenv("AWS_REGION")
 	Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")
 
+	roleArn := os.Getenv("AWS_ROLE_ARN")
+
 	return config.Credentials{
 		AccessKey: accessKey,
 		SecretKey: secretKey,
 		Region:    region,
+		RoleArn:   roleArn,
 	}
 }
