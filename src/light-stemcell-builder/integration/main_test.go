@@ -8,10 +8,6 @@ import (
 	"os/exec"
 	"time"
 
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/manifest"
-	"light-stemcell-builder/resources"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -19,86 +15,15 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+
+	"light-stemcell-builder/manifest"
 )
 
 var _ = Describe("Main", func() {
-
-	var cfg config.Config
 	var configPath string
 	var manifestPath string
-	var machineImagePath string
-	var machineImageFormat string
-	var machineImageSize string
-	var expectedRegions []string
 
 	BeforeEach(func() {
-
-		// US Region
-		usAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		usSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-
-		usRegion := os.Getenv("AWS_REGION")
-		Expect(usRegion).ToNot(BeEmpty(), "AWS_REGION must be set")
-
-		usDestination := os.Getenv("AWS_DESTINATION_REGION")
-		Expect(usDestination).ToNot(BeEmpty(), "AWS_DESTINATION_REGION must be set")
-
-		usBucket := os.Getenv("AWS_BUCKET_NAME")
-		Expect(usBucket).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
-
-		usDestinations := []string{usDestination}
-
-		machineImagePath = os.Getenv("MACHINE_IMAGE_PATH")
-		Expect(machineImagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
-
-		machineImageFormat = os.Getenv("MACHINE_IMAGE_FORMAT")
-		Expect(machineImageFormat).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
-
-		machineImageSize = os.Getenv("MACHINE_IMAGE_VOLUME_SIZE")
-		if machineImageFormat != resources.VolumeRawFormat {
-			Expect(machineImageSize).ToNot(BeEmpty(), "MACHINE_IMAGE_VOLUME_SIZE must be set")
-		}
-
-		// China Region
-		cnAccessKey := os.Getenv("AWS_CN_ACCESS_KEY_ID")
-		cnSecretKey := os.Getenv("AWS_CN_SECRET_ACCESS_KEY")
-		cnRegion := os.Getenv("AWS_CN_REGION")
-		cnBucket := os.Getenv("AWS_CN_BUCKET_NAME")
-
-		cfg = config.Config{
-			AmiConfiguration: config.AmiConfiguration{
-				Description:        "Integration Test AMI",
-				VirtualizationType: "hvm",
-				Visibility:         "private",
-			},
-			AmiRegions: []config.AmiRegion{
-				{
-					RegionName: usRegion,
-					Credentials: config.Credentials{
-						AccessKey: usAccessKey,
-						SecretKey: usSecretKey,
-					},
-					BucketName:   usBucket,
-					Destinations: usDestinations,
-				},
-			},
-		}
-
-		expectedRegions = append(usDestinations, usRegion)
-
-		if cnRegion != "" && cnBucket != "" {
-			cfg.AmiRegions = append(cfg.AmiRegions, config.AmiRegion{
-				RegionName: cnRegion,
-				Credentials: config.Credentials{
-					AccessKey: cnAccessKey,
-					SecretKey: cnSecretKey,
-				},
-				BucketName: cnBucket,
-			})
-
-			expectedRegions = append(expectedRegions, cnRegion)
-		}
-
 		integrationConfig, err := json.Marshal(cfg)
 		Expect(err).ToNot(HaveOccurred())
 
