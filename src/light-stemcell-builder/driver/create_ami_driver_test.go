@@ -21,14 +21,15 @@ var _ = Describe("CreateAmiDriver", func() {
 	It("creates a bootable HVM AMI from an existing snapshot", func() {
 		logger := log.New(GinkgoWriter, "CreateAmiDriver - Bootable HVM Test: ", log.LstdFlags)
 
-		amiDriverConfig := resources.AmiDriverConfig{SnapshotID: ebsSnapshotID}
-		amiUniqueID := strings.ToUpper(uuid.NewV4().String())
-		amiName := fmt.Sprintf("BOSH-%s", amiUniqueID)
-
-		amiDriverConfig.Name = amiName
-		amiDriverConfig.VirtualizationType = resources.HvmAmiVirtualization
-		amiDriverConfig.Accessibility = resources.PublicAmiAccessibility
-		amiDriverConfig.Description = "bosh cpi test ami"
+		amiDriverConfig := resources.AmiDriverConfig{
+			SnapshotID: ebsSnapshotID,
+			AmiProperties: resources.AmiProperties{
+				Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
+				VirtualizationType: resources.HvmAmiVirtualization,
+				Accessibility:      resources.PublicAmiAccessibility,
+				Description:        "bosh cpi test ami",
+			},
+		}
 
 		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
@@ -45,7 +46,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(len(reqOutput.Images)).To(Equal(1))
-		Expect(*reqOutput.Images[0].Name).To(Equal(amiName))
+		Expect(*reqOutput.Images[0].Name).To(Equal(fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String()))))
 		Expect(*reqOutput.Images[0].Architecture).To(Equal(resources.AmiArchitecture))
 		Expect(*reqOutput.Images[0].VirtualizationType).To(Equal(ami.VirtualizationType))
 		Expect(*reqOutput.Images[0].EnaSupport).To(BeTrue())

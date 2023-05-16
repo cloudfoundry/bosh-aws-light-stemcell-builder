@@ -22,15 +22,18 @@ var _ = Describe("CopyAmiDriver", func() {
 			accessibility = resources.PrivateAmiAccessibility
 		}
 
-		amiDriverConfig := resources.AmiDriverConfig{}
-		amiDriverConfig.Name = fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String()))
-		amiDriverConfig.VirtualizationType = resources.HvmAmiVirtualization
-		amiDriverConfig.Accessibility = accessibility
-		amiDriverConfig.Description = "bosh cpi test ami"
-		amiDriverConfig.ExistingAmiID = amiFixtureID
-		amiDriverConfig.DestinationRegion = destinationRegion
-		amiDriverConfig.Encrypted = encrypted
-		amiDriverConfig.KmsKeyId = kmsKey
+		amiDriverConfig := resources.AmiDriverConfig{
+			ExistingAmiID:     amiFixtureID,
+			DestinationRegion: destinationRegion,
+			AmiProperties: resources.AmiProperties{
+				Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
+				VirtualizationType: resources.HvmAmiVirtualization,
+				Description:        "bosh cpi test ami",
+				Accessibility:      accessibility,
+				Encrypted:          encrypted,
+				KmsKeyId:           kmsKey,
+			},
+		}
 
 		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
 
