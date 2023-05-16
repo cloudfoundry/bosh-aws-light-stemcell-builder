@@ -3,10 +3,9 @@ set -euo pipefail
 set -x
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-golang_root="${ROOT_DIR}/src/light-stemcell-builder"
 
 (
-  cd "${golang_root}"
+  cd "${ROOT_DIR}"
   # shellcheck disable=SC2046
   go run github.com/onsi/ginkgo/v2/ginkgo run \
     --skip-package integration \

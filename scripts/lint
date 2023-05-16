@@ -2,16 +2,11 @@
 set -eu -o pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-golang_root="${ROOT_DIR}/src/light-stemcell-builder"
 
 (
   cd "${ROOT_DIR}"
   if ! command -v golangci-lint &> /dev/null; then
     go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@latest
   fi
-)
-
-(
-  cd "${golang_root}"
   golangci-lint run --enable goimports ./...
 )
