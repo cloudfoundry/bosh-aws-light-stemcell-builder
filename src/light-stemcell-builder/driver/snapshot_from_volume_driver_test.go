@@ -1,9 +1,6 @@
 package driver_test
 
 import (
-	"os"
-
-	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 
@@ -16,27 +13,7 @@ import (
 
 var _ = Describe("SnapshotFromVolumeDriver", func() {
 	It("creates a public snapshot from an existing EBS volume", func() {
-		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
-
-		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(secretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
-
-		region := os.Getenv("AWS_REGION")
-		Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")
-
-		creds := config.Credentials{
-			AccessKey: accessKey,
-			SecretKey: secretKey,
-			Region:    region,
-		}
-
-		volumeID := os.Getenv("EBS_VOLUME_ID")
-		Expect(volumeID).ToNot(BeEmpty(), "EBS_VOLUME_ID must be set")
-
-		driverConfig := resources.SnapshotDriverConfig{
-			VolumeID: volumeID,
-		}
+		driverConfig := resources.SnapshotDriverConfig{VolumeID: ebsVolumeID}
 
 		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 		driver := ds.CreateSnapshotDriver()
@@ -44,7 +21,7 @@ var _ = Describe("SnapshotFromVolumeDriver", func() {
 		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(region))
+		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(creds.Region))
 		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 

@@ -3,11 +3,9 @@ package driver_test
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
-	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 
@@ -21,28 +19,9 @@ import (
 
 var _ = Describe("CreateAmiDriver", func() {
 	It("creates a bootable HVM AMI from an existing snapshot", func() {
-
 		logger := log.New(GinkgoWriter, "CreateAmiDriver - Bootable HVM Test: ", log.LstdFlags)
 
-		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
-
-		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(secretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
-
-		region := os.Getenv("AWS_REGION")
-		Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")
-
-		creds := config.Credentials{
-			AccessKey: accessKey,
-			SecretKey: secretKey,
-			Region:    region,
-		}
-
-		snapshotID := os.Getenv("EBS_SNAPSHOT_ID")
-		Expect(snapshotID).ToNot(BeEmpty(), "EBS_SNAPSHOT_ID must be set")
-
-		amiDriverConfig := resources.AmiDriverConfig{SnapshotID: snapshotID}
+		amiDriverConfig := resources.AmiDriverConfig{SnapshotID: ebsSnapshotID}
 		amiUniqueID := strings.ToUpper(uuid.NewV4().String())
 		amiName := fmt.Sprintf("BOSH-%s", amiUniqueID)
 

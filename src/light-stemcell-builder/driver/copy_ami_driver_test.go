@@ -2,10 +2,8 @@ package driver_test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 
@@ -19,43 +17,18 @@ import (
 
 var _ = Describe("CopyAmiDriver", func() {
 	cpiAmi := func(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
-		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
-
-		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(secretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
-
-		region := os.Getenv("AWS_REGION")
-		Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")
-
-		creds := config.Credentials{
-			AccessKey: accessKey,
-			SecretKey: secretKey,
-			Region:    region,
-		}
-
-		dstRegion := os.Getenv("AWS_DESTINATION_REGION")
-		Expect(dstRegion).ToNot(BeEmpty(), "AWS_DESTINATION_REGION must be set")
-		Expect(dstRegion).ToNot(Equal(region), "AWS_REGION and AWS_DESTINATION_REGION should be different")
-
-		existingAmiID := os.Getenv("AMI_FIXTURE_ID")
-		Expect(existingAmiID).ToNot(BeEmpty(), "AMI_FIXTURE_ID must be set")
-
-		amiDriverConfig := resources.AmiDriverConfig{}
-		amiUniqueID := strings.ToUpper(uuid.NewV4().String())
-		amiName := fmt.Sprintf("BOSH-%s", amiUniqueID)
-
 		accessibility := resources.PublicAmiAccessibility
 		if encrypted {
 			accessibility = resources.PrivateAmiAccessibility
 		}
 
-		amiDriverConfig.Name = amiName
+		amiDriverConfig := resources.AmiDriverConfig{}
+		amiDriverConfig.Name = fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String()))
 		amiDriverConfig.VirtualizationType = resources.HvmAmiVirtualization
 		amiDriverConfig.Accessibility = accessibility
 		amiDriverConfig.Description = "bosh cpi test ami"
-		amiDriverConfig.ExistingAmiID = existingAmiID
-		amiDriverConfig.DestinationRegion = dstRegion
+		amiDriverConfig.ExistingAmiID = amiFixtureID
+		amiDriverConfig.DestinationRegion = destinationRegion
 		amiDriverConfig.Encrypted = encrypted
 		amiDriverConfig.KmsKeyId = kmsKey
 
@@ -65,7 +38,7 @@ var _ = Describe("CopyAmiDriver", func() {
 		copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(dstRegion))
+		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(destinationRegion))
 		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
@@ -139,9 +112,6 @@ var _ = Describe("CopyAmiDriver", func() {
 
 		Context("when kms_key_id is provided", func() {
 			It("encrypts destination AMI using provided kms key", func() {
-				kmsKeyId := os.Getenv("AWS_KMS_KEY_ID")
-				Expect(kmsKeyId).ToNot(BeEmpty(), "AWS_KMS_KEY_ID must be set")
-
 				cpiAmi(true, kmsKeyId, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 					respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
 					Expect(err).ToNot(HaveOccurred())

@@ -5,9 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 
-	"light-stemcell-builder/config"
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/driver/manifests"
 	"light-stemcell-builder/resources"
@@ -24,47 +22,20 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 	var (
 		s3Client                          *s3.S3
-		creds                             config.Credentials
-		imagePath                         string
-		imageFormat                       string
-		bucketName                        string
 		testMachineImageLifecycle         func(resources.MachineImageDriverConfig, ...func(resources.MachineImage))
 		testMachineImageManifestLifecycle func(resources.MachineImageDriverConfig, ...func(resources.MachineImage, manifests.ImportVolumeManifest))
 	)
 
 	BeforeEach(func() {
-		accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-		Expect(accessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
-
-		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		Expect(secretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
-
-		region := os.Getenv("AWS_REGION")
-		Expect(region).ToNot(BeEmpty(), "AWS_REGION must be set")
-
-		creds = config.Credentials{
-			AccessKey: accessKey,
-			SecretKey: secretKey,
-			Region:    region,
-		}
-
 		awsSession, err := session.NewSession()
 		Expect(err).ToNot(HaveOccurred())
+
 		s3Client = s3.New(awsSession)
-
-		imagePath = os.Getenv("MACHINE_IMAGE_PATH")
-		Expect(imagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
-
-		imageFormat = os.Getenv("MACHINE_IMAGE_FORMAT")
-		Expect(imageFormat).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
-
-		bucketName = os.Getenv("AWS_BUCKET_NAME")
-		Expect(bucketName).ToNot(BeEmpty(), "AWS_BUCKET_NAME must be set")
 	})
 
 	It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
 		driverConfig := resources.MachineImageDriverConfig{
-			MachineImagePath: imagePath,
+			MachineImagePath: machineImagePath,
 			BucketName:       bucketName,
 		}
 
@@ -74,7 +45,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	Context("when ServerSideEncryption is specified", func() {
 		It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
 			driverConfig := resources.MachineImageDriverConfig{
-				MachineImagePath:     imagePath,
+				MachineImagePath:     machineImagePath,
 				BucketName:           bucketName,
 				ServerSideEncryption: "AES256",
 			}
@@ -96,8 +67,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 	It("uploads a machine image w/manifest to S3 with pre-signed URLs for GET and DELETE", func() {
 		driverConfig := resources.MachineImageDriverConfig{
-			MachineImagePath: imagePath,
-			FileFormat:       imageFormat,
+			MachineImagePath: machineImagePath,
+			FileFormat:       machineImageFormat,
 			BucketName:       bucketName,
 			VolumeSizeGB:     3,
 		}
@@ -108,8 +79,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	Context("when ServerSideEncryption is specified", func() {
 		It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
 			driverConfig := resources.MachineImageDriverConfig{
-				MachineImagePath:     imagePath,
-				FileFormat:           imageFormat,
+				MachineImagePath:     machineImagePath,
+				FileFormat:           machineImageFormat,
 				BucketName:           bucketName,
 				VolumeSizeGB:         3,
 				ServerSideEncryption: "AES256",
@@ -192,7 +163,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-		Expect(m.FileFormat).To(Equal(imageFormat))
+		Expect(m.FileFormat).To(Equal(machineImageFormat))
 		Expect(m.VolumeSizeGB).To(Equal(int64(3)))
 
 		if len(cb) > 0 {
