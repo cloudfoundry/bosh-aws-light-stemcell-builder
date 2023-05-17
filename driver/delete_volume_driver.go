@@ -22,9 +22,7 @@ type SDKDeleteVolumeDriver struct {
 // NewDeleteVolumeDriver deletes a previously created Volume
 func NewDeleteVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKDeleteVolumeDriver {
 	logger := log.New(logDest, "SDKDeleteVolumeDriver ", log.LstdFlags)
-	awsConfig := aws.NewConfig().
-		WithCredentials(awsCreds(creds)).
-		WithRegion(creds.Region).
+	awsConfig := awsConfig(creds).
 		WithLogger(newDriverLogger(logger))
 
 	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))

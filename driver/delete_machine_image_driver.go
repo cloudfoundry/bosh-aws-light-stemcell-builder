@@ -11,7 +11,6 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
@@ -26,9 +25,7 @@ type SDKDeleteMachineImageDriver struct {
 func NewDeleteMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKDeleteMachineImageDriver {
 	logger := log.New(logDest, "SDKDeleteMachineImageDriver ", log.LstdFlags)
 
-	awsConfig := aws.NewConfig().
-		WithCredentials(awsCreds(creds)).
-		WithRegion(creds.Region).
+	awsConfig := awsConfig(creds).
 		WithLogger(newDriverLogger(logger))
 
 	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))

@@ -11,25 +11,26 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-func awsCreds(creds config.Credentials) *credentials.Credentials {
-	if creds.AccessKey != "" && creds.SecretKey != "" {
-		if creds.RoleArn != "" {
-			return stscreds.NewCredentials(
-				session.Must(session.NewSession(aws.NewConfig().WithCredentials(staticCredentials(creds)))),
-				creds.RoleArn,
+func awsConfig(configCredentials config.Credentials) *aws.Config {
+	var awsCredentials *credentials.Credentials
+
+	if configCredentials.AccessKey != "" && configCredentials.SecretKey != "" {
+		awsCredentials = credentials.NewStaticCredentialsFromCreds(
+			credentials.Value{AccessKeyID: configCredentials.AccessKey, SecretAccessKey: configCredentials.SecretKey},
+		)
+
+		if configCredentials.RoleArn != "" {
+			staticConfig := aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(awsCredentials)
+			awsCredentials = stscreds.NewCredentials(
+				session.Must(session.NewSession(staticConfig)),
+				configCredentials.RoleArn,
 			)
 		}
-
-		return staticCredentials(creds)
 	} else {
-		return credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
+		awsCredentials = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
 			Client: ec2metadata.New(session.Must(session.NewSession())),
 		})
 	}
-}
 
-func staticCredentials(creds config.Credentials) *credentials.Credentials {
-	return credentials.NewStaticCredentialsFromCreds(
-		credentials.Value{AccessKeyID: creds.AccessKey, SecretAccessKey: creds.SecretKey},
-	)
+	return aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(awsCredentials)
 }
