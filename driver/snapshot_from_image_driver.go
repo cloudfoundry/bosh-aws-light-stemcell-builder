@@ -26,7 +26,7 @@ type SDKSnapshotFromImageDriver struct {
 // NewSnapshotFromImageDriver creates a SDKSnapshotFromImageDriver for creating snapshots in EC2
 func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SDKSnapshotFromImageDriver {
 	logger := log.New(logDest, "SDKSnapshotFromImageDriver ", log.LstdFlags)
-	awsConfig := awsConfig(creds).
+	awsConfig := creds.GetAwsConfig().
 		WithLogger(newDriverLogger(logger))
 
 	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))

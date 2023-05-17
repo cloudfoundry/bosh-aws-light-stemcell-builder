@@ -26,7 +26,7 @@ type SDKSnapshotFromVolumeDriver struct {
 // NewSnapshotFromVolumeDriver creates a NewSnapshotFromVolumeDriver for creating snapshots in EC2
 func NewSnapshotFromVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKSnapshotFromVolumeDriver {
 	logger := log.New(logDest, "SDKSnapshotFromVolumeDriver ", log.LstdFlags)
-	awsConfig := awsConfig(creds).
+	awsConfig := creds.GetAwsConfig().
 		WithLogger(newDriverLogger(logger))
 
 	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))

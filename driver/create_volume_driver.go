@@ -29,7 +29,7 @@ type SDKCreateVolumeDriver struct {
 // NewCreateVolumeDriver creates a SDKCreateVolumeDriver for importing a volume from a machine image url
 func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCreateVolumeDriver {
 	logger := log.New(logDest, "SDKCreateVolumeDriver ", log.LstdFlags)
-	awsConfig := awsConfig(creds).
+	awsConfig := creds.GetAwsConfig().
 		WithLogger(newDriverLogger(logger))
 
 	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))

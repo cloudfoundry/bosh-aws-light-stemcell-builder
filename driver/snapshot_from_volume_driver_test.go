@@ -21,7 +21,7 @@ var _ = Describe("SnapshotFromVolumeDriver", func() {
 		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(creds.Region))
+		awsSession, err := session.NewSession(creds.GetAwsConfig())
 		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 

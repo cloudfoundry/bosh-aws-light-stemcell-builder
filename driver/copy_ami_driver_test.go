@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 
@@ -92,7 +93,13 @@ func cpiAmi(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeIma
 	copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
 	Expect(err).ToNot(HaveOccurred())
 
-	awsSession, err := session.NewSession(aws.NewConfig().WithRegion(destinationRegion))
+	destinationCreds := config.Credentials{
+		AccessKey: creds.AccessKey,
+		SecretKey: creds.SecretKey,
+		RoleArn:   creds.RoleArn,
+		Region:    destinationRegion,
+	}
+	awsSession, err := session.NewSession(destinationCreds.GetAwsConfig())
 	Expect(err).ToNot(HaveOccurred())
 	ec2Client := ec2.New(awsSession)
 	reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})

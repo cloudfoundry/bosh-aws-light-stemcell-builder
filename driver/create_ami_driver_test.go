@@ -38,7 +38,7 @@ var _ = Describe("CreateAmiDriver", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(ami.VirtualizationType).To(Equal(resources.HvmAmiVirtualization))
 
-		awsSession, err := session.NewSession(aws.NewConfig().WithRegion(ami.Region))
+		awsSession, err := session.NewSession(creds.GetAwsConfig())
 		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 

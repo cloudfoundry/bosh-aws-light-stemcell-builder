@@ -22,7 +22,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	var s3Client *s3.S3
 
 	BeforeEach(func() {
-		awsSession, err := session.NewSession()
+		awsSession, err := session.NewSession(creds.GetAwsConfig())
 		Expect(err).ToNot(HaveOccurred())
 
 		s3Client = s3.New(awsSession)

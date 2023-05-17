@@ -39,7 +39,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		RoleArn:   d.creds.RoleArn,
 		Region:    dstRegion,
 	}
-	awsConfig := awsConfig(destinationCreds).
+	awsConfig := destinationCreds.GetAwsConfig().
 		WithLogger(newDriverLogger(d.logger))
 
 	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
