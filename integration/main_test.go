@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
+	"light-stemcell-builder/config"
 	"light-stemcell-builder/manifest"
 )
 
@@ -124,10 +125,13 @@ cloud_properties:
 					WithCredentials(cnCreds).
 					WithRegion(region)
 			} else {
-				usCreds := credentials.NewStaticCredentials(cfg.AmiRegions[0].Credentials.AccessKey, cfg.AmiRegions[0].Credentials.SecretKey, "")
-				awsConfig = aws.NewConfig().
-					WithCredentials(usCreds).
-					WithRegion(region)
+				configCreds := config.Credentials{
+					AccessKey: cfg.AmiRegions[0].Credentials.AccessKey,
+					SecretKey: cfg.AmiRegions[0].Credentials.SecretKey,
+					RoleArn:   cfg.AmiRegions[0].Credentials.RoleArn,
+					Region:    region,
+				}
+				awsConfig = configCreds.GetAwsConfig()
 			}
 
 			awsSession, err := session.NewSession(awsConfig)
