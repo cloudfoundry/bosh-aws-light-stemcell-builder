@@ -96,7 +96,7 @@ func (d *SDKCreateMachineImageDriver) Create(driverConfig resources.MachineImage
 		return resources.MachineImage{}, fmt.Errorf("failed to sign DELETE request: %s", err)
 	}
 
-	d.logger.Printf("generated presigned GET URL %s\n", machineImageDeleteURL)
+	d.logger.Printf("generated presigned DELETE URL %s\n", machineImageDeleteURL)
 
 	machineImage := resources.MachineImage{
 		GetURL:     machineImageGetURL,
