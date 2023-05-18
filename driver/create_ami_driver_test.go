@@ -10,7 +10,6 @@ import (
 	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -31,15 +30,13 @@ var _ = Describe("CreateAmiDriver", func() {
 			},
 		}
 
-		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, awsSession, creds)
 
 		amiDriver := ds.CreateAmiDriver()
 		ami, err := amiDriver.Create(amiDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(ami.VirtualizationType).To(Equal(resources.HvmAmiVirtualization))
 
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 
 		reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(ami.ID)}})

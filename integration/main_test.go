@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"time"
 
+	"light-stemcell-builder/test_helpers"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -131,7 +133,7 @@ cloud_properties:
 					RoleArn:   cfg.AmiRegions[0].Credentials.RoleArn,
 					Region:    region,
 				}
-				awsConfig = configCreds.GetAwsConfig()
+				awsConfig = test_helpers.AwsConfigFrom(configCreds)
 			}
 
 			awsSession, err := session.NewSession(awsConfig)

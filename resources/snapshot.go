@@ -2,7 +2,7 @@ package resources
 
 // SnapshotDriver abstracts the creation of a snapshot in AWS
 //
-//go:generate counterfeiter -o fakes/fake_snapshot_driver.go . SnapshotDriver
+//counterfeiter:generate . SnapshotDriver
 type SnapshotDriver interface {
 	Create(SnapshotDriverConfig) (Snapshot, error)
 }

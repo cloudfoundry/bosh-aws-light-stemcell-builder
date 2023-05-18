@@ -22,13 +22,10 @@ type SDKDeleteMachineImageDriver struct {
 }
 
 // NewDeleteMachineImageDriver deletes a previously uploaded machine image and manifest from S3
-func NewDeleteMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKDeleteMachineImageDriver {
+func NewDeleteMachineImageDriver(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) *SDKDeleteMachineImageDriver {
 	logger := log.New(logDest, "SDKDeleteMachineImageDriver ", log.LstdFlags)
 
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
-
-	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))
+	s3Client := s3.New(awsRegionSession)
 
 	return &SDKDeleteMachineImageDriver{
 		s3Client: s3Client,

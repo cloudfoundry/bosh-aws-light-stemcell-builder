@@ -5,7 +5,6 @@ import (
 	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,14 +14,12 @@ var _ = Describe("SnapshotFromVolumeDriver", func() {
 	It("creates a public snapshot from an existing EBS volume", func() {
 		driverConfig := resources.SnapshotDriverConfig{VolumeID: ebsVolumeID}
 
-		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, awsSession, creds)
 		driver := ds.CreateSnapshotDriver()
 
 		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 
 		reqOutput, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{&snapshot.ID}})

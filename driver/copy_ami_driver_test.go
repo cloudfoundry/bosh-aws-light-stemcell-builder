@@ -7,6 +7,7 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
+	"light-stemcell-builder/test_helpers"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -18,7 +19,7 @@ import (
 
 var _ = Describe("CopyAmiDriver", func() {
 	It("copies an existing AMI to a new region while preserving its properties", func() {
-		cpiAmi(false, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+		cpiAmi(false, "", awsSession, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 			snapshotIDptr := getSnapshotID(reqOutput)
 
 			snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
@@ -34,7 +35,7 @@ var _ = Describe("CopyAmiDriver", func() {
 
 	Context("when encrypted flag is set to true", func() {
 		It("does NOT make snapshot public", func() {
-			cpiAmi(true, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+			cpiAmi(true, "", awsSession, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 				snapshotIDptr := getSnapshotID(reqOutput)
 
 				snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
@@ -48,7 +49,7 @@ var _ = Describe("CopyAmiDriver", func() {
 		})
 
 		It("encrypts destination AMI using default AWS KMS key", func() {
-			cpiAmi(true, "", func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+			cpiAmi(true, "", awsSession, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 				respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
 				Expect(err).ToNot(HaveOccurred())
 
@@ -58,7 +59,7 @@ var _ = Describe("CopyAmiDriver", func() {
 
 		Context("when kms_key_id is provided", func() {
 			It("encrypts destination AMI using provided kms key", func() {
-				cpiAmi(true, kmsKeyId, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+				cpiAmi(true, kmsKeyId, awsSession, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 					respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
 					Expect(err).ToNot(HaveOccurred())
 
@@ -70,7 +71,7 @@ var _ = Describe("CopyAmiDriver", func() {
 	})
 })
 
-func cpiAmi(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
+func cpiAmi(encrypted bool, kmsKey string, awsSession *session.Session, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
 	accessibility := resources.PublicAmiAccessibility
 	if encrypted {
 		accessibility = resources.PrivateAmiAccessibility
@@ -89,7 +90,7 @@ func cpiAmi(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeIma
 		},
 	}
 
-	amiCopyDriver := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds).CopyAmiDriver()
+	amiCopyDriver := driverset.NewStandardRegionDriverSet(GinkgoWriter, awsSession, creds).CopyAmiDriver()
 	copiedAmi, err := amiCopyDriver.Create(amiDriverConfig)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -99,9 +100,9 @@ func cpiAmi(encrypted bool, kmsKey string, cb ...func(*ec2.EC2, *ec2.DescribeIma
 		RoleArn:   creds.RoleArn,
 		Region:    destinationRegion,
 	}
-	awsSession, err := session.NewSession(destinationCreds.GetAwsConfig())
+	destinationAwsSession, err := session.NewSession(test_helpers.AwsConfigFrom(destinationCreds))
 	Expect(err).ToNot(HaveOccurred())
-	ec2Client := ec2.New(awsSession)
+	ec2Client := ec2.New(destinationAwsSession)
 	reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
 	Expect(err).ToNot(HaveOccurred())
 

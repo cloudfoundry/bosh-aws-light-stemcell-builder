@@ -6,6 +6,7 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 (
   cd "${ROOT_DIR}"
+  go generate ./...
   # shellcheck disable=SC2046
   go run github.com/onsi/ginkgo/v2/ginkgo run \
     --skip-package integration \

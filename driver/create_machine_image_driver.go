@@ -23,15 +23,10 @@ type SDKCreateMachineImageDriver struct {
 }
 
 // NewCreateMachineImageDriver creates a MachineImageDriver for S3 uploads
-func NewCreateMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKCreateMachineImageDriver {
+func NewCreateMachineImageDriver(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) *SDKCreateMachineImageDriver {
 	logger := log.New(logDest, "SDKCreateMachineImageDriver ", log.LstdFlags)
 
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
-
-	awsConfig.Retryer = NewS3RetryerWithRetries(50)
-
-	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))
+	s3Client := s3.New(awsRegionSession)
 
 	return &SDKCreateMachineImageDriver{
 		s3Client: s3Client,

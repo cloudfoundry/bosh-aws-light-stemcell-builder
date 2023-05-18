@@ -3,12 +3,13 @@ package publisher
 import (
 	"fmt"
 	"io"
-	"light-stemcell-builder/collection"
-	"light-stemcell-builder/driverset"
-	"light-stemcell-builder/resources"
 	"log"
 	"sync"
 	"time"
+
+	"light-stemcell-builder/collection"
+	"light-stemcell-builder/driverset"
+	"light-stemcell-builder/resources"
 )
 
 type StandardRegionPublisher struct {

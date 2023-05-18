@@ -2,12 +2,14 @@ package publisher_test
 
 import (
 	"errors"
+
 	"light-stemcell-builder/config"
-	fakeDriverset "light-stemcell-builder/driverset/fakes"
+	"light-stemcell-builder/driverset/driversetfakes"
 	"light-stemcell-builder/publisher"
 	"light-stemcell-builder/resources"
-	fakeResources "light-stemcell-builder/resources/fakes"
+	"light-stemcell-builder/resources/resourcesfakes"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -37,6 +39,8 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		VirtualizationType: fakeAmiConfig.VirtualizationType,
 	}
 
+	var awsSession = session.Must(session.NewSession())
+
 	It("uses the provided driver set to orchestrate the creation of an AMI", func() {
 		publisherConfig := publisher.Config{
 			AmiRegion: config.AmiRegion{
@@ -51,7 +55,7 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 			VolumeSizeGB: fakeVolumeSizeGB,
 		}
 
-		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeIsolatedRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -69,25 +73,25 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 			Region: fakeRegion,
 		}
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeMachineImageDriver.DeleteReturns(nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver := &resourcesfakes.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(fakeVolume, nil)
 		fakeVolumeDriver.DeleteReturns(nil)
 		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
-		fakeCreateAmiDriver := &fakeResources.FakeAmiDriver{}
+		fakeCreateAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeCreateAmiDriver.CreateReturns(fakeAmi, nil)
 		fakeDs.CreateAmiDriverReturns(fakeCreateAmiDriver)
 
-		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, awsSession, publisherConfig)
 		amiCollection, err := p.Publish(fakeDs, machineImageConfig)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -132,14 +136,14 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 	It("returns a machine image driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
-		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in machine image driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{}, driverErr)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, awsSession, publisherConfig)
 		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
@@ -149,18 +153,18 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 	It("returns a volume driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
-		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in volume driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver := &resourcesfakes.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(resources.Volume{}, driverErr)
 		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
-		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, awsSession, publisherConfig)
 		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
@@ -170,22 +174,22 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 	It("returns a snapshot driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
-		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in ami driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver := &resourcesfakes.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(resources.Volume{ID: fakeVolumeID}, nil)
 		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{}, driverErr)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
-		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, awsSession, publisherConfig)
 		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())
@@ -195,26 +199,26 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 	It("returns a create ami driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
-		fakeDs := &fakeDriverset.FakeIsolatedRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeIsolatedRegionDriverSet{}
 		driverErr := errors.New("error in create ami driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{GetURL: fakeMachineImageURL}, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeVolumeDriver := &fakeResources.FakeVolumeDriver{}
+		fakeVolumeDriver := &resourcesfakes.FakeVolumeDriver{}
 		fakeVolumeDriver.CreateReturns(resources.Volume{ID: fakeVolumeID}, nil)
 		fakeDs.VolumeDriverReturns(fakeVolumeDriver)
 
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{ID: fakeSnapshotID}, nil)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
-		fakeAmiDriver := &fakeResources.FakeAmiDriver{}
+		fakeAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeAmiDriver.CreateReturns(resources.Ami{}, driverErr)
 		fakeDs.CreateAmiDriverReturns(fakeAmiDriver)
 
-		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, publisherConfig)
+		p := publisher.NewIsolatedRegionPublisher(GinkgoWriter, awsSession, publisherConfig)
 		_, err := p.Publish(fakeDs, machineImageConfig)
 
 		Expect(err).To(HaveOccurred())

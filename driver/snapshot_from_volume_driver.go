@@ -24,13 +24,15 @@ type SDKSnapshotFromVolumeDriver struct {
 }
 
 // NewSnapshotFromVolumeDriver creates a NewSnapshotFromVolumeDriver for creating snapshots in EC2
-func NewSnapshotFromVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKSnapshotFromVolumeDriver {
+func NewSnapshotFromVolumeDriver(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) *SDKSnapshotFromVolumeDriver {
 	logger := log.New(logDest, "SDKSnapshotFromVolumeDriver ", log.LstdFlags)
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
-	return &SDKSnapshotFromVolumeDriver{ec2Client: ec2Client, logger: logger}
+	ec2Client := ec2.New(awsRegionSession)
+
+	return &SDKSnapshotFromVolumeDriver{
+		ec2Client: ec2Client,
+		logger:    logger,
+	}
 }
 
 // Create produces a snapshot in EC2 from a previously created EBS volume

@@ -2,11 +2,12 @@ package publisher_test
 
 import (
 	"errors"
+
 	"light-stemcell-builder/config"
-	fakeDriverset "light-stemcell-builder/driverset/fakes"
+	"light-stemcell-builder/driverset/driversetfakes"
 	"light-stemcell-builder/publisher"
 	"light-stemcell-builder/resources"
-	fakeResources "light-stemcell-builder/resources/fakes"
+	"light-stemcell-builder/resources/resourcesfakes"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -52,7 +53,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 			FileFormat: resources.VolumeRawFormat,
 		}
 
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -68,20 +69,20 @@ var _ = Describe("StandardRegionPublisher", func() {
 			Region: fakeCopyDestination,
 		}
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeMachineImageDriver.DeleteReturns(nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
-		fakeCreateAmiDriver := &fakeResources.FakeAmiDriver{}
+		fakeCreateAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeCreateAmiDriver.CreateReturns(fakeAmi, nil)
 		fakeDs.CreateAmiDriverReturns(fakeCreateAmiDriver)
 
-		fakeCopyAmiDriver := &fakeResources.FakeAmiDriver{}
+		fakeCopyAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeCopyAmiDriver.CreateReturns(fakeCopiedAmi, nil)
 		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
 
@@ -131,11 +132,11 @@ var _ = Describe("StandardRegionPublisher", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
 
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeStandardRegionDriverSet{}
 
 		driverErr := errors.New("error in machine image driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(resources.MachineImage{}, driverErr)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
@@ -150,18 +151,18 @@ var _ = Describe("StandardRegionPublisher", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
 
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
 
 		driverErr := errors.New("error in ami driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{}, driverErr)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
@@ -176,7 +177,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
 
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -186,15 +187,15 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 		driverErr := errors.New("error in create ami driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
-		fakeAmiDriver := &fakeResources.FakeAmiDriver{}
+		fakeAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeAmiDriver.CreateReturns(resources.Ami{}, driverErr)
 		fakeDs.CreateAmiDriverReturns(fakeAmiDriver)
 
@@ -214,7 +215,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		}
 		machineImageConfig := publisher.MachineImageConfig{}
 
-		fakeDs := &fakeDriverset.FakeStandardRegionDriverSet{}
+		fakeDs := &driversetfakes.FakeStandardRegionDriverSet{}
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
@@ -224,11 +225,11 @@ var _ = Describe("StandardRegionPublisher", func() {
 
 		driverErr := errors.New("error in copy ami driver")
 
-		fakeMachineImageDriver := &fakeResources.FakeMachineImageDriver{}
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
-		fakeSnapshotDriver := &fakeResources.FakeSnapshotDriver{}
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
 
@@ -237,11 +238,11 @@ var _ = Describe("StandardRegionPublisher", func() {
 			Region: fakeRegion,
 		}
 
-		fakeCreateAmiDriver := &fakeResources.FakeAmiDriver{}
+		fakeCreateAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeCreateAmiDriver.CreateReturns(fakeAmi, nil)
 		fakeDs.CreateAmiDriverReturns(fakeCreateAmiDriver)
 
-		fakeCopyAmiDriver := &fakeResources.FakeAmiDriver{}
+		fakeCopyAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeCopyAmiDriver.CreateReturns(resources.Ami{}, driverErr)
 		fakeDs.CopyAmiDriverReturns(fakeCopyAmiDriver)
 

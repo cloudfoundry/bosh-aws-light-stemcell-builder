@@ -1,5 +1,8 @@
 package resources
 
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 // AMI creation constants
 const (
 	PublicAmiAccessibility  = "public"
@@ -10,7 +13,7 @@ const (
 
 // AmiDriver abstracts the API calls required to build an AMI
 //
-//go:generate counterfeiter -o fakes/fake_ami_driver.go . AmiDriver
+//counterfeiter:generate . AmiDriver
 type AmiDriver interface {
 	Create(AmiDriverConfig) (Ami, error)
 }

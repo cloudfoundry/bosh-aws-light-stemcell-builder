@@ -5,12 +5,15 @@ import (
 	"testing"
 
 	"light-stemcell-builder/config"
+	"light-stemcell-builder/test_helpers"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 var creds config.Credentials
+var awsSession *session.Session
 
 var destinationRegion string
 
@@ -71,6 +74,10 @@ var _ = SynchronizedBeforeSuite(
 		// KMS Key info
 		kmsKeyId = os.Getenv("AWS_KMS_KEY_ID")
 		Expect(kmsKeyId).ToNot(BeEmpty(), "AWS_KMS_KEY_ID must be set")
+
+		var err error
+		awsSession, err = session.NewSession(test_helpers.AwsConfigFrom(creds))
+		Expect(err).ToNot(HaveOccurred())
 	},
 )
 

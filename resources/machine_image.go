@@ -1,6 +1,6 @@
 package resources
 
-//go:generate counterfeiter -o fakes/fake_machine_image_driver.go . MachineImageDriver
+//counterfeiter:generate . MachineImageDriver
 type MachineImageDriver interface {
 	Create(MachineImageDriverConfig) (MachineImage, error)
 	Delete(MachineImage) error

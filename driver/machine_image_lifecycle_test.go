@@ -22,9 +22,6 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	var s3Client *s3.S3
 
 	BeforeEach(func() {
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
-
 		s3Client = s3.New(awsSession)
 	})
 
@@ -34,7 +31,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			BucketName:       bucketName,
 		}
 
-		testMachineImageLifecycle(driverConfig)
+		testMachineImageLifecycle(driverConfig, awsSession)
 	})
 
 	Context("when ServerSideEncryption is specified", func() {
@@ -45,7 +42,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 				ServerSideEncryption: "AES256",
 			}
 
-			testMachineImageLifecycle(driverConfig, func(machineImage resources.MachineImage) {
+			testMachineImageLifecycle(driverConfig, awsSession, func(machineImage resources.MachineImage) {
 				imageURL, err := url.Parse(machineImage.GetURL) //nolint:ineffassign,staticcheck
 
 				params := &s3.HeadObjectInput{
@@ -68,7 +65,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			VolumeSizeGB:     3,
 		}
 
-		testMachineImageManifestLifecycle(driverConfig)
+		testMachineImageManifestLifecycle(driverConfig, awsSession)
 	})
 
 	Context("when ServerSideEncryption is specified", func() {
@@ -81,7 +78,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 				ServerSideEncryption: "AES256",
 			}
 
-			testMachineImageManifestLifecycle(driverConfig, func(machineImage resources.MachineImage, manifest manifests.ImportVolumeManifest) {
+			testMachineImageManifestLifecycle(driverConfig, awsSession, func(machineImage resources.MachineImage, manifest manifests.ImportVolumeManifest) {
 				imageURL, err := url.Parse(machineImage.GetURL) //nolint:ineffassign,staticcheck
 
 				params := &s3.HeadObjectInput{
@@ -108,8 +105,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	})
 })
 
-func testMachineImageLifecycle(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage)) {
-	createDriver := driver.NewCreateMachineImageDriver(GinkgoWriter, creds)
+func testMachineImageLifecycle(driverConfig resources.MachineImageDriverConfig, awsSession *session.Session, cb ...func(resources.MachineImage)) {
+	createDriver := driver.NewCreateMachineImageDriver(GinkgoWriter, awsSession, creds)
 
 	machineImage, err := createDriver.Create(driverConfig)
 	Expect(err).ToNot(HaveOccurred())
@@ -124,7 +121,7 @@ func testMachineImageLifecycle(driverConfig resources.MachineImageDriverConfig, 
 		cb[0](machineImage)
 	}
 
-	deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
+	deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, awsSession, creds)
 
 	err = deleteDriver.Delete(machineImage)
 	Expect(err).ToNot(HaveOccurred())
@@ -134,8 +131,8 @@ func testMachineImageLifecycle(driverConfig resources.MachineImageDriverConfig, 
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 }
 
-func testMachineImageManifestLifecycle(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage, manifests.ImportVolumeManifest)) {
-	createDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, creds)
+func testMachineImageManifestLifecycle(driverConfig resources.MachineImageDriverConfig, awsSession *session.Session, cb ...func(resources.MachineImage, manifests.ImportVolumeManifest)) {
+	createDriver := driver.NewCreateMachineImageManifestDriver(GinkgoWriter, awsSession, creds)
 
 	machineImage, err := createDriver.Create(driverConfig)
 	Expect(err).ToNot(HaveOccurred())
@@ -166,7 +163,7 @@ func testMachineImageManifestLifecycle(driverConfig resources.MachineImageDriver
 		cb[0](machineImage, m)
 	}
 
-	deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
+	deleteDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, awsSession, creds)
 
 	err = deleteDriver.Delete(machineImage)
 	Expect(err).ToNot(HaveOccurred())

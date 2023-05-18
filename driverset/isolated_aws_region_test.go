@@ -5,15 +5,15 @@ import (
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/driverset"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("IsolatedAwsRegion", func() {
 	It("returns drivers of the correct type", func() {
-
 		creds := config.Credentials{}
-		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, session.Must(session.NewSession()), creds)
 
 		Expect(ds.MachineImageDriver()).To(BeAssignableToTypeOf(struct {
 			*driver.SDKCreateMachineImageManifestDriver

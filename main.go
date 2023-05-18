@@ -16,6 +16,14 @@ import (
 	"light-stemcell-builder/manifest"
 	"light-stemcell-builder/publisher"
 	"light-stemcell-builder/resources"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 func usage(message string) {
@@ -117,10 +125,15 @@ func main() {
 		go func(regionConfig config.AmiRegion) {
 			defer wg.Done()
 
+			aswRegionSession, err := session.NewSession(awsCredentialsFrom(regionConfig.Credentials))
+			if err != nil {
+				logger.Fatalf("creating aws session for region '%v': %s", regionConfig, err)
+			}
+
 			switch {
 			case regionConfig.IsolatedRegion:
-				ds := driverset.NewIsolatedRegionDriverSet(sharedWriter, regionConfig.Credentials)
-				p := publisher.NewIsolatedRegionPublisher(sharedWriter, publisher.Config{
+				ds := driverset.NewIsolatedRegionDriverSet(sharedWriter, aswRegionSession, regionConfig.Credentials)
+				p := publisher.NewIsolatedRegionPublisher(sharedWriter, aswRegionSession, publisher.Config{
 					AmiRegion:        regionConfig,
 					AmiConfiguration: c.AmiConfiguration,
 				})
@@ -132,7 +145,7 @@ func main() {
 					amiCollection.Merge(amis)
 				}
 			default:
-				ds := driverset.NewStandardRegionDriverSet(sharedWriter, regionConfig.Credentials)
+				ds := driverset.NewStandardRegionDriverSet(sharedWriter, aswRegionSession, regionConfig.Credentials)
 				p := publisher.NewStandardRegionPublisher(sharedWriter, publisher.Config{
 					AmiRegion:        regionConfig,
 					AmiConfiguration: c.AmiConfiguration,
@@ -165,6 +178,33 @@ func main() {
 		logger.Fatalf("writing manifest: %s", err)
 	}
 	logger.Println("Publishing finished successfully")
+}
+
+func awsCredentialsFrom(creds config.Credentials) *aws.Config {
+	var awsCredentials *credentials.Credentials
+
+	if creds.AccessKey != "" && creds.SecretKey != "" {
+		awsCredentials = credentials.NewStaticCredentialsFromCreds(
+			credentials.Value{AccessKeyID: creds.AccessKey, SecretAccessKey: creds.SecretKey},
+		)
+
+		if creds.RoleArn != "" {
+			staticConfig := aws.NewConfig().WithRegion(creds.Region).WithCredentials(awsCredentials)
+			awsCredentials = stscreds.NewCredentials(
+				session.Must(session.NewSession(staticConfig)),
+				creds.RoleArn,
+			)
+		}
+	} else {
+		awsCredentials = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
+			Client: ec2metadata.New(session.Must(session.NewSession())),
+		})
+	}
+
+	awsConfig := aws.NewConfig().WithRegion(creds.Region).WithCredentials(awsCredentials)
+	awsConfig.Retryer = client.DefaultRetryer{NumMaxRetries: 50}
+
+	return awsConfig
 }
 
 func shasum(content []byte) string {

@@ -27,13 +27,15 @@ type SDKCreateVolumeDriver struct {
 }
 
 // NewCreateVolumeDriver creates a SDKCreateVolumeDriver for importing a volume from a machine image url
-func NewCreateVolumeDriver(logDest io.Writer, creds config.Credentials) *SDKCreateVolumeDriver {
+func NewCreateVolumeDriver(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) *SDKCreateVolumeDriver {
 	logger := log.New(logDest, "SDKCreateVolumeDriver ", log.LstdFlags)
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
-	return &SDKCreateVolumeDriver{ec2Client: ec2Client, logger: logger}
+	ec2Client := ec2.New(awsRegionSession)
+
+	return &SDKCreateVolumeDriver{
+		ec2Client: ec2Client,
+		logger:    logger,
+	}
 }
 
 // Create makes an EBS volume from a machine image URL in the first availability zone returned from DescribeAvailabilityZones

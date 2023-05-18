@@ -18,31 +18,32 @@ import (
 
 // SDKCopyAmiDriver uses the AWS SDK to register an AMI from an existing snapshot in EC2
 type SDKCopyAmiDriver struct {
-	creds  config.Credentials
-	logger *log.Logger
+	creds            config.Credentials
+	logger           *log.Logger
+	awsRegionSession *session.Session
 }
 
 // NewCopyAmiDriver creates a SDKCopyAmiDriver for copying AMIs in EC2
-func NewCopyAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCopyAmiDriver {
+func NewCopyAmiDriver(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) *SDKCopyAmiDriver {
 	logger := log.New(logDest, "SDKCopyAmiDriver ", log.LstdFlags)
-	return &SDKCopyAmiDriver{creds: creds, logger: logger}
+	return &SDKCopyAmiDriver{creds: creds, logger: logger, awsRegionSession: awsRegionSession}
 }
 
-// Create creates an AMI, copied from a source AMI, and optionally makes the AMI publically available
+// Create creates an AMI, copied from a source AMI, and optionally makes the AMI publicly available
 func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resources.Ami, error) {
 	srcRegion := d.creds.Region
 	dstRegion := driverConfig.DestinationRegion
 
-	destinationCreds := config.Credentials{
-		AccessKey: d.creds.AccessKey,
-		SecretKey: d.creds.SecretKey,
-		RoleArn:   d.creds.RoleArn,
-		Region:    dstRegion,
-	}
-	awsConfig := destinationCreds.GetAwsConfig().
-		WithLogger(newDriverLogger(d.logger))
+	//destinationCreds := config.Credentials{
+	//	AccessKey: d.creds.AccessKey,
+	//	SecretKey: d.creds.SecretKey,
+	//	RoleArn:   d.creds.RoleArn,
+	//	Region:    dstRegion,
+	//}
+	//awsConfig := destinationCreds.GetAwsConfig().
+	//	WithLogger(newDriverLogger(d.logger))
 
-	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
+	ec2Client := ec2.New(session.Must(session.NewSession(d.awsRegionSession.Config.WithRegion(dstRegion))))
 
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {

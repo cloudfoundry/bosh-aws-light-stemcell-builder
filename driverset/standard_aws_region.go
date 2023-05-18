@@ -2,12 +2,15 @@ package driverset
 
 import (
 	"io"
+
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
+
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-//go:generate counterfeiter -o fakes/fake_standard_region_driver_set.go . StandardRegionDriverSet
+//counterfeiter:generate . StandardRegionDriverSet
 type StandardRegionDriverSet interface {
 	MachineImageDriver() resources.MachineImageDriver
 	CreateSnapshotDriver() resources.SnapshotDriver
@@ -22,18 +25,18 @@ type standardRegionDriverSet struct {
 	copyAmiDriver      *driver.SDKCopyAmiDriver
 }
 
-func NewStandardRegionDriverSet(logDest io.Writer, creds config.Credentials) StandardRegionDriverSet {
+func NewStandardRegionDriverSet(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) StandardRegionDriverSet {
 	return &standardRegionDriverSet{
 		machineImageDriver: struct {
 			*driver.SDKCreateMachineImageDriver
 			*driver.SDKDeleteMachineImageDriver
 		}{
-			driver.NewCreateMachineImageDriver(logDest, creds),
-			driver.NewDeleteMachineImageDriver(logDest, creds),
+			driver.NewCreateMachineImageDriver(logDest, awsRegionSession, creds),
+			driver.NewDeleteMachineImageDriver(logDest, awsRegionSession, creds),
 		},
-		snapshotDriver: driver.NewSnapshotFromImageDriver(logDest, creds),
-		amiDriver:      driver.NewCreateAmiDriver(logDest, creds),
-		copyAmiDriver:  driver.NewCopyAmiDriver(logDest, creds),
+		snapshotDriver: driver.NewSnapshotFromImageDriver(logDest, awsRegionSession, creds),
+		amiDriver:      driver.NewCreateAmiDriver(logDest, awsRegionSession, creds),
+		copyAmiDriver:  driver.NewCopyAmiDriver(logDest, awsRegionSession, creds),
 	}
 }
 

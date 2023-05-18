@@ -31,15 +31,10 @@ type SDKCreateMachineImageManifestDriver struct {
 }
 
 // NewCreateMachineImageManifestDriver creates a MachineImageDriver machine image manifest generation
-func NewCreateMachineImageManifestDriver(logDest io.Writer, creds config.Credentials) *SDKCreateMachineImageManifestDriver {
+func NewCreateMachineImageManifestDriver(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) *SDKCreateMachineImageManifestDriver {
 	logger := log.New(logDest, "SDKCreateMachineImageManifestDriver ", log.LstdFlags)
 
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
-
-	awsConfig.Retryer = NewS3RetryerWithRetries(50)
-
-	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))
+	s3Client := s3.New(awsRegionSession)
 
 	return &SDKCreateMachineImageManifestDriver{
 		s3Client: s3Client,

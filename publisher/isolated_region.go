@@ -3,11 +3,14 @@ package publisher
 import (
 	"fmt"
 	"io"
+	"log"
+	"time"
+
 	"light-stemcell-builder/collection"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
-	"log"
-	"time"
+
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 type IsolatedRegionPublisher struct {
@@ -18,7 +21,7 @@ type IsolatedRegionPublisher struct {
 	logger               *log.Logger
 }
 
-func NewIsolatedRegionPublisher(logDest io.Writer, c Config) *IsolatedRegionPublisher {
+func NewIsolatedRegionPublisher(logDest io.Writer, awsRegionSession *session.Session, c Config) *IsolatedRegionPublisher {
 	return &IsolatedRegionPublisher{
 		Region:               c.RegionName,
 		BucketName:           c.BucketName,

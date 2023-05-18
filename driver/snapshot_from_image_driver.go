@@ -24,13 +24,15 @@ type SDKSnapshotFromImageDriver struct {
 }
 
 // NewSnapshotFromImageDriver creates a SDKSnapshotFromImageDriver for creating snapshots in EC2
-func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SDKSnapshotFromImageDriver {
+func NewSnapshotFromImageDriver(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) *SDKSnapshotFromImageDriver {
 	logger := log.New(logDest, "SDKSnapshotFromImageDriver ", log.LstdFlags)
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
 
-	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
-	return &SDKSnapshotFromImageDriver{ec2Client: ec2Client, logger: logger}
+	ec2Client := ec2.New(awsRegionSession)
+
+	return &SDKSnapshotFromImageDriver{
+		ec2Client: ec2Client,
+		logger:    logger,
+	}
 }
 
 // Create produces a snapshot in EC2 from a machine image previously uploaded to S3

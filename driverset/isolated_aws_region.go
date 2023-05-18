@@ -1,13 +1,19 @@
 package driverset
 
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 import (
 	"io"
+
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
+
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-//go:generate counterfeiter -o fakes/fake_isolated_region_driver_set.go . IsolatedRegionDriverSet
+//counterfeiter:generate . IsolatedRegionDriverSet
 type IsolatedRegionDriverSet interface {
 	MachineImageDriver() resources.MachineImageDriver
 	VolumeDriver() resources.VolumeDriver
@@ -22,24 +28,24 @@ type isolatedRegionDriverSet struct {
 	createAmiDriver    *driver.SDKCreateAmiDriver
 }
 
-func NewIsolatedRegionDriverSet(logDest io.Writer, creds config.Credentials) IsolatedRegionDriverSet {
+func NewIsolatedRegionDriverSet(logDest io.Writer, awsRegionSession *session.Session, creds config.Credentials) IsolatedRegionDriverSet {
 	return &isolatedRegionDriverSet{
 		machineImageDriver: struct {
 			*driver.SDKCreateMachineImageManifestDriver
 			*driver.SDKDeleteMachineImageDriver
 		}{
-			driver.NewCreateMachineImageManifestDriver(logDest, creds),
-			driver.NewDeleteMachineImageDriver(logDest, creds),
+			driver.NewCreateMachineImageManifestDriver(logDest, awsRegionSession, creds),
+			driver.NewDeleteMachineImageDriver(logDest, awsRegionSession, creds),
 		},
 		volumeDriver: struct {
 			*driver.SDKCreateVolumeDriver
 			*driver.SDKDeleteVolumeDriver
 		}{
-			driver.NewCreateVolumeDriver(logDest, creds),
-			driver.NewDeleteVolumeDriver(logDest, creds),
+			driver.NewCreateVolumeDriver(logDest, awsRegionSession, creds),
+			driver.NewDeleteVolumeDriver(logDest, awsRegionSession, creds),
 		},
-		snapshotDriver:  driver.NewSnapshotFromVolumeDriver(logDest, creds),
-		createAmiDriver: driver.NewCreateAmiDriver(logDest, creds),
+		snapshotDriver:  driver.NewSnapshotFromVolumeDriver(logDest, awsRegionSession, creds),
+		createAmiDriver: driver.NewCreateAmiDriver(logDest, awsRegionSession, creds),
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -18,14 +17,12 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 			FileFormat:      s3MachineImageFormat,
 		}
 
-		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
+		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, awsSession, creds)
 		driver := ds.CreateSnapshotDriver()
 
 		snapshot, err := driver.Create(driverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
 		ec2Client := ec2.New(awsSession)
 
 		reqOutput, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{&snapshot.ID}})
