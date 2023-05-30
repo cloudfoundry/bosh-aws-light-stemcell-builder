@@ -11,6 +11,7 @@ import (
 	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 
@@ -125,9 +126,10 @@ func checkUploadedUrl(getUrl string) int {
 			Bucket: aws.String(parsedUrl.Host),
 			Key:    aws.String(parsedUrl.Path),
 		})
+
 		if err == nil {
 			return 200
-		} else if err.Error() == s3.ErrCodeNoSuchKey {
+		} else if err.(awserr.RequestFailure).Code() == s3.ErrCodeNoSuchKey {
 			return 404
 		} else {
 			Expect(err).ToNot(HaveOccurred())
