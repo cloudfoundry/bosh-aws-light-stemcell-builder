@@ -11,6 +11,7 @@ import (
 	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 
@@ -18,9 +19,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Machine Image Lifecycle", func() {
-	var s3Client *s3.S3
+var s3Client *s3.S3
 
+var _ = Describe("Machine Image Lifecycle", func() {
 	BeforeEach(func() {
 		awsSession, err := session.NewSession(creds.GetAwsConfig())
 		Expect(err).ToNot(HaveOccurred())
@@ -108,17 +109,44 @@ var _ = Describe("Machine Image Lifecycle", func() {
 	})
 })
 
+func checkUploadedUrl(getUrl string) int {
+	parsedUrl, err := url.Parse(getUrl)
+	Expect(err).ToNot(HaveOccurred())
+	Expect([]string{"https", "s3"}).To(ContainElement(parsedUrl.Scheme))
+
+	switch parsedUrl.Scheme {
+	case "https":
+		resp, err := http.Get(getUrl)
+		Expect(err).ToNot(HaveOccurred())
+		defer resp.Body.Close()
+
+		return http.StatusOK
+	case "s3":
+		_, err := s3Client.GetObject(&s3.GetObjectInput{
+			Bucket: aws.String(parsedUrl.Host),
+			Key:    aws.String(parsedUrl.Path),
+		})
+
+		if err == nil {
+			return 200
+		} else if err.(awserr.RequestFailure).Code() == s3.ErrCodeNoSuchKey {
+			return 404
+		} else {
+			Expect(err).ToNot(HaveOccurred())
+		}
+	}
+
+	return -1
+}
+
 func testMachineImageLifecycle(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage)) {
 	createDriver := driver.NewCreateMachineImageDriver(GinkgoWriter, creds)
 
 	machineImage, err := createDriver.Create(driverConfig)
 	Expect(err).ToNot(HaveOccurred())
 
-	resp, err := http.Get(machineImage.GetURL)
-	Expect(err).ToNot(HaveOccurred())
-	defer resp.Body.Close()
-
-	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	statusCode := checkUploadedUrl(machineImage.GetURL)
+	Expect(statusCode).To(Equal(http.StatusOK))
 
 	if len(cb) > 0 {
 		cb[0](machineImage)
@@ -129,9 +157,8 @@ func testMachineImageLifecycle(driverConfig resources.MachineImageDriverConfig, 
 	err = deleteDriver.Delete(machineImage)
 	Expect(err).ToNot(HaveOccurred())
 
-	resp, err = http.Get(machineImage.GetURL)
-	Expect(err).ToNot(HaveOccurred())
-	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+	statusCode = checkUploadedUrl(machineImage.GetURL)
+	Expect(statusCode).To(Equal(http.StatusNotFound))
 }
 
 func testMachineImageManifestLifecycle(driverConfig resources.MachineImageDriverConfig, cb ...func(resources.MachineImage, manifests.ImportVolumeManifest)) {
