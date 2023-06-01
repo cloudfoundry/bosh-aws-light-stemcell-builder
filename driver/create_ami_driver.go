@@ -41,7 +41,7 @@ func NewCreateAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCreateA
 	return &SDKCreateAmiDriver{ec2Client: ec2Client, region: creds.Region, logger: logger}
 }
 
-// Create registers an AMI from an existing snapshot and optionally makes the AMI publically available
+// Create registers an AMI from an existing snapshot and optionally makes the AMI publicly available
 func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resources.Ami, error) {
 	var err error
 

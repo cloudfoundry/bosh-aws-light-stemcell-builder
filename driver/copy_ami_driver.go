@@ -28,7 +28,7 @@ func NewCopyAmiDriver(logDest io.Writer, creds config.Credentials) *SDKCopyAmiDr
 	return &SDKCopyAmiDriver{creds: creds, logger: logger}
 }
 
-// Create creates an AMI, copied from a source AMI, and optionally makes the AMI publically available
+// Create creates an AMI, copied from a source AMI, and optionally makes the AMI publicly available
 func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resources.Ami, error) {
 	srcRegion := d.creds.Region
 	dstRegion := driverConfig.DestinationRegion
