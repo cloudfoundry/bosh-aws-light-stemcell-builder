@@ -11,7 +11,6 @@ import (
 
 var _ = Describe("IsolatedAwsRegion", func() {
 	It("returns drivers of the correct type", func() {
-
 		creds := config.Credentials{}
 		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 
