@@ -2,12 +2,16 @@ package driverset
 
 import (
 	"io"
+
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
 )
 
-//go:generate counterfeiter -o fakes/fake_isolated_region_driver_set.go . IsolatedRegionDriverSet
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate -o fakes/fake_isolated_region_driver_set.go . IsolatedRegionDriverSet
 type IsolatedRegionDriverSet interface {
 	MachineImageDriver() resources.MachineImageDriver
 	VolumeDriver() resources.VolumeDriver

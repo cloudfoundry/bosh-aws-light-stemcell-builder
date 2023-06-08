@@ -2,12 +2,13 @@ package driverset
 
 import (
 	"io"
+
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
 )
 
-//go:generate counterfeiter -o fakes/fake_standard_region_driver_set.go . StandardRegionDriverSet
+//counterfeiter:generate -o fakes/fake_standard_region_driver_set.go . StandardRegionDriverSet
 type StandardRegionDriverSet interface {
 	MachineImageDriver() resources.MachineImageDriver
 	CreateSnapshotDriver() resources.SnapshotDriver
