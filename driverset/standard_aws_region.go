@@ -8,7 +8,7 @@ import (
 	"light-stemcell-builder/resources"
 )
 
-//counterfeiter:generate -o fakes/fake_standard_region_driver_set.go . StandardRegionDriverSet
+//counterfeiter:generate . StandardRegionDriverSet
 type StandardRegionDriverSet interface {
 	MachineImageDriver() resources.MachineImageDriver
 	CreateSnapshotDriver() resources.SnapshotDriver

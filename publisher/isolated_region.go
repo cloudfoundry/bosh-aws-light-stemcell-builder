@@ -3,11 +3,12 @@ package publisher
 import (
 	"fmt"
 	"io"
+	"log"
+	"time"
+
 	"light-stemcell-builder/collection"
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
-	"log"
-	"time"
 )
 
 type IsolatedRegionPublisher struct {

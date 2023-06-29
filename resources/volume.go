@@ -7,7 +7,7 @@ const (
 	VolumeArchitecture = "x86_64"
 )
 
-//counterfeiter:generate -o fakes/fake_volume_driver.go . VolumeDriver
+//counterfeiter:generate . VolumeDriver
 type VolumeDriver interface {
 	Create(VolumeDriverConfig) (Volume, error)
 	Delete(Volume) error
