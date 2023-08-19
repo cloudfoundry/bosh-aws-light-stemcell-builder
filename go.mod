@@ -3,10 +3,10 @@ module light-stemcell-builder
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.44.322
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
+	github.com/aws/aws-sdk-go v1.44.327
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/onsi/ginkgo/v2 v2.11.0
-	github.com/onsi/gomega v1.27.8
+	github.com/onsi/gomega v1.27.10
 	github.com/satori/go.uuid v1.2.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -15,7 +15,7 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/pprof v0.0.0-20230811205829-9131a7e9cc17 // indirect
+	github.com/google/pprof v0.0.0-20230817174616-7a8ec2ada47b // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	golang.org/x/mod v0.12.0 // indirect
