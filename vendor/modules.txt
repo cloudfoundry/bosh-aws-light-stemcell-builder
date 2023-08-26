@@ -1,4 +1,4 @@
-# github.com/aws/aws-sdk-go v1.44.327
+# github.com/aws/aws-sdk-go v1.44.332
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -69,7 +69,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20230817174616-7a8ec2ada47b
+# github.com/google/pprof v0.0.0-20230821062121-407c9e7a662f
 ## explicit; go 1.19
 github.com/google/pprof/profile
 # github.com/jmespath/go-jmespath v0.4.0
@@ -83,7 +83,7 @@ github.com/maxbrunsfeld/counterfeiter/v6
 github.com/maxbrunsfeld/counterfeiter/v6/arguments
 github.com/maxbrunsfeld/counterfeiter/v6/command
 github.com/maxbrunsfeld/counterfeiter/v6/generator
-# github.com/onsi/ginkgo/v2 v2.11.0
+# github.com/onsi/ginkgo/v2 v2.12.0
 ## explicit; go 1.18
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
