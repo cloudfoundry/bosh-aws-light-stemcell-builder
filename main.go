@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"light-stemcell-builder/collection"
@@ -98,6 +99,18 @@ func main() {
 		c.AmiConfiguration.Tags = map[string]string{
 			"version": m.Version,
 			"distro":  m.OperatingSystem,
+		}
+	}
+
+	if c.AmiConfiguration.KmsKeyId != "" && c.AmiConfiguration.KmsKeyAliasName == "" {
+		aliasName := "light-stemcell-builder"
+		logger.Printf("Kms key alias not set - using default value: %s", aliasName)
+		c.AmiConfiguration.KmsKeyAliasName = aliasName
+	}
+
+	if c.AmiConfiguration.KmsKeyAliasName != "" {
+		if !strings.HasPrefix(c.AmiConfiguration.KmsKeyAliasName, "alias/") {
+			c.AmiConfiguration.KmsKeyAliasName = "alias/" + c.AmiConfiguration.KmsKeyAliasName
 		}
 	}
 

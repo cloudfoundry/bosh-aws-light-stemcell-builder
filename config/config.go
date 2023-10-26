@@ -38,6 +38,7 @@ type AmiConfiguration struct {
 	VirtualizationType string            `json:"virtualization_type"`
 	Encrypted          bool              `json:"encrypted"`
 	KmsKeyId           string            `json:"kms_key_id"`
+	KmsKeyAliasName    string            `json:"kms_key_alias_name"`
 	Visibility         string            `json:"visibility"`
 	Tags               map[string]string `json:"tags,omitempty"`
 }

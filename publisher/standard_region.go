@@ -34,6 +34,7 @@ func NewStandardRegionPublisher(logDest io.Writer, c Config) *StandardRegionPubl
 			VirtualizationType: c.VirtualizationType,
 			Encrypted:          c.Encrypted,
 			KmsKeyId:           c.KmsKeyId,
+			KmsKeyAliasName:    c.KmsKeyAliasName,
 			Tags:               c.Tags,
 		},
 		logger: log.New(logDest, "StandardRegionPublisher ", log.LstdFlags),
@@ -66,10 +67,24 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 		}
 	}()
 
+	//As of 7.11.2023 AWS is not supporting a snapshot creation with a multi region kms key ARN - even though it is documented.
+	//As workaround one has to create an alias for the provides kms key and use the alias ARN during the snapshot creation later on.
+	kmsAlias, err := ds.KmsDriver().CreateAlias(
+		resources.KmsCreateAliasDriverConfig{
+			KmsKeyAliasName: p.AmiProperties.KmsKeyAliasName,
+			KmsKeyId:        p.AmiProperties.KmsKeyId,
+			Region:          p.Region,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("creating KMS alias: %s", err)
+	}
+
 	snapshotDriverConfig := resources.SnapshotDriverConfig{
 		MachineImageURL: machineImage.GetURL,
 		FileFormat:      machineImageConfig.FileFormat,
 		AmiProperties:   p.AmiProperties,
+		KmsAlias:        kmsAlias,
 	}
 
 	snapshotDriver := ds.CreateSnapshotDriver()
@@ -105,13 +120,26 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 		go func(dstRegion string) {
 			defer procGroup.Done()
 
-			copyAmiDriverConfig := resources.AmiDriverConfig{
-				ExistingAmiID:     sourceAmi.ID,
-				DestinationRegion: dstRegion,
-				AmiProperties:     p.AmiProperties,
+			kmsKey, err := ds.KmsDriver().ReplicateKey(
+				resources.KmsReplicateKeyDriverConfig{
+					KmsKeyId:     p.AmiProperties.KmsKeyId,
+					SourceRegion: p.Region,
+					TargetRegion: dstRegion,
+				},
+			)
+			if err != nil {
+				errCol.Add(fmt.Errorf("failed to replicate KMS key: %s", err))
+				return
 			}
 
-			copiedAmi, copyErr := copyAmiDriver.Create(copyAmiDriverConfig)
+			copiedAmi, copyErr := copyAmiDriver.Create(
+				resources.AmiDriverConfig{
+					ExistingAmiID:     sourceAmi.ID,
+					DestinationRegion: dstRegion,
+					AmiProperties:     p.AmiProperties,
+					KmsKey:            kmsKey,
+				},
+			)
 			if copyErr != nil {
 				errCol.Add(fmt.Errorf("copying source ami: %s to destination region: %s: %s", sourceAmi.ID, dstRegion, copyErr))
 				return

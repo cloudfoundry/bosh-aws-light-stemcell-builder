@@ -24,6 +24,8 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeRegion           = "fake region"
 		fakeMachineImagePath = "fake machine image path"
 		fakeCopyDestination  = "fake copy destination"
+		fakeKmsAliasARN      = "fake alias ARN"
+		fakeReplicatedKeyARN = "fake replicated key ARN"
 	)
 
 	var fakeAmiConfig = config.AmiConfiguration{
@@ -32,11 +34,20 @@ var _ = Describe("StandardRegionPublisher", func() {
 		AmiName:            "fake ami name",
 		VirtualizationType: "fake virtualization type",
 	}
+
 	var fakeAmiProperties = resources.AmiProperties{
 		Name:               fakeAmiConfig.AmiName,
 		Description:        fakeAmiConfig.Description,
 		Accessibility:      fakeAmiConfig.Visibility,
 		VirtualizationType: fakeAmiConfig.VirtualizationType,
+	}
+
+	var fakeKmsAlias = resources.KmsAlias{
+		ARN: fakeKmsAliasARN,
+	}
+
+	var fakeReplicatedKey = resources.KmsKey{
+		ARN: fakeReplicatedKeyARN,
 	}
 
 	It("uses the provided driver set to orchestrate the creation of an AMI", func() {
@@ -57,6 +68,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeMachineImage := resources.MachineImage{
 			GetURL: fakeMachineImageURL,
 		}
+
 		fakeSnapshot := resources.Snapshot{
 			ID: fakeSnapshotID,
 		}
@@ -73,6 +85,11 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeMachineImageDriver.DeleteReturns(nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeKmsDriver := &resourcesfakes.FakeKmsDriver{}
+		fakeKmsDriver.CreateAliasReturns(fakeKmsAlias, nil)
+		fakeKmsDriver.ReplicateKeyReturns(fakeReplicatedKey, nil)
+		fakeDs.KmsDriverReturns(fakeKmsDriver)
 
 		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
@@ -104,6 +121,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 			MachineImageURL: fakeMachineImageURL,
 			FileFormat:      resources.VolumeRawFormat,
 			AmiProperties:   fakeAmiProperties,
+			KmsAlias:        fakeKmsAlias,
 		}))
 
 		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1), "Expected Driverset.CreateAmiDriver to be called once")
@@ -120,6 +138,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 			ExistingAmiID:     fakeAmiID,
 			DestinationRegion: fakeCopyDestination,
 			AmiProperties:     fakeAmiProperties,
+			KmsKey:            fakeReplicatedKey,
 		}))
 
 		Expect(fakeMachineImageDriver.DeleteCallCount()).To(Equal(1), "Expected MachineImageDriver.Delete to be called once")
@@ -148,6 +167,32 @@ var _ = Describe("StandardRegionPublisher", func() {
 		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
 	})
 
+	It("returns a KMS driver error if Alias creation fails", func() {
+		publisherConfig := publisher.Config{}
+		machineImageConfig := publisher.MachineImageConfig{}
+
+		fakeDs := &driversetfakes.FakeStandardRegionDriverSet{}
+		fakeMachineImage := resources.MachineImage{
+			GetURL: fakeMachineImageURL,
+		}
+
+		driverErr := errors.New("error in ami driver")
+
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
+		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeKmsDriver := &resourcesfakes.FakeKmsDriver{}
+		fakeKmsDriver.CreateAliasReturns(resources.KmsAlias{}, driverErr)
+		fakeDs.KmsDriverReturns(fakeKmsDriver)
+
+		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
+		_, err := p.Publish(fakeDs, machineImageConfig)
+
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
+	})
+
 	It("returns a snapshot driver error if one was returned", func() {
 		publisherConfig := publisher.Config{}
 		machineImageConfig := publisher.MachineImageConfig{}
@@ -162,6 +207,11 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeKmsDriver := &resourcesfakes.FakeKmsDriver{}
+		fakeKmsDriver.CreateAliasReturns(fakeKmsAlias, nil)
+		fakeKmsDriver.ReplicateKeyReturns(fakeReplicatedKey, nil)
+		fakeDs.KmsDriverReturns(fakeKmsDriver)
 
 		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(resources.Snapshot{}, driverErr)
@@ -192,6 +242,11 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
 
+		fakeKmsDriver := &resourcesfakes.FakeKmsDriver{}
+		fakeKmsDriver.CreateAliasReturns(fakeKmsAlias, nil)
+		fakeKmsDriver.ReplicateKeyReturns(fakeReplicatedKey, nil)
+		fakeDs.KmsDriverReturns(fakeKmsDriver)
+
 		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
 		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
@@ -199,6 +254,54 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeAmiDriver := &resourcesfakes.FakeAmiDriver{}
 		fakeAmiDriver.CreateReturns(resources.Ami{}, driverErr)
 		fakeDs.CreateAmiDriverReturns(fakeAmiDriver)
+
+		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
+		_, err := p.Publish(fakeDs, machineImageConfig)
+
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring(driverErr.Error()))
+	})
+
+	It("returns a KMS driver error if key replication fails", func() {
+		publisherConfig := publisher.Config{
+			AmiRegion: config.AmiRegion{
+				Destinations: []string{fakeCopyDestination},
+			},
+			AmiConfiguration: fakeAmiConfig,
+		}
+		machineImageConfig := publisher.MachineImageConfig{}
+
+		fakeDs := &driversetfakes.FakeStandardRegionDriverSet{}
+		fakeMachineImage := resources.MachineImage{
+			GetURL: fakeMachineImageURL,
+		}
+		fakeSnapshot := resources.Snapshot{
+			ID: fakeSnapshotID,
+		}
+
+		driverErr := errors.New("error in copy ami driver")
+
+		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
+		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
+		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeKmsDriver := &resourcesfakes.FakeKmsDriver{}
+		fakeKmsDriver.CreateAliasReturns(fakeKmsAlias, nil)
+		fakeKmsDriver.ReplicateKeyReturns(resources.KmsKey{}, driverErr)
+		fakeDs.KmsDriverReturns(fakeKmsDriver)
+
+		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
+		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
+		fakeDs.CreateSnapshotDriverReturns(fakeSnapshotDriver)
+
+		fakeAmi := resources.Ami{
+			ID:     fakeAmiID,
+			Region: fakeRegion,
+		}
+
+		fakeCreateAmiDriver := &resourcesfakes.FakeAmiDriver{}
+		fakeCreateAmiDriver.CreateReturns(fakeAmi, nil)
+		fakeDs.CreateAmiDriverReturns(fakeCreateAmiDriver)
 
 		p := publisher.NewStandardRegionPublisher(GinkgoWriter, publisherConfig)
 		_, err := p.Publish(fakeDs, machineImageConfig)
@@ -229,6 +332,11 @@ var _ = Describe("StandardRegionPublisher", func() {
 		fakeMachineImageDriver := &resourcesfakes.FakeMachineImageDriver{}
 		fakeMachineImageDriver.CreateReturns(fakeMachineImage, nil)
 		fakeDs.MachineImageDriverReturns(fakeMachineImageDriver)
+
+		fakeKmsDriver := &resourcesfakes.FakeKmsDriver{}
+		fakeKmsDriver.CreateAliasReturns(fakeKmsAlias, nil)
+		fakeKmsDriver.ReplicateKeyReturns(fakeReplicatedKey, nil)
+		fakeDs.KmsDriverReturns(fakeKmsDriver)
 
 		fakeSnapshotDriver := &resourcesfakes.FakeSnapshotDriver{}
 		fakeSnapshotDriver.CreateReturns(fakeSnapshot, nil)
