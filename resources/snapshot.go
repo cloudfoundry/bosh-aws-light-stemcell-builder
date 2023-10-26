@@ -19,4 +19,5 @@ type SnapshotDriverConfig struct {
 	MachineImageURL string
 	FileFormat      string
 	AmiProperties
+	KmsAlias
 }

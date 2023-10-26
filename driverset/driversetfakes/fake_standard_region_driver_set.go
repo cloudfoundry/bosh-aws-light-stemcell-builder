@@ -38,6 +38,16 @@ type FakeStandardRegionDriverSet struct {
 	createSnapshotDriverReturnsOnCall map[int]struct {
 		result1 resources.SnapshotDriver
 	}
+	KmsDriverStub        func() resources.KmsDriver
+	kmsDriverMutex       sync.RWMutex
+	kmsDriverArgsForCall []struct {
+	}
+	kmsDriverReturns struct {
+		result1 resources.KmsDriver
+	}
+	kmsDriverReturnsOnCall map[int]struct {
+		result1 resources.KmsDriver
+	}
 	MachineImageDriverStub        func() resources.MachineImageDriver
 	machineImageDriverMutex       sync.RWMutex
 	machineImageDriverArgsForCall []struct {
@@ -211,6 +221,59 @@ func (fake *FakeStandardRegionDriverSet) CreateSnapshotDriverReturnsOnCall(i int
 	}{result1}
 }
 
+func (fake *FakeStandardRegionDriverSet) KmsDriver() resources.KmsDriver {
+	fake.kmsDriverMutex.Lock()
+	ret, specificReturn := fake.kmsDriverReturnsOnCall[len(fake.kmsDriverArgsForCall)]
+	fake.kmsDriverArgsForCall = append(fake.kmsDriverArgsForCall, struct {
+	}{})
+	stub := fake.KmsDriverStub
+	fakeReturns := fake.kmsDriverReturns
+	fake.recordInvocation("KmsDriver", []interface{}{})
+	fake.kmsDriverMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStandardRegionDriverSet) KmsDriverCallCount() int {
+	fake.kmsDriverMutex.RLock()
+	defer fake.kmsDriverMutex.RUnlock()
+	return len(fake.kmsDriverArgsForCall)
+}
+
+func (fake *FakeStandardRegionDriverSet) KmsDriverCalls(stub func() resources.KmsDriver) {
+	fake.kmsDriverMutex.Lock()
+	defer fake.kmsDriverMutex.Unlock()
+	fake.KmsDriverStub = stub
+}
+
+func (fake *FakeStandardRegionDriverSet) KmsDriverReturns(result1 resources.KmsDriver) {
+	fake.kmsDriverMutex.Lock()
+	defer fake.kmsDriverMutex.Unlock()
+	fake.KmsDriverStub = nil
+	fake.kmsDriverReturns = struct {
+		result1 resources.KmsDriver
+	}{result1}
+}
+
+func (fake *FakeStandardRegionDriverSet) KmsDriverReturnsOnCall(i int, result1 resources.KmsDriver) {
+	fake.kmsDriverMutex.Lock()
+	defer fake.kmsDriverMutex.Unlock()
+	fake.KmsDriverStub = nil
+	if fake.kmsDriverReturnsOnCall == nil {
+		fake.kmsDriverReturnsOnCall = make(map[int]struct {
+			result1 resources.KmsDriver
+		})
+	}
+	fake.kmsDriverReturnsOnCall[i] = struct {
+		result1 resources.KmsDriver
+	}{result1}
+}
+
 func (fake *FakeStandardRegionDriverSet) MachineImageDriver() resources.MachineImageDriver {
 	fake.machineImageDriverMutex.Lock()
 	ret, specificReturn := fake.machineImageDriverReturnsOnCall[len(fake.machineImageDriverArgsForCall)]
@@ -273,6 +336,8 @@ func (fake *FakeStandardRegionDriverSet) Invocations() map[string][][]interface{
 	defer fake.createAmiDriverMutex.RUnlock()
 	fake.createSnapshotDriverMutex.RLock()
 	defer fake.createSnapshotDriverMutex.RUnlock()
+	fake.kmsDriverMutex.RLock()
+	defer fake.kmsDriverMutex.RUnlock()
 	fake.machineImageDriverMutex.RLock()
 	defer fake.machineImageDriverMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

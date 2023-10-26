@@ -33,6 +33,8 @@ type AmiProperties struct {
 	VirtualizationType string
 	Encrypted          bool
 	KmsKeyId           string
+	KmsKeyAliasName    string
+	KmsKeyAlias        string
 	Tags               map[string]string
 }
 
@@ -42,4 +44,5 @@ type AmiDriverConfig struct {
 	ExistingAmiID     string
 	DestinationRegion string
 	AmiProperties
+	KmsKey
 }

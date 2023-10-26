@@ -41,12 +41,20 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	}(createStartTime)
 
 	d.logger.Printf("initiating ImportSnapshot task from image: %s\n", driverConfig.MachineImageURL)
-	reqOutput, err := d.ec2Client.ImportSnapshot(&ec2.ImportSnapshotInput{
+
+	input := &ec2.ImportSnapshotInput{
 		DiskContainer: &ec2.SnapshotDiskContainer{
 			Url:    &driverConfig.MachineImageURL,
 			Format: aws.String(driverConfig.FileFormat),
 		},
-	})
+		Encrypted: &driverConfig.AmiProperties.Encrypted,
+	}
+
+	if driverConfig.KmsAlias.ARN != "" {
+		input.KmsKeyId = &driverConfig.KmsAlias.ARN
+	}
+
+	reqOutput, err := d.ec2Client.ImportSnapshot(input)
 	if err != nil {
 		return resources.Snapshot{}, fmt.Errorf("creating import snapshot task: %s", err)
 	}

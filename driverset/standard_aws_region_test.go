@@ -22,5 +22,6 @@ var _ = Describe("StandardAwsRegion", func() {
 		Expect(ds.CreateSnapshotDriver()).To(BeAssignableToTypeOf(&driver.SDKSnapshotFromImageDriver{}))
 		Expect(ds.CreateAmiDriver()).To(BeAssignableToTypeOf(&driver.SDKCreateAmiDriver{}))
 		Expect(ds.CopyAmiDriver()).To(BeAssignableToTypeOf(&driver.SDKCopyAmiDriver{}))
+		Expect(ds.KmsDriver()).To(BeAssignableToTypeOf(&driver.SDKKmsDriver{}))
 	})
 })

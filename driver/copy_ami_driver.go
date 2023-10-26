@@ -58,7 +58,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		Encrypted:     &driverConfig.Encrypted,
 	}
 	if driverConfig.KmsKeyId != "" {
-		input.KmsKeyId = &driverConfig.KmsKeyId
+		input.KmsKeyId = &driverConfig.KmsKey.ARN
 	}
 	output, err := ec2Client.CopyImage(input)
 	if err != nil {

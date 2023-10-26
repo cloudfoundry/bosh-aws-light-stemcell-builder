@@ -14,6 +14,7 @@ type StandardRegionDriverSet interface {
 	CreateSnapshotDriver() resources.SnapshotDriver
 	CreateAmiDriver() resources.AmiDriver
 	CopyAmiDriver() resources.AmiDriver
+	KmsDriver() resources.KmsDriver
 }
 
 type standardRegionDriverSet struct {
@@ -21,6 +22,7 @@ type standardRegionDriverSet struct {
 	snapshotDriver     *driver.SDKSnapshotFromImageDriver
 	amiDriver          *driver.SDKCreateAmiDriver
 	copyAmiDriver      *driver.SDKCopyAmiDriver
+	kmsDriver          *driver.SDKKmsDriver
 }
 
 func NewStandardRegionDriverSet(logDest io.Writer, creds config.Credentials) StandardRegionDriverSet {
@@ -35,6 +37,7 @@ func NewStandardRegionDriverSet(logDest io.Writer, creds config.Credentials) Sta
 		snapshotDriver: driver.NewSnapshotFromImageDriver(logDest, creds),
 		amiDriver:      driver.NewCreateAmiDriver(logDest, creds),
 		copyAmiDriver:  driver.NewCopyAmiDriver(logDest, creds),
+		kmsDriver:      driver.NewKmsDriver(logDest, creds),
 	}
 }
 
@@ -52,4 +55,8 @@ func (s *standardRegionDriverSet) CreateAmiDriver() resources.AmiDriver {
 
 func (s *standardRegionDriverSet) CopyAmiDriver() resources.AmiDriver {
 	return s.copyAmiDriver
+}
+
+func (s *standardRegionDriverSet) KmsDriver() resources.KmsDriver {
+	return s.kmsDriver
 }
