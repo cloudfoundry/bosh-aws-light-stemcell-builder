@@ -103,6 +103,7 @@ var _ = Describe("StandardRegionPublisher", func() {
 		Expect(fakeSnapshotDriver.CreateArgsForCall(0)).To(Equal(resources.SnapshotDriverConfig{
 			MachineImageURL: fakeMachineImageURL,
 			FileFormat:      resources.VolumeRawFormat,
+			AmiProperties:   fakeAmiProperties,
 		}))
 
 		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1), "Expected Driverset.CreateAmiDriver to be called once")

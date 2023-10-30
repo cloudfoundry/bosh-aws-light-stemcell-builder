@@ -77,18 +77,20 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 
 	d.logger.Printf("created snapshot %s\n", *snapshotIDptr)
 
-	modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
-		SnapshotId:    snapshotIDptr,
-		Attribute:     aws.String("createVolumePermission"),
-		OperationType: aws.String("add"),
-		GroupNames:    []*string{aws.String("all")},
-	}
-	_, err = d.ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
-	if err != nil {
-		return resources.Snapshot{}, fmt.Errorf("making snapshot with id %s public: %s", *snapshotIDptr, err)
-	}
+	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
+		modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
+			SnapshotId:    snapshotIDptr,
+			Attribute:     aws.String("createVolumePermission"),
+			OperationType: aws.String("add"),
+			GroupNames:    []*string{aws.String("all")},
+		}
+		_, err = d.ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+		if err != nil {
+			return resources.Snapshot{}, fmt.Errorf("making snapshot with id %s public: %s", *snapshotIDptr, err)
+		}
 
-	d.logger.Printf("snapshot %s is public\n", *snapshotIDptr)
+		d.logger.Printf("snapshot %s is public\n", *snapshotIDptr)
+	}
 
 	return resources.Snapshot{ID: *snapshotIDptr}, nil
 }

@@ -69,6 +69,7 @@ func (p *StandardRegionPublisher) Publish(ds driverset.StandardRegionDriverSet, 
 	snapshotDriverConfig := resources.SnapshotDriverConfig{
 		MachineImageURL: machineImage.GetURL,
 		FileFormat:      machineImageConfig.FileFormat,
+		AmiProperties:   p.AmiProperties,
 	}
 
 	snapshotDriver := ds.CreateSnapshotDriver()
