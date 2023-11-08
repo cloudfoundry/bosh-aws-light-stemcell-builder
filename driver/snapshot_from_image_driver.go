@@ -77,7 +77,7 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 
 	d.logger.Printf("created snapshot %s\n", *snapshotIDptr)
 
-	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
+	if driverConfig.Accessibility != resources.PrivateAmiAccessibility {
 		modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
 			SnapshotId:    snapshotIDptr,
 			Attribute:     aws.String("createVolumePermission"),

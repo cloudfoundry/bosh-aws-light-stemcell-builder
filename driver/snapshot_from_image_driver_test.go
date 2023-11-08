@@ -54,6 +54,8 @@ var _ = Describe("SnapshotFromImageDriver", func() {
 			FileFormat:      s3MachineImageFormat,
 		}
 
+		driverConfig.Accessibility = resources.PrivateAmiAccessibility
+
 		ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
 		driver := ds.CreateSnapshotDriver()
 
