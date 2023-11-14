@@ -14,9 +14,6 @@ jobs:
         go-version-file: go.mod
     - run: go generate ./...
     - uses: golangci/golangci-lint-action@v3.4.0
-      with:
-        args: --verbose
-        working-directory: ./
 
   test-unit:
     runs-on: ubuntu-latest
