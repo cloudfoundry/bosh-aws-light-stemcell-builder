@@ -137,6 +137,24 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 		d.logger.Printf("Error tagging Snapshot: %s, Error: %s ", driverConfig.SnapshotID, err.Error())
 	}
 
+	for i := range driverConfig.SharedWithAccounts {
+		account := driverConfig.SharedWithAccounts[i]
+
+		_, err := d.ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{
+			ImageId: amiIDptr,
+			LaunchPermission: &ec2.LaunchPermissionModifications{
+				Add: []*ec2.LaunchPermission{
+					{
+						UserId: &account,
+					},
+				},
+			},
+		})
+		if err != nil {
+			return resources.Ami{}, fmt.Errorf("failed to share AMI '%s' with account '%s': %w", *amiIDptr, account, err)
+		}
+	}
+
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
 	err = d.ec2Client.WaitUntilImageAvailable(&ec2.DescribeImagesInput{
 		ImageIds: []*string{amiIDptr},

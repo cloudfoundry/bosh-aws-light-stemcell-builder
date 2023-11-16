@@ -41,6 +41,7 @@ type AmiConfiguration struct {
 	KmsKeyAliasName    string            `json:"kms_key_alias_name"`
 	Visibility         string            `json:"visibility"`
 	Tags               map[string]string `json:"tags,omitempty"`
+	SharedWithAccounts []string          `json:"shared_with_accounts"`
 }
 
 type AmiRegion struct {

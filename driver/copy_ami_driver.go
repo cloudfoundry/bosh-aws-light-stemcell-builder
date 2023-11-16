@@ -70,7 +70,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		return resources.Ami{}, errors.New("AMI id nil")
 	}
 
-	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)
+	d.logger.Printf("waiting for AMI %s to be available in region %s\n", *amiIDptr, dstRegion)
 	err = d.waitUntilImageAvailable(&ec2.DescribeImagesInput{
 		ImageIds: []*string{amiIDptr},
 	}, ec2Client)
@@ -109,6 +109,23 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	if err != nil {
 		d.logger.Printf("Error tagging AMI: %s, Error: %s ", *amiIDptr, err.Error())
 	}
+
+	for _, account := range driverConfig.SharedWithAccounts {
+		_, err := ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{
+			ImageId: amiIDptr,
+			LaunchPermission: &ec2.LaunchPermissionModifications{
+				Add: []*ec2.LaunchPermission{
+					{
+						UserId: &account,
+					},
+				},
+			},
+		})
+		if err != nil {
+			return resources.Ami{}, fmt.Errorf("failed to share AMI '%s' with account '%s': %w", *amiIDptr, account, err)
+		}
+	}
+
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
 		d.logger.Printf("making AMI: %s public", *amiIDptr)
 		ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{ //nolint:errcheck
