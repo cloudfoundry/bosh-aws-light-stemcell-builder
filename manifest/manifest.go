@@ -8,7 +8,7 @@ import (
 
 	"light-stemcell-builder/resources"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // Manifest represents the stemcell manifest. We don't care about anything

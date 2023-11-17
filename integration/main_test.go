@@ -8,6 +8,9 @@ import (
 	"os/exec"
 	"time"
 
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/manifest"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -15,9 +18,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/manifest"
 )
 
 var _ = Describe("Main", func() {

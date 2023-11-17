@@ -3,11 +3,12 @@ package driver
 import (
 	"fmt"
 	"io"
-	"light-stemcell-builder/config"
-	"light-stemcell-builder/resources"
 	"log"
 	"strings"
 	"time"
+
+	"light-stemcell-builder/config"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"

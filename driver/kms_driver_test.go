@@ -1,11 +1,12 @@
 package driver_test
 
 import (
-	"light-stemcell-builder/driverset"
-	"light-stemcell-builder/resources"
 	"math/rand"
 	"strconv"
 	"strings"
+
+	"light-stemcell-builder/driverset"
+	"light-stemcell-builder/resources"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

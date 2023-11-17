@@ -2,12 +2,13 @@ package manifest_test
 
 import (
 	"bytes"
+
 	"light-stemcell-builder/manifest"
 	"light-stemcell-builder/resources"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("Manifest", func() {
