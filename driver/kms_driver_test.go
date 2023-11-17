@@ -71,7 +71,7 @@ var _ = Describe("KmsDriver", func() {
 		creds.Region = destinationRegion
 
 		//defer cleanup of the created key replica, sadly we can only schedule it to be deleted after 7 days
-		//therefore this test will reuse the replicated key for 7 days and only afterwards create a new one
+		//therefore this test will reuse the replicated key for 7 days and only afterward create a new one
 		defer func(aliasCreationResult resources.KmsKey) {
 			destinationKeyId := strings.ReplaceAll(kmsKeyId, originalRegion, destinationRegion)
 			awsSession, _ := session.NewSession(creds.GetAwsConfig())
