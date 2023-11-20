@@ -36,6 +36,7 @@ func NewStandardRegionPublisher(logDest io.Writer, c Config) *StandardRegionPubl
 			KmsKeyId:           c.KmsKeyId,
 			KmsKeyAliasName:    c.KmsKeyAliasName,
 			Tags:               c.Tags,
+			SharedWithAccounts: c.SharedWithAccounts,
 		},
 		logger: log.New(logDest, "StandardRegionPublisher ", log.LstdFlags),
 	}

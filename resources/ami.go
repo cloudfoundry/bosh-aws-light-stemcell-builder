@@ -36,6 +36,7 @@ type AmiProperties struct {
 	KmsKeyAliasName    string
 	KmsKeyAlias        string
 	Tags               map[string]string
+	SharedWithAccounts []string
 }
 
 // AmiDriverConfig allows an AmiDriver to create an AMI from either a snapshot ID or an existing AMI (copy)

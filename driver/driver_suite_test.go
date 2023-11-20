@@ -22,6 +22,8 @@ var s3MachineImageUrl, s3MachineImageFormat string
 
 var kmsKeyId string
 
+var awsAccount string
+
 var amiFixtureID string
 
 func TestDrivers(t *testing.T) {
@@ -71,6 +73,9 @@ var _ = SynchronizedBeforeSuite(
 		// KMS Key info
 		kmsKeyId = os.Getenv("AWS_KMS_KEY_ID")
 		Expect(kmsKeyId).ToNot(BeEmpty(), "AWS_KMS_KEY_ID must be set")
+
+		awsAccount = os.Getenv("AWS_ACCOUNT")
+		Expect(awsAccount).ToNot(BeEmpty(), "AWS_ACCOUNT must be set")
 	},
 )
 

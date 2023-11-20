@@ -94,4 +94,36 @@ var _ = Describe("CreateAmiDriver", func() {
 		_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &ami.ID}) // Ignore DeregisterImageOutput
 		Expect(err).ToNot(HaveOccurred())
 	})
+
+	Context("when shared_with_accounts is provided", func() {
+		It("shares the AMI with other accounts", func() {
+			amiDriverConfig := resources.AmiDriverConfig{
+				SnapshotID: ebsSnapshotID,
+				AmiProperties: resources.AmiProperties{
+					Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
+					VirtualizationType: resources.HvmAmiVirtualization,
+					Accessibility:      resources.PublicAmiAccessibility,
+					SharedWithAccounts: []string{awsAccount},
+				},
+			}
+
+			ds := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds)
+
+			amiDriver := ds.CreateAmiDriver()
+			ami, err := amiDriver.Create(amiDriverConfig)
+			Expect(err).ToNot(HaveOccurred())
+
+			awsSession, err := session.NewSession(creds.GetAwsConfig())
+			Expect(err).ToNot(HaveOccurred())
+			ec2Client := ec2.New(awsSession)
+
+			attribute := "launchPermission"
+			output, err := ec2Client.DescribeImageAttribute(&ec2.DescribeImageAttributeInput{
+				ImageId:   &ami.ID,
+				Attribute: &attribute,
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*output.LaunchPermissions[0].UserId).To(Equal(awsAccount))
+		})
+	})
 })
