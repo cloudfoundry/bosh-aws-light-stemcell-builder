@@ -90,6 +90,13 @@ func copyAmi(encrypted bool, kmsKeyId string, cb ...func(*ec2.EC2, *ec2.Describe
 		accessibility = resources.PrivateAmiAccessibility
 	}
 
+	var sharedWithAccounts []string
+	if kmsKeyId != "" {
+		sharedWithAccounts = []string{awsAccount}
+	} else {
+		sharedWithAccounts = []string{}
+	}
+
 	amiDriverConfig := resources.AmiDriverConfig{
 		ExistingAmiID:     amiFixtureID,
 		DestinationRegion: destinationRegion,
@@ -100,7 +107,7 @@ func copyAmi(encrypted bool, kmsKeyId string, cb ...func(*ec2.EC2, *ec2.Describe
 			Accessibility:      accessibility,
 			Encrypted:          encrypted,
 			KmsKeyId:           kmsKeyId,
-			SharedWithAccounts: []string{awsAccount},
+			SharedWithAccounts: sharedWithAccounts,
 		},
 	}
 

@@ -87,7 +87,10 @@ func (d *SDKKmsDriver) ReplicateKey(driverConfig resources.KmsReplicateKeyDriver
 		d.logger.Printf("Completed ReplicateKey() in %f minutes\n", time.Since(startTime).Minutes())
 	}(createStartTime)
 
-	d.logger.Printf("Replicating kms key: %s\n", driverConfig.KmsKeyId)
+	d.logger.Printf("Replicating kms key: %s from region %s to region %s\n",
+		driverConfig.KmsKeyId,
+		driverConfig.SourceRegion,
+		driverConfig.TargetRegion)
 	_, err := d.createKmsClient(driverConfig.SourceRegion).ReplicateKey(&kms.ReplicateKeyInput{
 		KeyId:         &driverConfig.KmsKeyId,
 		ReplicaRegion: &driverConfig.TargetRegion,
