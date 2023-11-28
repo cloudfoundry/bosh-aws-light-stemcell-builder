@@ -58,7 +58,7 @@ var _ = Describe("KmsDriver", func() {
 
 	It("replicates a given kms key to another region", func() {
 		driverConfig := resources.KmsReplicateKeyDriverConfig{
-			KmsKeyId:     kmsKeyId,
+			KmsKeyId:     multiregionKmsKeyId,
 			SourceRegion: creds.Region,
 			TargetRegion: destinationRegion,
 		}
