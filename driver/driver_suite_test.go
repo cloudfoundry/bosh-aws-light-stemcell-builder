@@ -72,7 +72,7 @@ var _ = SynchronizedBeforeSuite(
 
 		// private AMI fixture
 		privateAmiFixtureID = os.Getenv("PRIVATE_AMI_FIXTURE_ID")
-		Expect(amiFixtureID).ToNot(BeEmpty(), "PRIVATE_AMI_FIXTURE_ID must be set")
+		Expect(privateAmiFixtureID).ToNot(BeEmpty(), "PRIVATE_AMI_FIXTURE_ID must be set")
 
 		// KMS Key info
 		kmsKeyId = os.Getenv("AWS_KMS_KEY_ID")
