@@ -20,11 +20,11 @@ var ebsVolumeID, ebsSnapshotID string
 var machineImagePath, machineImageFormat string
 var s3MachineImageUrl, s3MachineImageFormat string
 
-var kmsKeyId string
+var kmsKeyId, multiregionKmsKeyId string
 
 var awsAccount string
 
-var amiFixtureID string
+var amiFixtureID, privateAmiFixtureID string
 
 func TestDrivers(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -70,9 +70,16 @@ var _ = SynchronizedBeforeSuite(
 		amiFixtureID = os.Getenv("AMI_FIXTURE_ID")
 		Expect(amiFixtureID).ToNot(BeEmpty(), "AMI_FIXTURE_ID must be set")
 
+		// private AMI fixture
+		privateAmiFixtureID = os.Getenv("PRIVATE_AMI_FIXTURE_ID")
+		Expect(amiFixtureID).ToNot(BeEmpty(), "PRIVATE_AMI_FIXTURE_ID must be set")
+
 		// KMS Key info
 		kmsKeyId = os.Getenv("AWS_KMS_KEY_ID")
 		Expect(kmsKeyId).ToNot(BeEmpty(), "AWS_KMS_KEY_ID must be set")
+
+		multiregionKmsKeyId = os.Getenv("MULTI_REGION_AWS_KMS_KEY_ID")
+		Expect(multiregionKmsKeyId).ToNot(BeEmpty(), "MULTI_REGION_AWS_KMS_KEY_ID must be set")
 
 		awsAccount = os.Getenv("AWS_ACCOUNT")
 		Expect(awsAccount).ToNot(BeEmpty(), "AWS_ACCOUNT must be set")
