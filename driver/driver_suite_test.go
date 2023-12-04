@@ -20,7 +20,7 @@ var ebsVolumeID, ebsSnapshotID string
 var machineImagePath, machineImageFormat string
 var s3MachineImageUrl, s3MachineImageFormat string
 
-var kmsKeyId, multiregionKmsKeyId string
+var kmsKeyId, multiRegionKey, multiRegionKeyReplicationTest string
 
 var awsAccount string
 
@@ -78,8 +78,11 @@ var _ = SynchronizedBeforeSuite(
 		kmsKeyId = os.Getenv("AWS_KMS_KEY_ID")
 		Expect(kmsKeyId).ToNot(BeEmpty(), "AWS_KMS_KEY_ID must be set")
 
-		multiregionKmsKeyId = os.Getenv("MULTI_REGION_AWS_KMS_KEY_ID")
-		Expect(multiregionKmsKeyId).ToNot(BeEmpty(), "MULTI_REGION_AWS_KMS_KEY_ID must be set")
+		multiRegionKey = os.Getenv("MULTI_REGION_KEY")
+		Expect(multiRegionKey).ToNot(BeEmpty(), "MULTI_REGION_KEY must be set")
+
+		multiRegionKeyReplicationTest = os.Getenv("MULTI_REGION_KEY_REPLICATION_TEST")
+		Expect(multiRegionKeyReplicationTest).ToNot(BeEmpty(), "MULTI_REGION_KEY_REPLICATION_TEST must be set")
 
 		awsAccount = os.Getenv("AWS_ACCOUNT")
 		Expect(awsAccount).ToNot(BeEmpty(), "AWS_ACCOUNT must be set")

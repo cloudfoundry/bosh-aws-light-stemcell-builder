@@ -82,7 +82,7 @@ var _ = Describe("CopyAmiDriver", func() {
 
 		Context("when kms_key_id is provided", func() {
 			It("encrypts destination AMI using the kms key in the destination region", func() {
-				destinationRegionKmsKeyId := strings.Replace(multiregionKmsKeyId, creds.Region, destinationRegion, 1)
+				destinationRegionKmsKeyId := strings.ReplaceAll(multiRegionKey, creds.Region, destinationRegion)
 				copyAmi(
 					AmiCopyConfig{
 						amiId:     privateAmiFixtureID,
@@ -102,7 +102,7 @@ var _ = Describe("CopyAmiDriver", func() {
 
 	Context("when shared_with_accounts is provided", func() {
 		It("shares the AMI with other accounts", func() {
-			destinationRegionKmsKeyId := strings.Replace(multiregionKmsKeyId, creds.Region, destinationRegion, 1)
+			destinationRegionKmsKeyId := strings.ReplaceAll(multiRegionKey, creds.Region, destinationRegion)
 			copyAmi(AmiCopyConfig{
 				amiId:              privateAmiFixtureID,
 				encrypted:          true,
