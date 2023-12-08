@@ -16,25 +16,21 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+type AmiCopyConfig struct {
+	amiId              string
+	encrypted          bool
+	kmsKeyId           string
+	sharedWithAccounts []string
+}
+
 var _ = Describe("CopyAmiDriver", func() {
 	It("copies an existing AMI to a new region while preserving its properties", func() {
-		copyAmi(false, "", amiFixtureID, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
-			snapshotIDptr := getSnapshotID(reqOutput)
-
-			snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
-				SnapshotId: snapshotIDptr,
-				Attribute:  aws.String("createVolumePermission"),
-			})
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(1))
-			Expect(*snapshotAttributes.CreateVolumePermissions[0].Group).To(Equal("all"))
-		})
-	})
-
-	Context("when encrypted flag is set to true", func() {
-		It("does NOT make snapshot public", func() {
-			copyAmi(true, "", amiFixtureID, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+		copyAmi(
+			AmiCopyConfig{
+				amiId:     amiFixtureID,
+				encrypted: false,
+				kmsKeyId:  ""},
+			func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 				snapshotIDptr := getSnapshotID(reqOutput)
 
 				snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
@@ -43,72 +39,112 @@ var _ = Describe("CopyAmiDriver", func() {
 				})
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(0))
+				Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(1))
+				Expect(*snapshotAttributes.CreateVolumePermissions[0].Group).To(Equal("all"))
 			})
+	})
+
+	Context("when encrypted flag is set to true", func() {
+		It("does NOT make snapshot public", func() {
+			copyAmi(
+				AmiCopyConfig{
+					amiId:     amiFixtureID,
+					encrypted: true,
+					kmsKeyId:  "",
+				},
+				func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+					snapshotIDptr := getSnapshotID(reqOutput)
+
+					snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
+						SnapshotId: snapshotIDptr,
+						Attribute:  aws.String("createVolumePermission"),
+					})
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(0))
+				})
 		})
 
 		It("encrypts destination AMI using default AWS KMS key", func() {
-			copyAmi(true, "", amiFixtureID, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
-				respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(*respSnapshots.Snapshots[0].Encrypted).To(BeTrue())
-			})
-		})
-
-		Context("when kms_key_id is provided", func() {
-			It("encrypts destination AMI using provided kms key", func() {
-				copyAmi(true, kmsKeyId, amiFixtureID, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+			copyAmi(
+				AmiCopyConfig{
+					amiId:     amiFixtureID,
+					encrypted: true,
+					kmsKeyId:  "",
+				},
+				func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
 					respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(*respSnapshots.Snapshots[0].Encrypted).To(BeTrue())
-					Expect(*respSnapshots.Snapshots[0].KmsKeyId).To(Equal(kmsKeyId))
 				})
+		})
+
+		Context("when kms_key_id is provided", func() {
+			It("encrypts destination AMI using the kms key in the destination region", func() {
+				destinationRegionKmsKeyId := strings.ReplaceAll(multiRegionKey, creds.Region, destinationRegion)
+				copyAmi(
+					AmiCopyConfig{
+						amiId:     privateAmiFixtureID,
+						encrypted: true,
+						kmsKeyId:  destinationRegionKmsKeyId,
+					},
+					func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+						respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(*respSnapshots.Snapshots[0].Encrypted).To(BeTrue())
+						Expect(*respSnapshots.Snapshots[0].KmsKeyId).To(Equal(destinationRegionKmsKeyId))
+					})
 			})
 		})
 	})
 
 	Context("when shared_with_accounts is provided", func() {
 		It("shares the AMI with other accounts", func() {
-			copyAmi(true, multiregionKmsKeyId, privateAmiFixtureID, func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
-				attribute := "launchPermission"
-				output, err := ec2Client.DescribeImageAttribute(&ec2.DescribeImageAttributeInput{
-					ImageId:   reqOutput.Images[0].ImageId,
-					Attribute: &attribute,
+			destinationRegionKmsKeyId := strings.ReplaceAll(multiRegionKey, creds.Region, destinationRegion)
+			copyAmi(AmiCopyConfig{
+				amiId:              privateAmiFixtureID,
+				encrypted:          true,
+				kmsKeyId:           destinationRegionKmsKeyId,
+				sharedWithAccounts: []string{awsAccount},
+			},
+				func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+					attribute := "launchPermission"
+					output, err := ec2Client.DescribeImageAttribute(&ec2.DescribeImageAttributeInput{
+						ImageId:   reqOutput.Images[0].ImageId,
+						Attribute: &attribute,
+					})
+					Expect(err).ToNot(HaveOccurred())
+					Expect(*output.LaunchPermissions[0].UserId).To(Equal(awsAccount))
 				})
-				Expect(err).ToNot(HaveOccurred())
-				Expect(*output.LaunchPermissions[0].UserId).To(Equal(awsAccount))
-			})
 		})
 	})
 })
 
-func copyAmi(encrypted bool, kmsKeyId string, amiId string, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
+func copyAmi(amiCopyConfig AmiCopyConfig, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
 	accessibility := resources.PublicAmiAccessibility
-	if encrypted {
+	if amiCopyConfig.encrypted {
 		accessibility = resources.PrivateAmiAccessibility
 	}
 
-	var sharedWithAccounts []string
-	if kmsKeyId != "" {
-		sharedWithAccounts = []string{awsAccount}
-	} else {
-		sharedWithAccounts = []string{}
+	amiProperties := resources.AmiProperties{
+		Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
+		VirtualizationType: resources.HvmAmiVirtualization,
+		Description:        "bosh cpi test ami",
+		Accessibility:      accessibility,
+		Encrypted:          amiCopyConfig.encrypted,
+		KmsKeyId:           amiCopyConfig.kmsKeyId,
+	}
+	if len(amiCopyConfig.sharedWithAccounts) > 0 {
+		amiProperties.SharedWithAccounts = amiCopyConfig.sharedWithAccounts
 	}
 
 	amiDriverConfig := resources.AmiDriverConfig{
-		ExistingAmiID:     amiId,
+		ExistingAmiID:     amiCopyConfig.amiId,
 		DestinationRegion: destinationRegion,
-		AmiProperties: resources.AmiProperties{
-			Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
-			VirtualizationType: resources.HvmAmiVirtualization,
-			Description:        "bosh cpi test ami",
-			Accessibility:      accessibility,
-			Encrypted:          encrypted,
-			KmsKeyId:           kmsKeyId,
-			SharedWithAccounts: sharedWithAccounts,
-		},
+		AmiProperties:     amiProperties,
+		KmsKey:            resources.KmsKey{ARN: amiCopyConfig.kmsKeyId},
 	}
 
 	amiCopyDriver := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds).CopyAmiDriver()
@@ -133,7 +169,7 @@ func copyAmi(encrypted bool, kmsKeyId string, amiId string, cb ...func(*ec2.EC2,
 	Expect(*firstImage.Name).To(Equal(amiDriverConfig.Name))
 	Expect(*firstImage.Architecture).To(Equal(resources.AmiArchitecture))
 	Expect(*firstImage.VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
-	if !encrypted {
+	if !amiCopyConfig.encrypted {
 		Expect(*firstImage.Public).To(BeTrue())
 	}
 

@@ -58,7 +58,7 @@ var _ = Describe("KmsDriver", func() {
 
 	It("replicates a given kms key to another region", func() {
 		driverConfig := resources.KmsReplicateKeyDriverConfig{
-			KmsKeyId:     multiregionKmsKeyId,
+			KmsKeyId:     multiRegionKeyReplicationTest,
 			SourceRegion: creds.Region,
 			TargetRegion: destinationRegion,
 		}
@@ -74,7 +74,7 @@ var _ = Describe("KmsDriver", func() {
 		//defer cleanup of the created key replica, sadly we can only schedule it to be deleted after 7 days
 		//therefore this test will reuse the replicated key for 7 days and only afterward create a new one
 		defer func(aliasCreationResult resources.KmsKey) {
-			destinationKeyId := strings.ReplaceAll(kmsKeyId, originalRegion, destinationRegion)
+			destinationKeyId := strings.ReplaceAll(multiRegionKeyReplicationTest, originalRegion, destinationRegion)
 			awsSession, _ := session.NewSession(creds.GetAwsConfig())
 			kmsClient := kms.New(awsSession)
 
