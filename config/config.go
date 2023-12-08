@@ -33,24 +33,56 @@ var isolated = map[string]bool{
 // 2. optional, defaulted
 // 3. optional
 type AmiConfiguration struct {
-	AmiName            string            `json:"name"`
-	Description        string            `json:"description"`
-	VirtualizationType string            `json:"virtualization_type"`
-	Encrypted          bool              `json:"encrypted"`
-	KmsKeyId           string            `json:"kms_key_id"`
-	KmsKeyAliasName    string            `json:"kms_key_alias_name"`
-	Visibility         string            `json:"visibility"`
-	Tags               map[string]string `json:"tags,omitempty"`
-	SharedWithAccounts []string          `json:"shared_with_accounts"`
+	AmiName            string `json:"name"`
+	Description        string `json:"description"`
+	VirtualizationType string `json:"virtualization_type"`
+
+	// Encrypted has to be set to true if encrypted stemcells should be created.
+	// If set to true, then the EBS key, that is assigned to the AWS account, is used for the encryption by default.
+	Encrypted bool `json:"encrypted"`
+
+	// KmsKeyId can be used to provide a KMS key that should be used for the stemcell encryption.
+	//
+	// The KmsKeyId can be the:
+	//   - ARN of a custom multi region KMS key,
+	//   - ARN of a custom single region KMS key,
+	//   - ID of the AWS managed EBS key.
+	//
+	// To produce an encrypted stemcell that can be shared accross regions one has to provide the ARN of a multi region KMS key.
+	KmsKeyId string `json:"kms_key_id"`
+
+	// KmsKeyAliasName can be used to provide an alias name for the custom KMS key.
+	// The alias name defaults to 'light-stemcell-builder' if a KmsKeyAliasName is not provided.
+	KmsKeyAliasName string `json:"kms_key_alias_name"`
+
+	// Visibility enables the creation of either a public or a private stemcell.
+	// The Visibility can be 'public' or 'private' but it defaults to public.
+	Visibility string `json:"visibility"`
+
+	// Tags that should be set on the created light stemcell.
+	Tags map[string]string `json:"tags,omitempty"`
+
+	// SharedWithAccounts allows to provide a list of AWS account IDs.
+	// Private stemcells are then shared with these account IDs.
+	SharedWithAccounts []string `json:"shared_with_accounts"`
 }
 
 type AmiRegion struct {
-	RegionName           string      `json:"name"`
-	Credentials          Credentials `json:"credentials"`
-	BucketName           string      `json:"bucket_name"`
-	ServerSideEncryption string      `json:"server_side_encryption"`
-	Destinations         []string    `json:"destinations"`
-	IsolatedRegion       bool        `json:"-"`
+	// RegionName allows to configures the region where a stemcell should be produced.
+	RegionName string `json:"name"`
+
+	// Credentials allows to configure the access credentials for the configured RegionName.
+	Credentials Credentials `json:"credentials"`
+
+	// BucketName provides the name of the bucket where created machine images are stored.
+	BucketName string `json:"bucket_name"`
+
+	ServerSideEncryption string `json:"server_side_encryption"`
+
+	// Destinations allows to configure multiple regions where produced stemcells should be copied to.
+	Destinations []string `json:"destinations"`
+
+	IsolatedRegion bool `json:"-"`
 }
 
 type Credentials struct {
@@ -61,8 +93,13 @@ type Credentials struct {
 }
 
 type Config struct {
+	// AmiConfiguration allows to configure some basic properties like description, encryption or visibility of the light stemcell
+	// that should be produced.
 	AmiConfiguration AmiConfiguration `json:"ami_configuration"`
-	AmiRegions       []AmiRegion      `json:"ami_regions"`
+
+	// AmiRegion allows to configure region specific properties.
+	// For example the region where a light stemcell should be produced or where it should be copied to.
+	AmiRegions []AmiRegion `json:"ami_regions"`
 }
 
 func NewFromReader(r io.Reader) (Config, error) {
