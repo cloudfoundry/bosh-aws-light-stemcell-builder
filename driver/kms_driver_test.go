@@ -2,6 +2,7 @@ package driver_test
 
 import (
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 
@@ -16,6 +17,11 @@ import (
 )
 
 var _ = Describe("KmsDriver", func() {
+	BeforeEach(func() {
+		if os.Getenv("SKIP_REPLICATION_TESTS") != "" {
+			Skip("Skipping test, found 'SKIP_REPLICATION_TESTS'")
+		}
+	})
 	It("creates an alias for a given kms key", func() {
 		aliasName := "alias/" + strconv.Itoa(rand.Int())
 

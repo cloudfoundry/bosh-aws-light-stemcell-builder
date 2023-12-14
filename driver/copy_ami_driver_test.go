@@ -2,6 +2,7 @@ package driver_test
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"light-stemcell-builder/config"
@@ -24,6 +25,12 @@ type AmiCopyConfig struct {
 }
 
 var _ = Describe("CopyAmiDriver", func() {
+	BeforeEach(func() {
+		if os.Getenv("SKIP_REPLICATION_TESTS") != "" {
+			Skip("Skipping test, found 'SKIP_REPLICATION_TESTS'")
+		}
+	})
+
 	It("copies an existing AMI to a new region while preserving its properties", func() {
 		copyAmi(
 			AmiCopyConfig{
