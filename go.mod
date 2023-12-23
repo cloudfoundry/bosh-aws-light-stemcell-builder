@@ -3,7 +3,7 @@ module light-stemcell-builder
 go 1.21
 
 require (
-	github.com/aws/aws-sdk-go v1.49.4
+	github.com/aws/aws-sdk-go v1.49.9
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.29.0
