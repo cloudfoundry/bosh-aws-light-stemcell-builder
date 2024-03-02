@@ -52,7 +52,7 @@ resources:
 - name: light-stemcell-builder-docker-image
   type: docker-image
   source:
-    repository: boshcpi/light-stemcell-builder
+    repository: bosh/light-stemcell-builder
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
