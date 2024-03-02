@@ -1,0 +1,78 @@
+jobs:
+- name: build-docker-image
+  plan:
+  - in_parallel:
+    - get: bosh-aws-light-stemcell-builder
+    - get: golang-release-registry-image
+      trigger: true
+    - get: bosh-cli-github-release
+      trigger: true
+      params:
+        globs:
+        - "no-files-needed"
+    - get: metalink-github-release
+      trigger: true
+      params:
+        globs:
+        - "no-files-needed"
+  - task: build-docker-args
+    image: golang-release-registry-image
+    config:
+      platform: linux
+      inputs:
+        - name: bosh-cli-github-release
+        - name: metalink-github-release
+      outputs:
+        - name: docker-build-args
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            cat << EOF > docker-build-args/docker-build-args.json
+            {
+              "BOSH_CLI_VERSION": "$(cat bosh-cli-github-release/version)",
+              "METALINK_VERSION": "$(cat metalink-github-release/version)"
+            }
+            EOF
+
+            cat docker-build-args/docker-build-args.json
+  - put: light-stemcell-builder-docker-image
+    params:
+      build: bosh-aws-light-stemcell-builder/ci/docker/
+      build_args_file: docker-build-args/docker-build-args.json
+
+
+resources:
+- name: bosh-aws-light-stemcell-builder
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder.git
+
+- name: light-stemcell-builder-docker-image
+  type: docker-image
+  source:
+    repository: boshcpi/light-stemcell-builder
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: golang-release-registry-image
+  type: registry-image
+  source:
+    repository: bosh/golang-release
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: bosh-cli-github-release
+  type: github-release
+  source:
+    access_token: ((github_public_repo_token))
+    owner: cloudfoundry
+    repository: bosh-cli
+
+- name: metalink-github-release
+  type: github-release
+  source:
+    access_token: ((github_public_repo_token))
+    owner: dpb587
+    repository: metalink
