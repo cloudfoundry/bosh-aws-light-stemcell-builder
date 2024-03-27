@@ -128,7 +128,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
 		d.logger.Printf("making AMI: %s public", *amiIDptr)
-		ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{ //nolint:errcheck
+		_, err = ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{
 			ImageId: amiIDptr,
 			LaunchPermission: &ec2.LaunchPermissionModifications{
 				Add: []*ec2.LaunchPermission{
@@ -138,6 +138,9 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 				},
 			},
 		})
+		if err != nil {
+			return resources.Ami{}, fmt.Errorf("failed to make AMI '%s' public: %w", *amiIDptr, err)
+		}
 	}
 
 	if driverConfig.Encrypted {

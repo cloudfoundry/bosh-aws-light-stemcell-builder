@@ -127,6 +127,33 @@ var _ = Describe("CopyAmiDriver", func() {
 				})
 		})
 	})
+	Context("when making an AMI public", func() {
+		It("will return an error if it can't make the AMI public", func() {
+			amiProperties := resources.AmiProperties{
+				Name:               fmt.Sprintf("BOSH-%s", strings.ToUpper(uuid.NewV4().String())),
+				VirtualizationType: resources.HvmAmiVirtualization,
+				Description:        "bosh cpi test ami",
+				Accessibility:      resources.PublicAmiAccessibility,
+				Encrypted:          true,
+				KmsKeyId:           multiRegionKey,
+			}
+			destinationRegionKmsKeyId := strings.ReplaceAll(multiRegionKey, creds.Region, destinationRegion)
+			amiCopyConfig := AmiCopyConfig{
+				amiId:     privateAmiFixtureID,
+				encrypted: true,
+				kmsKeyId:  destinationRegionKmsKeyId,
+			}
+			amiDriverConfig := resources.AmiDriverConfig{
+				ExistingAmiID:     amiCopyConfig.amiId,
+				DestinationRegion: destinationRegion,
+				AmiProperties:     amiProperties,
+				KmsKey:            resources.KmsKey{ARN: amiCopyConfig.kmsKeyId},
+			}
+			amiCopyDriver := driverset.NewStandardRegionDriverSet(GinkgoWriter, creds).CopyAmiDriver()
+			_, err := amiCopyDriver.Create(amiDriverConfig)
+			Expect(err).To(HaveOccurred())
+		})
+	})
 })
 
 func copyAmi(amiCopyConfig AmiCopyConfig, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
