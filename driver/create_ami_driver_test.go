@@ -124,6 +124,9 @@ var _ = Describe("CreateAmiDriver", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*output.LaunchPermissions[0].UserId).To(Equal(awsAccount))
+
+			_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: &ami.ID})
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })

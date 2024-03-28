@@ -57,7 +57,7 @@ var _ = SynchronizedBeforeSuite(
 		Expect(machineImagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_PATH must be set")
 
 		machineImageFormat = os.Getenv("MACHINE_IMAGE_FORMAT")
-		Expect(machineImagePath).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
+		Expect(machineImageFormat).ToNot(BeEmpty(), "MACHINE_IMAGE_FORMAT must be set")
 
 		// S3 Machine Image info
 		s3MachineImageUrl = os.Getenv("S3_MACHINE_IMAGE_URL")
