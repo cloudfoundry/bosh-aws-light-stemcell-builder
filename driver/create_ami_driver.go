@@ -153,6 +153,19 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 		if err != nil {
 			return resources.Ami{}, fmt.Errorf("failed to share AMI '%s' with account '%s': %w", *amiIDptr, account, err)
 		}
+
+		modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
+			SnapshotId:    aws.String(driverConfig.SnapshotID),
+			Attribute:     aws.String("createVolumePermission"),
+			OperationType: aws.String("add"),
+			UserIds: []*string{
+				aws.String(account),
+			},
+		}
+		_, err = d.ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+		if err != nil {
+			return resources.Ami{}, fmt.Errorf("sharing snapshot with id %s with account %s: %v", driverConfig.SnapshotID, account, err)
+		}
 	}
 
 	d.logger.Printf("waiting for AMI: %s to be available\n", *amiIDptr)

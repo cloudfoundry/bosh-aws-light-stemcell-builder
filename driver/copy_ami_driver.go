@@ -217,6 +217,21 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		d.logger.Printf("Error tagging Snapshot: %s, Error: %s ", *snapshotIDptr, err.Error())
 	}
 
+	for _, account := range driverConfig.SharedWithAccounts {
+		modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
+			SnapshotId:    snapshotIDptr,
+			Attribute:     aws.String("createVolumePermission"),
+			OperationType: aws.String("add"),
+			UserIds: []*string{
+				aws.String(account),
+			},
+		}
+		_, err = ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+		if err != nil {
+			return resources.Ami{}, fmt.Errorf("sharing snapshot with id %s with account %s: %v", *snapshotIDptr, account, err)
+		}
+	}
+
 	if driverConfig.Encrypted {
 		return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
 	}
