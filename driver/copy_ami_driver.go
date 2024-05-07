@@ -143,10 +143,6 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		}
 	}
 
-	if driverConfig.Encrypted {
-		return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
-	}
-
 	var snapshotIDptr *string
 	var snapshotErr error
 
@@ -219,6 +215,10 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	_, err = ec2Client.CreateTags(tags)
 	if err != nil {
 		d.logger.Printf("Error tagging Snapshot: %s, Error: %s ", *snapshotIDptr, err.Error())
+	}
+
+	if driverConfig.Encrypted {
+		return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
 	}
 
 	modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
