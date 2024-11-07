@@ -29,7 +29,7 @@ var _ = Describe("building inputs for register image", func() {
 
 		It("sets bootmode correctly when efi is true", func() {
 			input := reqinputs.NewHVMAmiRequestInput("some-ami-name", "some-ami-description", "some-snapshot-id", true)
-			Expect(*input.BootMode).To(Equal("uefi"))
+			Expect(*input.BootMode).To(Equal("uefi-preferred"))
 		})
 	})
 })

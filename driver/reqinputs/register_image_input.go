@@ -16,7 +16,7 @@ const (
 func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID string, efi bool) *ec2.RegisterImageInput {
 	bootMode := "legacy-bios"
 	if efi {
-		bootMode = "uefi"
+		bootMode = "uefi-preferred"
 	}
 	return &ec2.RegisterImageInput{
 		SriovNetSupport:    aws.String("simple"),
