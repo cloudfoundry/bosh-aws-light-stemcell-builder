@@ -13,7 +13,11 @@ const (
 )
 
 // NewHVMAmiRequestInput builds the required input to create an HVM AMI
-func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID string) *ec2.RegisterImageInput {
+func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID string, efi bool) *ec2.RegisterImageInput {
+	bootMode := "legacy-bios"
+	if efi {
+		bootMode = "uefi"
+	}
 	return &ec2.RegisterImageInput{
 		SriovNetSupport:    aws.String("simple"),
 		Architecture:       aws.String(resources.AmiArchitecture),
@@ -22,6 +26,7 @@ func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID str
 		Name:               aws.String(amiName),
 		RootDeviceName:     aws.String(firstDeviceNameHVMAmi),
 		EnaSupport:         aws.Bool(true),
+		BootMode:           &bootMode,
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			&ec2.BlockDeviceMapping{
 				DeviceName: aws.String(firstDeviceNameHVMAmi),

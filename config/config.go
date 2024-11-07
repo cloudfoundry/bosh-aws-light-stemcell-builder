@@ -36,6 +36,7 @@ type AmiConfiguration struct {
 	AmiName            string `json:"name"`
 	Description        string `json:"description"`
 	VirtualizationType string `json:"virtualization_type"`
+	Efi                bool   `json:"efi"`
 
 	// Encrypted has to be set to true if encrypted stemcells should be created.
 	// If set to true, then the EBS key, that is assigned to the AWS account, is used for the encryption by default.

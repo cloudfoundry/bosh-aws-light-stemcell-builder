@@ -31,6 +31,7 @@ type AmiProperties struct {
 	Description        string
 	Name               string
 	VirtualizationType string
+	Efi                bool
 	Encrypted          bool
 	KmsKeyId           string
 	KmsKeyAliasName    string

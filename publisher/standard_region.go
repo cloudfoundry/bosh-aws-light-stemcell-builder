@@ -32,6 +32,7 @@ func NewStandardRegionPublisher(logDest io.Writer, c Config) *StandardRegionPubl
 			Description:        c.Description,
 			Accessibility:      c.Visibility,
 			VirtualizationType: c.VirtualizationType,
+			Efi:                c.Efi,
 			Encrypted:          c.Encrypted,
 			KmsKeyId:           c.KmsKeyId,
 			KmsKeyAliasName:    c.KmsKeyAliasName,

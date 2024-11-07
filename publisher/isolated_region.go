@@ -29,6 +29,7 @@ func NewIsolatedRegionPublisher(logDest io.Writer, c Config) *IsolatedRegionPubl
 			Description:        c.Description,
 			Accessibility:      c.Visibility,
 			VirtualizationType: c.VirtualizationType,
+			Efi:                c.Efi,
 			Tags:               c.Tags,
 		},
 		logger: log.New(logDest, "IsolatedRegionPublisher ", log.LstdFlags),

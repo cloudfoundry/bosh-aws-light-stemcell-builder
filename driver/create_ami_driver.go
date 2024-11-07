@@ -56,7 +56,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 	var reqInput *ec2.RegisterImageInput
 	switch driverConfig.VirtualizationType {
 	case resources.HvmAmiVirtualization:
-		reqInput = reqinputs.NewHVMAmiRequestInput(amiName, driverConfig.Description, driverConfig.SnapshotID)
+		reqInput = reqinputs.NewHVMAmiRequestInput(amiName, driverConfig.Description, driverConfig.SnapshotID, driverConfig.AmiProperties.Efi)
 	}
 
 	reqOutput, err := d.ec2Client.RegisterImage(reqInput)
