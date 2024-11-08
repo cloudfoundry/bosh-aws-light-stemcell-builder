@@ -15,10 +15,8 @@ const (
 // NewHVMAmiRequestInput builds the required input to create an HVM AMI
 func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID string, efi bool) *ec2.RegisterImageInput {
 	bootMode := "legacy-bios"
-	rootDeviceName := firstDeviceNameHVMAmi
 	if efi {
 		bootMode = "uefi-preferred"
-		rootDeviceName = firstDeviceNamePVAmi
 	}
 	return &ec2.RegisterImageInput{
 		SriovNetSupport:    aws.String("simple"),
@@ -26,12 +24,12 @@ func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID str
 		Description:        aws.String(amiDescription),
 		VirtualizationType: aws.String(resources.HvmAmiVirtualization),
 		Name:               aws.String(amiName),
-		RootDeviceName:     aws.String(rootDeviceName),
+		RootDeviceName:     aws.String(firstDeviceNameHVMAmi),
 		EnaSupport:         aws.Bool(true),
 		BootMode:           &bootMode,
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			&ec2.BlockDeviceMapping{
-				DeviceName: aws.String(rootDeviceName),
+				DeviceName: aws.String(firstDeviceNameHVMAmi),
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),
 					SnapshotId:          aws.String(snapshotID),
