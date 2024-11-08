@@ -31,7 +31,7 @@ func NewHVMAmiRequestInput(amiName string, amiDescription string, snapshotID str
 		BootMode:           &bootMode,
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			&ec2.BlockDeviceMapping{
-				DeviceName: aws.String(firstDeviceNameHVMAmi),
+				DeviceName: aws.String(rootDeviceName),
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),
 					SnapshotId:          aws.String(snapshotID),
