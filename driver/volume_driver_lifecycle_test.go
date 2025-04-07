@@ -55,6 +55,7 @@ var _ = Describe("Volume Driver Lifecycle", func() {
 		}, 10*time.Minute, 10*time.Second).Should(MatchError(ContainSubstring("InvalidVolume.NotFound")))
 
 		deleteMachineImageDriver := driver.NewDeleteMachineImageDriver(GinkgoWriter, creds)
-		_ = deleteMachineImageDriver.Delete(machineImage) // ignore error on cleanup
+		// ignore error on cleanup
+		deleteMachineImageDriver.Delete(machineImage) //nolint:errcheck
 	})
 })

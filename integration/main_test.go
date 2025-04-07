@@ -70,8 +70,8 @@ cloud_properties:
 	})
 
 	AfterEach(func() {
-		_ = os.RemoveAll(configPath)
-		_ = os.RemoveAll(manifestPath)
+		os.RemoveAll(configPath)   //nolint:errcheck
+		os.RemoveAll(manifestPath) //nolint:errcheck
 	})
 
 	It("publishes to the configured regions and outputs to stdout", func() {

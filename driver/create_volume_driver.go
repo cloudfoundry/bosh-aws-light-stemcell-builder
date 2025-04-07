@@ -68,7 +68,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 		return resources.Volume{}, fmt.Errorf("reading import volume manifest from response: %s", err)
 	}
 	if fetchManifestResp.StatusCode < 200 || fetchManifestResp.StatusCode >= 300 {
-		return resources.Volume{}, fmt.Errorf("Received invalid response code '%d' fetching resource '%s': %s",
+		return resources.Volume{}, fmt.Errorf("Received invalid response code '%d' fetching resource '%s': %s", //nolint:staticcheck
 			fetchManifestResp.StatusCode,
 			driverConfig.MachineImageManifestURL,
 			manifestBytes)

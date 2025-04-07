@@ -52,17 +52,18 @@ func (d *SDKDeleteMachineImageDriver) Delete(machineImage resources.MachineImage
 	for _, deleteURL := range machineImage.DeleteURLs {
 		deleteReq, err := http.NewRequest(http.MethodDelete, deleteURL, nil)
 		if err != nil {
-			return fmt.Errorf("Failed to create DELETE request for '%s': %s", deleteURL, err)
+			return fmt.Errorf("Failed to create DELETE request for '%s': %s", deleteURL, err) //nolint:staticcheck
 		}
 
 		resp, err := client.Do(deleteReq)
 		if err != nil {
-			return fmt.Errorf("Failed to delete resource '%s': %s", deleteURL, err)
+			return fmt.Errorf("Failed to delete resource '%s': %s", deleteURL, err) //nolint:staticcheck
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			defer resp.Body.Close()              //nolint:errcheck
-			respBody, _ := io.ReadAll(resp.Body) // ignore ReadAll err, return http status code err instead
-			return fmt.Errorf("Received invalid response code '%d' deleting resource '%s': %s", resp.StatusCode, deleteURL, respBody)
+			defer resp.Body.Close() //nolint:errcheck
+			// ignore ReadAll err, return http status code err instead
+			respBody, _ := io.ReadAll(resp.Body)                                                                                      //nolint:errcheck
+			return fmt.Errorf("Received invalid response code '%d' deleting resource '%s': %s", resp.StatusCode, deleteURL, respBody) //nolint:staticcheck
 		}
 	}
 

@@ -47,11 +47,11 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 			Url:    &driverConfig.MachineImageURL,
 			Format: aws.String(driverConfig.FileFormat),
 		},
-		Encrypted: &driverConfig.AmiProperties.Encrypted,
+		Encrypted: &driverConfig.AmiProperties.Encrypted, //nolint:staticcheck
 	}
 
-	if driverConfig.KmsAlias.ARN != "" {
-		input.KmsKeyId = &driverConfig.KmsAlias.ARN
+	if driverConfig.KmsAlias.ARN != "" { //nolint:staticcheck
+		input.KmsKeyId = &driverConfig.KmsAlias.ARN //nolint:staticcheck
 	}
 
 	reqOutput, err := d.ec2Client.ImportSnapshot(input)

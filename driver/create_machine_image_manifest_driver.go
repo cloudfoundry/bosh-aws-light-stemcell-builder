@@ -104,7 +104,7 @@ func (d *SDKCreateMachineImageManifestDriver) Create(driverConfig resources.Mach
 
 	m, err := d.generateManifest(driverConfig.BucketName, keyName, *sizeInBytesPtr, volumeSizeGB, driverConfig.FileFormat)
 	if err != nil {
-		return resources.MachineImage{}, fmt.Errorf("Failed to generate machine image manifest: %s", err)
+		return resources.MachineImage{}, fmt.Errorf("Failed to generate machine image manifest: %s", err) //nolint:staticcheck
 	}
 
 	manifestURL, err := d.uploadManifest(driverConfig.BucketName, driverConfig.ServerSideEncryption, m) //nolint:ineffassign,staticcheck

@@ -56,7 +56,7 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 	var reqInput *ec2.RegisterImageInput
 	switch driverConfig.VirtualizationType {
 	case resources.HvmAmiVirtualization:
-		reqInput = reqinputs.NewHVMAmiRequestInput(amiName, driverConfig.Description, driverConfig.SnapshotID, driverConfig.AmiProperties.Efi)
+		reqInput = reqinputs.NewHVMAmiRequestInput(amiName, driverConfig.Description, driverConfig.SnapshotID, driverConfig.AmiProperties.Efi) //nolint:staticcheck
 	}
 
 	reqOutput, err := d.ec2Client.RegisterImage(reqInput)
@@ -76,9 +76,9 @@ func (d *SDKCreateAmiDriver) Create(driverConfig resources.AmiDriverConfig) (res
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to exist: %s", *amiIDptr, err)
 	}
-	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"])
-	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])
-	version := aws.String(driverConfig.AmiProperties.Tags["version"])
+	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"]) //nolint:staticcheck
+	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])                                                  //nolint:staticcheck
+	version := aws.String(driverConfig.AmiProperties.Tags["version"])                                                //nolint:staticcheck
 	tags := &ec2.CreateTagsInput{
 		Resources: []*string{
 			amiIDptr,
@@ -230,9 +230,10 @@ func (l imageList) Len() int { //nolint:unused
 }
 
 func (l imageList) Less(i, j int) bool { //nolint:unused
-	iCreationTime, _ := time.Parse(time.RFC3339Nano, *l[i].CreationDate) // swallow error as not supported by sortable interface
-	jCreationTime, _ := time.Parse(time.RFC3339Nano, *l[j].CreationDate) // swallow error as not supported by sortable interface
-	return iCreationTime.After(jCreationTime)                            // ensure oldest time is first
+	// swallow error as not supported by sortable interface
+	iCreationTime, _ := time.Parse(time.RFC3339Nano, *l[i].CreationDate) //nolint:errcheck
+	jCreationTime, _ := time.Parse(time.RFC3339Nano, *l[j].CreationDate) //nolint:errcheck
+	return iCreationTime.After(jCreationTime)                            // ensure the oldest time is first
 
 }
 

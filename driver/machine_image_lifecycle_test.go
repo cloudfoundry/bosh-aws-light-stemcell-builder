@@ -118,7 +118,7 @@ func checkUploadedUrl(getUrl string) int {
 	case "https":
 		resp, err := http.Get(getUrl)
 		Expect(err).ToNot(HaveOccurred())
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 
 		return http.StatusOK
 	case "s3":
@@ -204,7 +204,7 @@ func testMachineImageManifestLifecycle(driverConfig resources.MachineImageDriver
 
 	resp, err = http.Head(m.Parts.Part.HeadURL)
 	Expect(err).ToNot(HaveOccurred())
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 }
