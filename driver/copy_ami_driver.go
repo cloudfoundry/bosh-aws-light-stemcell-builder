@@ -58,7 +58,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		Encrypted:     &driverConfig.Encrypted,
 	}
 	if driverConfig.KmsKeyId != "" {
-		input.KmsKeyId = &driverConfig.KmsKey.ARN
+		input.KmsKeyId = &driverConfig.KmsKey.ARN //nolint:staticcheck
 	}
 	output, err := ec2Client.CopyImage(input)
 	if err != nil {
@@ -78,9 +78,9 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to be available: %s", *amiIDptr, err)
 	}
 
-	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"])
-	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])
-	version := aws.String(driverConfig.AmiProperties.Tags["version"])
+	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"]) //nolint:staticcheck
+	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])                                                  //nolint:staticcheck
+	version := aws.String(driverConfig.AmiProperties.Tags["version"])                                                //nolint:staticcheck
 	tags := &ec2.CreateTagsInput{
 		Resources: []*string{
 			amiIDptr,

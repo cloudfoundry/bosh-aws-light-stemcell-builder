@@ -6,7 +6,7 @@ import (
 
 type Config struct {
 	config.AmiRegion
-	config.AmiConfiguration //nolint:vet
+	config.AmiConfiguration //nolint:govet
 }
 
 type MachineImageConfig struct {

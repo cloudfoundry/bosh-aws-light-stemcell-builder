@@ -38,9 +38,9 @@ var _ = Describe("KmsDriver", func() {
 
 		//defer cleanup of the created alias
 		defer func(aliasName string, aliasCreationResult resources.KmsAlias) {
-			awsSession, _ := session.NewSession(creds.GetAwsConfig())
+			awsSession, _ := session.NewSession(creds.GetAwsConfig()) //nolint:errcheck
 			kmsClient := kms.New(awsSession)
-			_, _ = kmsClient.DeleteAlias(&kms.DeleteAliasInput{
+			kmsClient.DeleteAlias(&kms.DeleteAliasInput{ //nolint:errcheck
 				AliasName: &aliasName,
 			})
 		}(aliasName, aliasCreationResult)
@@ -81,10 +81,10 @@ var _ = Describe("KmsDriver", func() {
 		//therefore this test will reuse the replicated key for 7 days and only afterward create a new one
 		defer func(aliasCreationResult resources.KmsKey) {
 			destinationKeyId := strings.ReplaceAll(multiRegionKeyReplicationTest, originalRegion, destinationRegion)
-			awsSession, _ := session.NewSession(creds.GetAwsConfig())
+			awsSession, _ := session.NewSession(creds.GetAwsConfig()) //nolint:errcheck
 			kmsClient := kms.New(awsSession)
 
-			_, _ = kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
+			kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{ //nolint:errcheck
 				KeyId:               &destinationKeyId,
 				PendingWindowInDays: aws.Int64(7),
 			})

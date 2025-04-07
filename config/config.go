@@ -118,7 +118,7 @@ func NewFromReader(r io.Reader) (Config, error) {
 
 	if c.AmiConfiguration.AmiName == "" {
 		if err != nil {
-			return Config{}, fmt.Errorf("Unable to generate amiName: %s", err.Error())
+			return Config{}, fmt.Errorf("Unable to generate amiName: %s", err.Error()) //nolint:staticcheck
 		}
 		c.AmiConfiguration.AmiName = fmt.Sprintf("BOSH-%s", uuid.NewV4().String())
 	}
