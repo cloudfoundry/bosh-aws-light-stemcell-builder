@@ -59,9 +59,7 @@ resources:
 - name: golang-release-registry-image
   type: registry-image
   source:
-    repository: bosh/golang-release
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    repository: ghcr.io/cloudfoundry/bosh/golang-release
 
 - name: bosh-cli-github-release
   type: github-release
