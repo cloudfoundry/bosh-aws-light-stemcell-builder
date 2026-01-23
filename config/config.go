@@ -87,10 +87,11 @@ type AmiRegion struct {
 }
 
 type Credentials struct {
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	RoleArn   string `json:"role_arn"`
-	Region    string `json:"-"`
+	AccessKey    string `json:"access_key"`
+	SecretKey    string `json:"secret_key"`
+	SessionToken string `json:"session_token"`
+	RoleArn      string `json:"role_arn"`
+	Region       string `json:"-"`
 }
 
 type Config struct {
@@ -211,25 +212,42 @@ func (r *AmiRegion) validate() error {
 }
 
 func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
-	var awsCredentials *credentials.Credentials
+	var creds *credentials.Credentials
 
-	if configCredentials.AccessKey != "" && configCredentials.SecretKey != "" {
-		awsCredentials = credentials.NewStaticCredentialsFromCreds(
-			credentials.Value{AccessKeyID: configCredentials.AccessKey, SecretAccessKey: configCredentials.SecretKey},
-		)
-
-		if configCredentials.RoleArn != "" {
-			staticConfig := aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(awsCredentials)
-			awsCredentials = stscreds.NewCredentials(
-				session.Must(session.NewSession(staticConfig)),
-				configCredentials.RoleArn,
-			)
-		}
-	} else {
-		awsCredentials = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
+	switch {
+	case configCredentials.AccessKey != "" && configCredentials.SecretKey != "":
+		// Static or temporary credentials
+		creds = credentials.NewStaticCredentialsFromCreds(credentials.Value{
+			AccessKeyID:     configCredentials.AccessKey,
+			SecretAccessKey: configCredentials.SecretKey,
+			SessionToken:    configCredentials.SessionToken,
+		})
+	case configCredentials.RoleArn != "":
+		// EC2 role credentials, will assume RoleArn
+		creds = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
+			Client: ec2metadata.New(session.Must(session.NewSession())),
+		})
+	default:
+		// EC2 role credentials, no role assumption
+		creds = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
 			Client: ec2metadata.New(session.Must(session.NewSession())),
 		})
 	}
 
-	return aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(awsCredentials)
+	awsCfg := aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(creds)
+
+	// If RoleArn is set and we have base credentials, assume the role
+	if configCredentials.RoleArn != "" && (configCredentials.AccessKey != "" || configCredentials.SecretKey != "") {
+		awsCfg.Credentials = stscreds.NewCredentials(
+			session.Must(session.NewSession(awsCfg)),
+			configCredentials.RoleArn,
+		)
+	} else if configCredentials.RoleArn != "" && configCredentials.AccessKey == "" && configCredentials.SecretKey == "" {
+		awsCfg.Credentials = stscreds.NewCredentials(
+			session.Must(session.NewSession(awsCfg)),
+			configCredentials.RoleArn,
+		)
+	}
+
+	return awsCfg
 }
