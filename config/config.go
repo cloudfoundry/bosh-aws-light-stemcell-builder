@@ -232,8 +232,8 @@ func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
 		awsCfg.Credentials = stscreds.NewCredentials(
 			session.Must(session.NewSession(awsCfg)),
 			configCredentials.RoleArn,
- 		)
- 	}
+		)
+	}
 
 	return awsCfg
 }
