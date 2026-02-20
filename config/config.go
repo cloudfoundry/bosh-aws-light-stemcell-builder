@@ -87,10 +87,11 @@ type AmiRegion struct {
 }
 
 type Credentials struct {
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	RoleArn   string `json:"role_arn"`
-	Region    string `json:"-"`
+	AccessKey    string `json:"access_key"`
+	SecretKey    string `json:"secret_key"`
+	SessionToken string `json:"session_token"`
+	RoleArn      string `json:"role_arn"`
+	Region       string `json:"-"`
 }
 
 type Config struct {
@@ -211,25 +212,28 @@ func (r *AmiRegion) validate() error {
 }
 
 func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
-	var awsCredentials *credentials.Credentials
+	var creds *credentials.Credentials
 
 	if configCredentials.AccessKey != "" && configCredentials.SecretKey != "" {
-		awsCredentials = credentials.NewStaticCredentialsFromCreds(
-			credentials.Value{AccessKeyID: configCredentials.AccessKey, SecretAccessKey: configCredentials.SecretKey},
-		)
-
-		if configCredentials.RoleArn != "" {
-			staticConfig := aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(awsCredentials)
-			awsCredentials = stscreds.NewCredentials(
-				session.Must(session.NewSession(staticConfig)),
-				configCredentials.RoleArn,
-			)
-		}
+		creds = credentials.NewStaticCredentialsFromCreds(credentials.Value{
+			AccessKeyID:     configCredentials.AccessKey,
+			SecretAccessKey: configCredentials.SecretKey,
+			SessionToken:    configCredentials.SessionToken,
+		})
 	} else {
-		awsCredentials = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
+		creds = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
 			Client: ec2metadata.New(session.Must(session.NewSession())),
 		})
 	}
 
-	return aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(awsCredentials)
+	awsCfg := aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(creds)
+
+	if configCredentials.RoleArn != "" {
+		awsCfg.Credentials = stscreds.NewCredentials(
+			session.Must(session.NewSession(awsCfg)),
+			configCredentials.RoleArn,
+		)
+	}
+
+	return awsCfg
 }

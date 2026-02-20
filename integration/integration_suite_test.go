@@ -67,6 +67,7 @@ func constructUsAmiRegion() config.AmiRegion {
 	Expect(usAccessKey).ToNot(BeEmpty(), "AWS_ACCESS_KEY_ID must be set")
 	usSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	Expect(usSecretKey).ToNot(BeEmpty(), "AWS_SECRET_ACCESS_KEY must be set")
+	usSessionToken := os.Getenv("AWS_SESSION_TOKEN")
 
 	roleArn := os.Getenv("AWS_ROLE_ARN")
 
@@ -83,9 +84,10 @@ func constructUsAmiRegion() config.AmiRegion {
 		RegionName: usRegion,
 		BucketName: usBucket,
 		Credentials: config.Credentials{
-			AccessKey: usAccessKey,
-			SecretKey: usSecretKey,
-			RoleArn:   roleArn,
+			AccessKey:    usAccessKey,
+			SecretKey:    usSecretKey,
+			SessionToken: usSessionToken,
+			RoleArn:      roleArn,
 		},
 		Destinations: []string{usDestination},
 	}
