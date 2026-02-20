@@ -231,7 +231,7 @@ func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
 	if configCredentials.RoleArn != "" {
 		awsCfg.Credentials = stscreds.NewCredentials(
 			session.Must(session.NewSession(awsCfg)),
- 			configCredentials.RoleArn,
+			configCredentials.RoleArn,
  		)
  	}
 
