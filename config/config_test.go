@@ -169,4 +169,163 @@ var _ = Describe("Config", func() {
 			})
 		})
 	})
+
+	Describe("GetAwsConfig", func() {
+		var keyID = "test-key-id"
+		var keyValue = "test-key-value"
+		var token = "test-token"
+		var region = "us-east-1"
+		var roleArn = "arn:aws:iam::123456789012:role/TestRole"
+
+		Context("when both key fields are provided", func() {
+			It("returns static credentials with correct values", func() {
+				creds := config.Credentials{
+					AccessKey: keyID,
+					SecretKey: keyValue,
+					Region:    region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(*awsCfg.Region).To(Equal(region))
+
+				v, err := awsCfg.Credentials.Get()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(v.AccessKeyID).To(Equal(keyID))
+				Expect(v.SecretAccessKey).To(Equal(keyValue))
+				Expect(v.SessionToken).To(BeEmpty())
+				Expect(v.ProviderName).To(Equal("StaticProvider"))
+			})
+		})
+
+		Context("when session token is also provided", func() {
+			It("includes the token in static credentials", func() {
+				creds := config.Credentials{
+					AccessKey:    keyID,
+					SecretKey:    keyValue,
+					SessionToken: token,
+					Region:       region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				v, err := awsCfg.Credentials.Get()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(v.AccessKeyID).To(Equal(keyID))
+				Expect(v.SecretAccessKey).To(Equal(keyValue))
+				Expect(v.SessionToken).To(Equal(token))
+				Expect(v.ProviderName).To(Equal("StaticProvider"))
+			})
+		})
+
+		Context("when no key fields are provided", func() {
+			It("does not use static credentials", func() {
+				creds := config.Credentials{
+					Region: region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(*awsCfg.Region).To(Equal(region))
+				Expect(awsCfg.Credentials).NotTo(BeNil())
+				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
+
+				v, err := awsCfg.Credentials.Get()
+				if err == nil {
+					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+				}
+			})
+		})
+
+		Context("when only access key is provided", func() {
+			It("does not use static credentials", func() {
+				creds := config.Credentials{
+					AccessKey: keyID,
+					Region:    region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(awsCfg.Credentials).NotTo(BeNil())
+				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
+
+				v, err := awsCfg.Credentials.Get()
+				if err == nil {
+					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+				}
+			})
+		})
+
+		Context("when only secret key is provided", func() {
+			It("does not use static credentials", func() {
+				creds := config.Credentials{
+					SecretKey: keyValue,
+					Region:    region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(awsCfg.Credentials).NotTo(BeNil())
+				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
+
+				v, err := awsCfg.Credentials.Get()
+				if err == nil {
+					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+				}
+			})
+		})
+
+		Context("when role ARN is provided with both key fields", func() {
+			It("does not use static credentials directly", func() {
+				creds := config.Credentials{
+					AccessKey: keyID,
+					SecretKey: keyValue,
+					RoleArn:   roleArn,
+					Region:    region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(*awsCfg.Region).To(Equal(region))
+				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
+
+				// STS wraps the static creds, so provider is no longer StaticProvider
+				v, err := awsCfg.Credentials.Get()
+				if err == nil {
+					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+				}
+			})
+		})
+
+		Context("when role ARN is provided without key fields", func() {
+			It("does not use static credentials", func() {
+				creds := config.Credentials{
+					RoleArn: roleArn,
+					Region:  region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(*awsCfg.Region).To(Equal(region))
+				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
+
+				v, err := awsCfg.Credentials.Get()
+				if err == nil {
+					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+				}
+			})
+		})
+
+		Context("when region is set", func() {
+			It("always propagates region to the config", func() {
+				creds := config.Credentials{
+					Region: "eu-west-1",
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(*awsCfg.Region).To(Equal("eu-west-1"))
+			})
+		})
+	})
 })

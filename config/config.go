@@ -214,21 +214,13 @@ func (r *AmiRegion) validate() error {
 func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
 	var creds *credentials.Credentials
 
-	switch {
-	case configCredentials.AccessKey != "" && configCredentials.SecretKey != "":
-		// Static or temporary credentials
+	if configCredentials.AccessKey != "" && configCredentials.SecretKey != "" {
 		creds = credentials.NewStaticCredentialsFromCreds(credentials.Value{
 			AccessKeyID:     configCredentials.AccessKey,
 			SecretAccessKey: configCredentials.SecretKey,
 			SessionToken:    configCredentials.SessionToken,
 		})
-	case configCredentials.RoleArn != "":
-		// EC2 role credentials, will assume RoleArn
-		creds = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
-			Client: ec2metadata.New(session.Must(session.NewSession())),
-		})
-	default:
-		// EC2 role credentials, no role assumption
+	} else {
 		creds = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
 			Client: ec2metadata.New(session.Must(session.NewSession())),
 		})
@@ -236,18 +228,12 @@ func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
 
 	awsCfg := aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(creds)
 
-	// If RoleArn is set and we have base credentials, assume the role
-	if configCredentials.RoleArn != "" && (configCredentials.AccessKey != "" || configCredentials.SecretKey != "") {
+	if configCredentials.RoleArn != "" {
 		awsCfg.Credentials = stscreds.NewCredentials(
 			session.Must(session.NewSession(awsCfg)),
-			configCredentials.RoleArn,
-		)
-	} else if configCredentials.RoleArn != "" && configCredentials.AccessKey == "" && configCredentials.SecretKey == "" {
-		awsCfg.Credentials = stscreds.NewCredentials(
-			session.Must(session.NewSession(awsCfg)),
-			configCredentials.RoleArn,
-		)
-	}
+ 			configCredentials.RoleArn,
+ 		)
+ 	}
 
 	return awsCfg
 }
