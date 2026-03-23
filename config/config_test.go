@@ -327,5 +327,69 @@ var _ = Describe("Config", func() {
 				Expect(*awsCfg.Region).To(Equal("eu-west-1"))
 			})
 		})
+
+		Context("when endpoint_base is not set", func() {
+			It("does not set a custom endpoint resolver", func() {
+				creds := config.Credentials{
+					AccessKey: keyID,
+					SecretKey: keyValue,
+					Region:    region,
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(awsCfg.EndpointResolver).To(BeNil())
+			})
+		})
+
+		Context("when endpoint_base is set", func() {
+			It("resolves unknown regions using the custom endpoint base", func() {
+				creds := config.Credentials{
+					AccessKey:    keyID,
+					SecretKey:    keyValue,
+					Region:       "eusc-de-east-1",
+					EndpointBase: "amazonaws.eu",
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(awsCfg.EndpointResolver).NotTo(BeNil())
+				ep, err := awsCfg.EndpointResolver.EndpointFor("ec2", "eusc-de-east-1")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ep.URL).To(Equal("https://ec2.eusc-de-east-1.amazonaws.eu"))
+				Expect(ep.SigningRegion).To(Equal("eusc-de-east-1"))
+			})
+
+			It("falls back to the default resolver for other regions", func() {
+				creds := config.Credentials{
+					AccessKey:    keyID,
+					SecretKey:    keyValue,
+					Region:       "eusc-de-east-1",
+					EndpointBase: "amazonaws.eu",
+				}
+
+				awsCfg := creds.GetAwsConfig()
+
+				Expect(awsCfg.EndpointResolver).NotTo(BeNil())
+				ep, err := awsCfg.EndpointResolver.EndpointFor("ec2", "us-east-1")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ep.URL).To(ContainSubstring("amazonaws.com"))
+			})
+
+			It("uses the custom endpoint for whatever region is set — destination credentials must not inherit endpoint_base", func() {
+				destinationCreds := config.Credentials{
+					AccessKey:    keyID,
+					SecretKey:    keyValue,
+					Region:       "us-east-1",
+					EndpointBase: "amazonaws.eu", // wrongly inherited
+				}
+
+				awsCfg := destinationCreds.GetAwsConfig()
+
+				ep, err := awsCfg.EndpointResolver.EndpointFor("ec2", "us-east-1")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ep.URL).To(Equal("https://ec2.us-east-1.amazonaws.eu"))
+			})
+		})
 	})
 })

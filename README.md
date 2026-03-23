@@ -1,13 +1,14 @@
-## Light Stemcell Builder for AWS
+# Light Stemcell Builder for AWS
 
 This tool takes a raw machine image and a configuration file and creates a collection of AMIs.
 Any AWS region including China is supported.
 
-#### AWS Setup for Publishing
+## AWS Setup for Publishing
 
 1. Create an S3 bucket for intermediate artifacts (e.g. `light-stemcells-for-project-XXX`)
 1. Create an AWS IAM policy based on the JSON contained in `builder-policy.json`
 1. Replace the bucket placeholder in your policy with the bucket created in step 1
+
     ```diff
       "Resource": [
     -    "arn:aws:s3:::<disk-image-file-bucket>",
@@ -16,29 +17,32 @@ Any AWS region including China is supported.
     +    "arn:aws:s3:::light-stemcells-for-project-XXX/*"
       ]
     ```
+
     Note: The arn for AWS GovCloud region is `aws-us-gov`. It looks like this: `"arn:aws-us-gov:s3:::<disk-image-file-bucket>"`
 1. Create an AWS IAM user and attach the policy created in steps 2, 3.
 1. Create the `vmimport` AWS role as detailed [here](https://web.archive.org/web/20181210011548/https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html#import-image-prereqs), specifying the previously created bucket in place of `<disk-image-file-bucket>`; see [example IAM policy](iam-policy.json).
-  1. Updated docs are split over [vm-import](https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html) and [roles](https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#vmimport-role) now.
+    - Updated docs are split over [vm-import](https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html) and [roles](https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#vmimport-role) now.
 1. Replicate these steps in a separate AWS China account if publishing to China.
 
-#### IAM User Setup for Integration Testing
+## IAM User Setup for Integration Testing
 
 1. Follow steps in "AWS Setup for Publishing"
 1. Create an IAM policy based on the JSON contained in `integration-test-policy.json`
 1. Attach the policy you created in step 2 to the existing publishing user
 
-#### Testing
+## Testing
 
 Unit testing:
-```
+
+```shell
 ginkgo -r --skipPackage driver,integration
 ```
 
-#### Example Usage
+## Example Usage
 
 Example config:
-```
+
+```json
 {
   "ami_configuration": {
     "description":          "Your description here",
@@ -71,13 +75,39 @@ Example config:
 }
 ```
 
-Usage:
+### Non-standard AWS partitions (custom endpoint domain)
+
+Some AWS partitions use a different endpoint domain than the default `amazonaws.com`. For example, the AWS EU Sovereign Cloud (EUSC) uses `amazonaws.eu`.
+
+Set `endpoint_base` on the region entry to override the endpoint domain for all services (EC2, S3, KMS):
+
+```json
+{
+  "ami_regions": [
+    {
+      "name":           "eusc-de-east-1",
+      "endpoint_base":  "amazonaws.eu",
+      "credentials": {
+        "access_key":   "ACCESS_KEY_ID",
+        "secret_key":   "ACCESS_SECRET_KEY"
+      },
+      "bucket_name":    "BUCKET_NAME"
+    }
+  ]
+}
 ```
+
+Service endpoints are constructed as `https://<service>.<region>.<endpoint_base>`, e.g. `https://ec2.eusc-de-east-1.amazonaws.eu`.
+
+Usage:
+
+```shell
 ./light-stemcell-builder -c config.json --image root.img --manifest stemcell.MF > updated-stemcell.MF
 ```
 
 Example Output:
-```
+
+```yml
 name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
 version: "3202"
 bosh_protocol: "1"
@@ -93,9 +123,9 @@ cloud_properties:
     us-west-2: ami-54328238
 ```
 
-#### Troubleshooting
+## Troubleshooting
 
 If the `vmimport` role is not present, you will receive this error from the light stemcell builder:
 
-> Error publishing AMIs to us-east-1: creating snapshot: creating import snapshot task: InvalidParameter: The sevice role <vmimport> does not exist or does not have sufficient permissions for the service to continue
-	status code: 400, request id:
+> Error publishing AMIs to us-east-1: creating snapshot: creating import snapshot task: InvalidParameter: The sevice role <vmimport> does not exist or does not have sufficient permissions for the service to continue<br>
+> status code: 400, request id:

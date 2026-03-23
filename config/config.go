@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	uuid "github.com/satori/go.uuid"
 )
@@ -84,6 +85,11 @@ type AmiRegion struct {
 	Destinations []string `json:"destinations"`
 
 	IsolatedRegion bool `json:"-"`
+
+	// EndpointBase allows to override the default AWS endpoint domain for regions
+	// that use a non-standard domain (e.g. "amazonaws.eu" for EUSC regions).
+	// Service endpoints are constructed as https://<service>.<region>.<endpoint_base>
+	EndpointBase string `json:"endpoint_base"`
 }
 
 type Credentials struct {
@@ -92,6 +98,7 @@ type Credentials struct {
 	SessionToken string `json:"session_token"`
 	RoleArn      string `json:"role_arn"`
 	Region       string `json:"-"`
+	EndpointBase string `json:"-"`
 }
 
 type Config struct {
@@ -135,6 +142,7 @@ func NewFromReader(r io.Reader) (Config, error) {
 	for i := range c.AmiRegions {
 		region := &c.AmiRegions[i]
 		region.Credentials.Region = region.RegionName
+		region.Credentials.EndpointBase = region.EndpointBase
 		region.IsolatedRegion = isolated[region.RegionName]
 	}
 
@@ -233,6 +241,23 @@ func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
 			session.Must(session.NewSession(awsCfg)),
 			configCredentials.RoleArn,
 		)
+	}
+
+	if configCredentials.EndpointBase != "" {
+		endpointBase := configCredentials.EndpointBase
+		region := configCredentials.Region
+		defaultResolver := endpoints.DefaultResolver()
+		awsCfg = awsCfg.WithEndpointResolver(endpoints.ResolverFunc(
+			func(service, reg string, opts ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+				if reg != region {
+					return defaultResolver.EndpointFor(service, reg, opts...)
+				}
+				return endpoints.ResolvedEndpoint{
+					URL:           fmt.Sprintf("https://%s.%s.%s", service, reg, endpointBase),
+					SigningRegion: reg,
+				}, nil
+			},
+		))
 	}
 
 	return awsCfg
