@@ -29,18 +29,34 @@ jobs:
         args:
           - -exc
           - |
-            cat << EOF > docker-build-args/docker-build-args.json
-            {
-              "BOSH_CLI_VERSION": "$(cat bosh-cli-github-release/version)",
-              "METALINK_VERSION": "$(cat metalink-github-release/version)"
-            }
+            cat << EOF > docker-build-args/docker-build-args.yml
+            BOSH_CLI_VERSION: "$(cat bosh-cli-github-release/version)"
+            METALINK_VERSION: "$(cat metalink-github-release/version)"
             EOF
 
-            cat docker-build-args/docker-build-args.json
-  - put: light-stemcell-builder-docker-image
+            cat docker-build-args/docker-build-args.yml
+  - task: build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: concourse/oci-build-task
+      inputs:
+        - name: bosh-aws-light-stemcell-builder
+        - name: docker-build-args
+      outputs:
+        - name: image
+      params:
+        CONTEXT: bosh-aws-light-stemcell-builder/ci/docker
+        BUILD_ARGS_FILE: docker-build-args/docker-build-args.yml
+      run:
+        path: build
+  - put: light-stemcell-builder-image
+    no_get: true
     params:
-      build: bosh-aws-light-stemcell-builder/ci/docker/
-      build_args_file: docker-build-args/docker-build-args.json
+      image: image/image.tar
 
 
 resources:
@@ -49,10 +65,11 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder.git
 
-- name: light-stemcell-builder-docker-image
-  type: docker-image
+- name: light-stemcell-builder-image
+  type: registry-image
   source:
     repository: bosh/light-stemcell-builder
+    tag: latest
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
