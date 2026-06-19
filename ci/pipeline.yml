@@ -57,9 +57,11 @@ jobs:
           region: ((aws_test_region))
   - name: cleanup-light-aws-builder-test-amis
     plan:
-      - get: every-week-on-monday
-        trigger: true
-      - get: bosh-integration-registry-image
+      - in_parallel:
+        - get: every-week-on-monday
+          trigger: true
+        - get: bosh-integration-registry-image
+        - get: bosh-aws-light-stemcell-builder
       - task: cleanup-aws-test-amis
         file: bosh-aws-light-stemcell-builder/ci/tasks/cleanup-ami.yml
         image: bosh-integration-registry-image
@@ -71,6 +73,7 @@ jobs:
           ami_older_than_days: 1
           ami_keep_latest: 0
           snapshot_id: ((aws_test_snapshot_fixture_id))
+
   - name: build-docker-image
     plan:
       - in_parallel:
