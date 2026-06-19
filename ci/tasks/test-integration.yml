@@ -1,0 +1,19 @@
+---
+platform: linux
+
+inputs:
+- name: bosh-aws-light-stemcell-builder
+
+run:
+  path: bosh-aws-light-stemcell-builder/ci/tasks/test-integration.sh
+
+params:
+  access_key:                 ""
+  secret_key:                 ""
+  bucket_name:                ""
+  region:                     ""
+  copy_region:                ""
+  # cn_access_key:              ""
+  # cn_secret_key:              ""
+  # cn_bucket_name:             ""
+  # cn_region:                  ""

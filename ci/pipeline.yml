@@ -1,93 +1,181 @@
 jobs:
-- name: build-docker-image
-  plan:
-  - in_parallel:
-    - get: bosh-aws-light-stemcell-builder
-    - get: golang-release-registry-image
-      trigger: true
-    - get: bosh-cli-github-release
-      trigger: true
-      params:
-        globs:
-        - "no-files-needed"
-    - get: metalink-github-release
-      trigger: true
-      params:
-        globs:
-        - "no-files-needed"
-  - task: build-docker-args
-    image: golang-release-registry-image
-    config:
-      platform: linux
-      inputs:
-        - name: bosh-cli-github-release
-        - name: metalink-github-release
-      outputs:
-        - name: docker-build-args
-      run:
-        path: sh
-        args:
-          - -exc
-          - |
-            cat << EOF > docker-build-args/docker-build-args.yml
-            BOSH_CLI_VERSION: "$(cat bosh-cli-github-release/version)"
-            METALINK_VERSION: "$(cat metalink-github-release/version)"
-            EOF
-
-            cat docker-build-args/docker-build-args.yml
-  - task: build-image
-    privileged: true
-    config:
-      platform: linux
-      image_resource:
-        type: registry-image
-        source:
-          repository: concourse/oci-build-task
-      inputs:
-        - name: bosh-aws-light-stemcell-builder
-        - name: docker-build-args
-      outputs:
-        - name: image
-      params:
-        CONTEXT: bosh-aws-light-stemcell-builder/ci/docker
-        BUILD_ARGS_FILE: docker-build-args/docker-build-args.yml
-      run:
-        path: build
-  - put: light-stemcell-builder-image
-    no_get: true
-    params:
-      image: image/image.tar
+  - name: test-aws-unit
+    serial: true
+    plan:
+      - get: bosh-integration-registry-image
+      - get: bosh-aws-light-stemcell-builder
+        trigger: true
+      - file: bosh-aws-light-stemcell-builder/ci/tasks/test-unit.yml
+        image: bosh-integration-registry-image
+        task: test
+  - name: test-aws-drivers
+    serial: true
+    plan:
+      - get: bosh-integration-registry-image
+      - get: bosh-aws-light-stemcell-builder
+        trigger: true
+      - task: test
+        file: bosh-aws-light-stemcell-builder/ci/tasks/test-drivers.yml
+        image: bosh-integration-registry-image
+        attempts: 3
+        params:
+          AWS_PAGER:
+          aws_account_id: ((aws_test_account_id))
+          access_key: ((aws_test_access_key))
+          secret_key: ((aws_test_secret_key))
+          bucket_name: ((aws_test_bucket_name))
+          copy_region: ((aws_test_copy_region))
+          region: ((aws_test_region))
+          ami_fixture_id: ((aws_test_ami_fixture_id))
+          private_ami_fixture_id: ((aws_test_private_ami_fixture_id))
+          existing_snapshot_id: ((aws_test_snapshot_fixture_id))
+          existing_volume_id: ((aws_test_volume_fixture_id))
+          #! kms key id should be the one created in the region of "copy_region"
+          kms_key_id: ((aws_test_kms_key_id))
+          kms_multi_region_key: ((aws_test_kms_multi_region_key_id))
+          kms_multi_region_key_replication_test: ((aws_test_kms_multi_region_replication_test_key_id))
+          uploaded_machine_image_url: https://stemcell-test-publish.s3.eu-central-1.amazonaws.com/fixtures/root.img
+  - name: test-aws-integration
+    serial: true
+    plan:
+      - get: bosh-integration-registry-image
+      - get: bosh-aws-light-stemcell-builder
+        trigger: true
+      - task: test
+        file: bosh-aws-light-stemcell-builder/ci/tasks/test-integration.yml
+        image: bosh-integration-registry-image
+        params:
+          AWS_PAGER:
+          access_key: ((aws_test_access_key))
+          secret_key: ((aws_test_secret_key))
+          bucket_name: ((aws_test_bucket_name))
+#          cn_access_key: ((test__cn_access_key))
+#          cn_bucket_name: ((test__cn_bucket_name))
+#          cn_region: ((test__cn_region))
+#          cn_secret_key: ((test__cn_secret_key))
+          copy_region: ((aws_test_copy_region))
+          region: ((aws_test_region))
+  - name: cleanup-light-aws-builder-test-amis
+    plan:
+      - get: every-week-on-monday
+        trigger: true
+      - get: bosh-integration-registry-image
+      - task: cleanup-aws-test-amis
+        file: bosh-aws-light-stemcell-builder/ci/tasks/cleanup-ami.yml
+        image: bosh-integration-registry-image
+        params:
+          AWS_PAGER:
+          ami_access_key: ((aws_test_access_key))
+          ami_secret_key: ((aws_test_secret_key))
+          ami_region: ((aws_test_region))
+          ami_older_than_days: 1
+          ami_keep_latest: 0
+          snapshot_id: ((aws_test_snapshot_fixture_id))
+  - name: build-docker-image
+    plan:
+      - in_parallel:
+          - get: bosh-aws-light-stemcell-builder
+          - get: golang-release-registry-image
+            trigger: true
+          - get: bosh-cli-github-release
+            trigger: true
+            params:
+              globs:
+                - "no-files-needed"
+          - get: metalink-github-release
+            trigger: true
+            params:
+              globs:
+                - "no-files-needed"
+      - task: build-docker-args
+        image: golang-release-registry-image
+        config:
+          platform: linux
+          inputs:
+            - name: bosh-cli-github-release
+            - name: metalink-github-release
+          outputs:
+            - name: docker-build-args
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cat << EOF > docker-build-args/docker-build-args.yml
+                BOSH_CLI_VERSION: "$(cat bosh-cli-github-release/version)"
+                METALINK_VERSION: "$(cat metalink-github-release/version)"
+                EOF
+                
+                cat docker-build-args/docker-build-args.yml
+      - task: build-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: bosh-aws-light-stemcell-builder
+            - name: docker-build-args
+          outputs:
+            - name: image
+          params:
+            CONTEXT: bosh-aws-light-stemcell-builder/ci/docker
+            BUILD_ARGS_FILE: docker-build-args/docker-build-args.yml
+          run:
+            path: build
+      - put: light-stemcell-builder-image
+        no_get: true
+        params:
+          image: image/image.tar
 
 
 resources:
-- name: bosh-aws-light-stemcell-builder
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder.git
+  - name: every-week-on-monday
+    type: time
+    source:
+      days:
+        - Monday
+      interval: 168h
+      location: America/Los_Angeles
+      start: "6:00"
+      stop: "8:30"
 
-- name: light-stemcell-builder-image
-  type: registry-image
-  source:
-    repository: bosh/light-stemcell-builder
-    tag: latest
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+  - name: bosh-aws-light-stemcell-builder
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder.git
 
-- name: golang-release-registry-image
-  type: registry-image
-  source:
-    repository: ghcr.io/cloudfoundry/bosh/golang-release
+  - name: light-stemcell-builder-image
+    type: registry-image
+    source:
+      repository: bosh/light-stemcell-builder
+      tag: latest
+      username: ((dockerhub_username))
+      password: ((dockerhub_password))
 
-- name: bosh-cli-github-release
-  type: github-release
-  source:
-    access_token: ((github_public_repo_token))
-    owner: cloudfoundry
-    repository: bosh-cli
+  - name: golang-release-registry-image
+    type: registry-image
+    source:
+      repository: ghcr.io/cloudfoundry/bosh/golang-release
 
-- name: metalink-github-release
-  type: github-release
-  source:
-    access_token: ((github_public_repo_token))
-    owner: dpb587
-    repository: metalink
+  - name: bosh-integration-registry-image
+    type: registry-image
+    source:
+      repository: ghcr.io/cloudfoundry/bosh/integration
+      tag: main
+
+  - name: bosh-cli-github-release
+    type: github-release
+    source:
+      access_token: ((github_public_repo_token))
+      owner: cloudfoundry
+      repository: bosh-cli
+
+  - name: metalink-github-release
+    type: github-release
+    source:
+      access_token: ((github_public_repo_token))
+      owner: dpb587
+      repository: metalink
