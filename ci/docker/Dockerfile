@@ -25,3 +25,6 @@ RUN curl -fsL https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH
 RUN curl -fsL https://github.com/dpb587/metalink/releases/download/v${METALINK_VERSION}/meta4-${METALINK_VERSION}-linux-amd64 \
       > /usr/local/bin/meta4 \
     && chmod +x /usr/local/bin/meta4
+
+# see pipeline.yml "task: build-light-stemcell-builder-binary"
+COPY light-stemcell-builder /usr/local/bin/
