@@ -55,7 +55,7 @@ jobs:
 #          cn_secret_key: ((test__cn_secret_key))
           copy_region: ((aws_test_copy_region))
           region: ((aws_test_region))
-  - name: cleanup-light-aws-builder-test-amis
+  - name: cleanup-test-amis
     plan:
       - in_parallel:
         - get: every-week-on-monday
