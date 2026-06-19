@@ -165,6 +165,8 @@ resources:
     source:
       repository: ghcr.io/cloudfoundry/bosh/integration
       tag: main
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: bosh-cli-github-release
     type: github-release
