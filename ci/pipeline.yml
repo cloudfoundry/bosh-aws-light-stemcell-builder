@@ -1,5 +1,5 @@
 jobs:
-  - name: test-aws-unit
+  - name: test-unit
     serial: true
     plan:
       - get: bosh-integration-registry-image
@@ -8,7 +8,7 @@ jobs:
       - file: bosh-aws-light-stemcell-builder/ci/tasks/test-unit.yml
         image: bosh-integration-registry-image
         task: test
-  - name: test-aws-drivers
+  - name: test-drivers
     serial: true
     plan:
       - get: bosh-integration-registry-image
@@ -35,7 +35,7 @@ jobs:
           kms_multi_region_key: ((aws_test_kms_multi_region_key_id))
           kms_multi_region_key_replication_test: ((aws_test_kms_multi_region_replication_test_key_id))
           uploaded_machine_image_url: https://stemcell-test-publish.s3.eu-central-1.amazonaws.com/fixtures/root.img
-  - name: test-aws-integration
+  - name: test-integration
     serial: true
     plan:
       - get: bosh-integration-registry-image
@@ -80,9 +80,9 @@ jobs:
           - get: bosh-aws-light-stemcell-builder
             trigger: true
             passed:
-              - test-aws-unit
-              - test-aws-drivers
-              - test-aws-integration
+              - test-unit
+              - test-drivers
+              - test-integration
           - get: golang-release-registry-image
             trigger: true
           - get: bosh-cli-github-release
