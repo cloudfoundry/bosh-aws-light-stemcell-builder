@@ -75,6 +75,11 @@ jobs:
     plan:
       - in_parallel:
           - get: bosh-aws-light-stemcell-builder
+            trigger: true
+            passed:
+              - test-aws-unit
+              - test-aws-drivers
+              - test-aws-integration
           - get: golang-release-registry-image
             trigger: true
           - get: bosh-cli-github-release
@@ -87,26 +92,49 @@ jobs:
             params:
               globs:
                 - "no-files-needed"
-      - task: build-docker-args
-        image: golang-release-registry-image
-        config:
-          platform: linux
-          inputs:
-            - name: bosh-cli-github-release
-            - name: metalink-github-release
-          outputs:
-            - name: docker-build-args
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                cat << EOF > docker-build-args/docker-build-args.yml
-                BOSH_CLI_VERSION: "$(cat bosh-cli-github-release/version)"
-                METALINK_VERSION: "$(cat metalink-github-release/version)"
-                EOF
-                
-                cat docker-build-args/docker-build-args.yml
+      - in_parallel:
+        - task: build-light-stemcell-builder-binary
+          image: golang-release-registry-image
+          config:
+            platform: linux
+            inputs:
+              - name: bosh-aws-light-stemcell-builder
+            outputs:
+              - name: bosh-aws-light-stemcell-builder
+            run:
+              path: sh
+              args:
+                - -exc
+                - |
+                  cd bosh-aws-light-stemcell-builder
+                  
+                  ./scripts/build
+                  
+                  ls -al light-stemcell-builder
+                  
+                  cp light-stemcell-builder ci/docker/
+                  
+                  ls -al ci/docker/
+        - task: build-docker-args
+          image: golang-release-registry-image
+          config:
+            platform: linux
+            inputs:
+              - name: bosh-cli-github-release
+              - name: metalink-github-release
+            outputs:
+              - name: docker-build-args
+            run:
+              path: sh
+              args:
+                - -exc
+                - |
+                  cat << EOF > docker-build-args/docker-build-args.yml
+                  BOSH_CLI_VERSION: "$(cat bosh-cli-github-release/version)"
+                  METALINK_VERSION: "$(cat metalink-github-release/version)"
+                  EOF
+
+                  cat docker-build-args/docker-build-args.yml
       - task: build-image
         privileged: true
         config:
