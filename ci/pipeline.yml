@@ -163,6 +163,7 @@ resources:
   - name: every-week-on-monday
     type: time
     source:
+      initial_version: true
       days:
         - Monday
       interval: 168h
