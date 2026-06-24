@@ -1,13 +1,38 @@
 jobs:
+  - name: bump-deps
+    plan:
+      - in_parallel:
+          - get: bosh-aws-light-stemcell-builder
+          - get:  bosh-integration-registry-image
+          - get: golang-release
+          - get: weekly
+            trigger: true
+      - task: bump-deps
+        file: golang-release/ci/tasks/shared/bump-deps.yml
+        input_mapping:
+          input_repo: bosh-aws-light-stemcell-builder
+        output_mapping:
+          output_repo: bumped-bosh-aws-light-stemcell-builder
+      - task: test-unit
+        file: bosh-aws-light-stemcell-builder/ci/tasks/test-unit.yml
+        image: bosh-integration-registry-image
+        input_mapping:
+          bosh-aws-light-stemcell-builder: bumped-bosh-aws-light-stemcell-builder
+        output_mapping:
+          bosh-aws-light-stemcell-builder: bumped-bosh-aws-light-stemcell-builder
+      - put: bosh-aws-light-stemcell-builder
+        params:
+          repository: bumped-bosh-aws-light-stemcell-builder
+          rebase: true
   - name: test-unit
     serial: true
     plan:
       - get: bosh-integration-registry-image
       - get: bosh-aws-light-stemcell-builder
         trigger: true
-      - file: bosh-aws-light-stemcell-builder/ci/tasks/test-unit.yml
+      - task: test-unit
+        file: bosh-aws-light-stemcell-builder/ci/tasks/test-unit.yml
         image: bosh-integration-registry-image
-        task: test
   - name: test-drivers
     serial: true
     plan:
@@ -30,8 +55,7 @@ jobs:
           private_ami_fixture_id: ((aws_test_private_ami_fixture_id))
           existing_snapshot_id: ((aws_test_snapshot_fixture_id))
           existing_volume_id: ((aws_test_volume_fixture_id))
-          #! kms key id should be the one created in the region of "copy_region"
-          kms_key_id: ((aws_test_kms_key_id))
+          kms_key_id: ((aws_test_kms_key_id)) # should be kms key created in the "copy_region"
           kms_multi_region_key: ((aws_test_kms_multi_region_key_id))
           kms_multi_region_key_replication_test: ((aws_test_kms_multi_region_replication_test_key_id))
           uploaded_machine_image_url: https://stemcell-test-publish.s3.eu-central-1.amazonaws.com/fixtures/root.img
@@ -58,7 +82,7 @@ jobs:
   - name: cleanup-test-amis
     plan:
       - in_parallel:
-        - get: every-week-on-monday
+        - get: weekly
           trigger: true
         - get: bosh-integration-registry-image
         - get: bosh-aws-light-stemcell-builder
@@ -163,21 +187,20 @@ jobs:
 
 
 resources:
-  - name: every-week-on-monday
+  - name: weekly
     type: time
     source:
       initial_version: true
-      days:
-        - Monday
-      interval: 168h
-      location: America/Los_Angeles
-      start: "6:00"
-      stop: "8:30"
+      start: 3:00 -0700
+      stop: 4:30 -0700
+      days: [ Saturday ]
 
   - name: bosh-aws-light-stemcell-builder
     type: git
     source:
-      uri: https://github.com/cloudfoundry/bosh-aws-light-stemcell-builder.git
+      uri: git@github.com:cloudfoundry/bosh-aws-light-stemcell-builder.git
+      branch: master
+      private_key: ((github_deploy_key_bosh-aws-light-stemcell-builder.private_key))
 
   - name: light-stemcell-builder-image
     type: registry-image
@@ -186,6 +209,11 @@ resources:
       tag: latest
       username: ((dockerhub_username))
       password: ((dockerhub_password))
+
+  - name: golang-release
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
 
   - name: golang-release-registry-image
     type: registry-image
