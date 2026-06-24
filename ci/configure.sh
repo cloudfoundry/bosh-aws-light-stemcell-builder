@@ -1,9 +1,23 @@
 #!/usr/bin/env bash
+set -eu -o pipefail
 
-set -e
+if [[ -n "${DEBUG:-}" ]]; then
+  set -x
+fi
 
-FLY="${FLY_CLI:-fly}"
+REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-"$FLY" -t "${CONCOURSE_TARGET:-stemcell}" set-pipeline \
-  -p bosh-aws-light-stemcell-builder \
-  -c "$(dirname $0)/pipeline.yml"
+concourse_target="${CONCOURSE_TARGET:-stemcell}"
+fly="${FLY_CLI:-fly}"
+
+pipeline_name="bosh-aws-light-stemcell-builder"
+pipeline_config="${REPO_ROOT}/ci/pipeline.yml"
+
+echo "Validating..."
+"${fly}" validate-pipeline --strict --config "${pipeline_config}"
+echo ""
+
+"${fly}" -t "${concourse_target}" \
+  set-pipeline \
+    --pipeline "${pipeline_name}" \
+    --config "${pipeline_config}"
