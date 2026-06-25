@@ -1,6 +1,7 @@
 package driver_test
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"strconv"
@@ -9,9 +10,8 @@ import (
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -38,17 +38,14 @@ var _ = Describe("KmsDriver", func() {
 
 		//defer cleanup of the created alias
 		defer func(aliasName string, aliasCreationResult resources.KmsAlias) {
-			awsSession, _ := session.NewSession(creds.GetAwsConfig()) //nolint:errcheck
-			kmsClient := kms.New(awsSession)
-			kmsClient.DeleteAlias(&kms.DeleteAliasInput{ //nolint:errcheck
+			kmsClient := kms.NewFromConfig(creds.GetAwsConfig())
+			kmsClient.DeleteAlias(context.Background(), &kms.DeleteAliasInput{ //nolint:errcheck
 				AliasName: &aliasName,
 			})
 		}(aliasName, aliasCreationResult)
 
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
-		kmsClient := kms.New(awsSession)
-		listAliasResult, err := kmsClient.ListAliases(&kms.ListAliasesInput{
+		kmsClient := kms.NewFromConfig(creds.GetAwsConfig())
+		listAliasResult, err := kmsClient.ListAliases(context.Background(), &kms.ListAliasesInput{
 			KeyId: &kmsKeyId,
 		})
 		Expect(err).ToNot(HaveOccurred())
@@ -77,23 +74,19 @@ var _ = Describe("KmsDriver", func() {
 		originalRegion := creds.Region
 		creds.Region = destinationRegion
 
-		//defer cleanup of the created key replica, sadly we can only schedule it to be deleted after 7 days
-		//therefore this test will reuse the replicated key for 7 days and only afterward create a new one
+		//defer cleanup of the created key replica
 		defer func(aliasCreationResult resources.KmsKey) {
 			destinationKeyId := strings.ReplaceAll(multiRegionKeyReplicationTest, originalRegion, destinationRegion)
-			awsSession, _ := session.NewSession(creds.GetAwsConfig()) //nolint:errcheck
-			kmsClient := kms.New(awsSession)
+			kmsClient := kms.NewFromConfig(creds.GetAwsConfig())
 
-			kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{ //nolint:errcheck
+			kmsClient.ScheduleKeyDeletion(context.Background(), &kms.ScheduleKeyDeletionInput{ //nolint:errcheck
 				KeyId:               &destinationKeyId,
-				PendingWindowInDays: aws.Int64(7),
+				PendingWindowInDays: aws.Int32(7),
 			})
 		}(replicateKeyResult)
 
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
-		kmsClient := kms.New(awsSession)
-		listKeyResult, err := kmsClient.ListKeys(&kms.ListKeysInput{})
+		kmsClient := kms.NewFromConfig(creds.GetAwsConfig())
+		listKeyResult, err := kmsClient.ListKeys(context.Background(), &kms.ListKeysInput{})
 		Expect(err).ToNot(HaveOccurred())
 
 		keysCount := 0

@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -9,27 +10,26 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 var _ resources.SnapshotDriver = &SDKSnapshotFromImageDriver{}
 
 // SDKSnapshotFromImageDriver creates an AMI directly from a machine image
 type SDKSnapshotFromImageDriver struct {
-	ec2Client *ec2.EC2
+	ec2Client *ec2.Client
 	logger    *log.Logger
 }
 
 // NewSnapshotFromImageDriver creates a SDKSnapshotFromImageDriver for creating snapshots in EC2
 func NewSnapshotFromImageDriver(logDest io.Writer, creds config.Credentials) *SDKSnapshotFromImageDriver {
 	logger := log.New(logDest, "SDKSnapshotFromImageDriver ", log.LstdFlags)
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
+	cfg := creds.GetAwsConfig()
+	cfg.Logger = newDriverLogger(logger)
 
-	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
+	ec2Client := ec2.NewFromConfig(cfg)
 	return &SDKSnapshotFromImageDriver{ec2Client: ec2Client, logger: logger}
 }
 
@@ -40,10 +40,12 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 		d.logger.Printf("completed Create() in %f minutes\n", time.Since(startTime).Minutes())
 	}(createStartTime)
 
+	ctx := context.Background()
+
 	d.logger.Printf("initiating ImportSnapshot task from image: %s\n", driverConfig.MachineImageURL)
 
 	input := &ec2.ImportSnapshotInput{
-		DiskContainer: &ec2.SnapshotDiskContainer{
+		DiskContainer: &ec2types.SnapshotDiskContainer{
 			Url:    &driverConfig.MachineImageURL,
 			Format: aws.String(driverConfig.FileFormat),
 		},
@@ -54,7 +56,7 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 		input.KmsKeyId = &driverConfig.KmsAlias.ARN //nolint:staticcheck
 	}
 
-	reqOutput, err := d.ec2Client.ImportSnapshot(input)
+	reqOutput, err := d.ec2Client.ImportSnapshot(ctx, input)
 	if err != nil {
 		return resources.Snapshot{}, fmt.Errorf("creating import snapshot task: %s", err)
 	}
@@ -62,18 +64,18 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	d.logger.Printf("waiting on ImportSnapshot task %s\n", *reqOutput.ImportTaskId)
 
 	taskFilter := &ec2.DescribeImportSnapshotTasksInput{
-		ImportTaskIds: []*string{reqOutput.ImportTaskId},
+		ImportTaskIds: []string{*reqOutput.ImportTaskId},
 	}
 
 	waitStartTime := time.Now()
-	err = d.waitUntilImportSnapshotTaskCompleted(taskFilter, d.ec2Client)
+	err = d.waitUntilImportSnapshotTaskCompleted(ctx, taskFilter)
 	if err != nil {
 		return resources.Snapshot{}, fmt.Errorf("waiting for snapshot to become available: %s", err)
 	}
 
 	d.logger.Printf("waited on import task %s for %f minutes\n", *reqOutput.ImportTaskId, time.Since(waitStartTime).Minutes())
 
-	describeOutput, err := d.ec2Client.DescribeImportSnapshotTasks(taskFilter)
+	describeOutput, err := d.ec2Client.DescribeImportSnapshotTasks(ctx, taskFilter)
 	if err != nil {
 		return resources.Snapshot{}, fmt.Errorf("describing snapshot from import snapshot task %s: %s", *reqOutput.ImportTaskId, err)
 	}
@@ -88,11 +90,11 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	if driverConfig.Accessibility != resources.PrivateAmiAccessibility {
 		modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
 			SnapshotId:    snapshotIDptr,
-			Attribute:     aws.String("createVolumePermission"),
-			OperationType: aws.String("add"),
-			GroupNames:    []*string{aws.String("all")},
+			Attribute:     ec2types.SnapshotAttributeNameCreateVolumePermission,
+			OperationType: ec2types.OperationTypeAdd,
+			GroupNames:    []string{"all"},
 		}
-		_, err = d.ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+		_, err = d.ec2Client.ModifySnapshotAttribute(ctx, modifySnapshotAttributeInput)
 		if err != nil {
 			return resources.Snapshot{}, fmt.Errorf("making snapshot with id %s public: %s", *snapshotIDptr, err)
 		}
@@ -103,45 +105,45 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 	return resources.Snapshot{ID: *snapshotIDptr}, nil
 }
 
-func (d *SDKSnapshotFromImageDriver) waitUntilImportSnapshotTaskCompleted(input *ec2.DescribeImportSnapshotTasksInput, c *ec2.EC2) error {
-	ctx := aws.BackgroundContext()
-	w := request.Waiter{
-		Name:        "WaitUntilImportSnapshotTasksCompleted",
-		MaxAttempts: 60,
-		Delay:       request.ConstantWaiterDelay(60 * time.Second),
-		Acceptors: []request.WaiterAcceptor{
-			{
-				State:    request.SuccessWaiterState,
-				Matcher:  request.PathAllWaiterMatch,
-				Argument: "ImportSnapshotTasks[].SnapshotTaskDetail.Status",
-				Expected: "completed",
-			},
-			{
-				State:    request.FailureWaiterState,
-				Matcher:  request.PathAnyWaiterMatch,
-				Argument: "ImportSnapshotTasks[].SnapshotTaskDetail.Status",
-				Expected: "deleted",
-			},
-			{
-				State:    request.FailureWaiterState,
-				Matcher:  request.PathAnyWaiterMatch,
-				Argument: "ImportSnapshotTasks[].SnapshotTaskDetail.Status",
-				Expected: "deleting",
-			},
-		},
-		Logger: c.Config.Logger,
-		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			var inCpy *ec2.DescribeImportSnapshotTasksInput
-			if input != nil {
-				tmp := *input
-				inCpy = &tmp
+// waitUntilImportSnapshotTaskCompleted polls until all import snapshot tasks are completed.
+func (d *SDKSnapshotFromImageDriver) waitUntilImportSnapshotTaskCompleted(ctx context.Context, input *ec2.DescribeImportSnapshotTasksInput) error {
+	const (
+		maxAttempts  = 60
+		pollInterval = 60 * time.Second
+	)
+
+	for i := 0; i < maxAttempts; i++ {
+		output, err := d.ec2Client.DescribeImportSnapshotTasks(ctx, input)
+		if err != nil {
+			return fmt.Errorf("describing import snapshot tasks: %s", err)
+		}
+
+		allCompleted := true
+		for _, task := range output.ImportSnapshotTasks {
+			status := ""
+			if task.SnapshotTaskDetail != nil && task.SnapshotTaskDetail.Status != nil {
+				status = *task.SnapshotTaskDetail.Status
 			}
-			req, _ := c.DescribeImportSnapshotTasksRequest(inCpy)
-			req.SetContext(ctx)
-			req.ApplyOptions(opts...)
-			return req, nil
-		},
+			switch status {
+			case "completed":
+				// this task is done
+			case "deleted", "deleting":
+				return fmt.Errorf("import snapshot task %s is in state %s", aws.ToString(task.ImportTaskId), status)
+			default:
+				allCompleted = false
+			}
+		}
+
+		if allCompleted {
+			return nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(pollInterval):
+		}
 	}
 
-	return w.WaitWithContext(ctx)
+	return fmt.Errorf("timed out waiting for import snapshot tasks to complete after %d attempts", maxAttempts)
 }

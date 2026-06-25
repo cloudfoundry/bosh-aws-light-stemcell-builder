@@ -1,14 +1,13 @@
 package driver_test
 
 import (
+	"context"
 	"time"
 
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -35,11 +34,9 @@ var _ = Describe("Volume Driver Lifecycle", func() {
 		volume, err := createVolumeDriver.Create(volumeDriverConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
-		ec2Client := ec2.New(awsSession)
+		ec2Client := ec2.NewFromConfig(creds.GetAwsConfig())
 
-		reqOutput, err := ec2Client.DescribeVolumes(&ec2.DescribeVolumesInput{VolumeIds: []*string{aws.String(volume.ID)}})
+		reqOutput, err := ec2Client.DescribeVolumes(context.Background(), &ec2.DescribeVolumesInput{VolumeIds: []string{volume.ID}})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(reqOutput.Volumes).To(HaveLen(1))
@@ -50,7 +47,7 @@ var _ = Describe("Volume Driver Lifecycle", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() error {
-			_, err = ec2Client.DescribeVolumes(&ec2.DescribeVolumesInput{VolumeIds: []*string{aws.String(volume.ID)}})
+			_, err = ec2Client.DescribeVolumes(context.Background(), &ec2.DescribeVolumesInput{VolumeIds: []string{volume.ID}})
 			return err
 		}, 10*time.Minute, 10*time.Second).Should(MatchError(ContainSubstring("InvalidVolume.NotFound")))
 

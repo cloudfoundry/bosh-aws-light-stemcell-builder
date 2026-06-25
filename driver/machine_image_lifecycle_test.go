@@ -1,7 +1,9 @@
 package driver_test
 
 import (
+	"context"
 	"encoding/xml"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -10,23 +12,19 @@ import (
 	"light-stemcell-builder/driver/manifests"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var s3Client *s3.S3
+var s3Client *s3.Client
 
 var _ = Describe("Machine Image Lifecycle", func() {
 	BeforeEach(func() {
-		awsSession, err := session.NewSession(creds.GetAwsConfig())
-		Expect(err).ToNot(HaveOccurred())
-
-		s3Client = s3.New(awsSession)
+		s3Client = s3.NewFromConfig(creds.GetAwsConfig())
 	})
 
 	It("uploads a machine image to S3 with pre-signed URLs for GET and DELETE", func() {
@@ -53,10 +51,10 @@ var _ = Describe("Machine Image Lifecycle", func() {
 					Bucket: aws.String(bucketName),
 					Key:    aws.String(imageURL.Path),
 				}
-				headResp, err := s3Client.HeadObject(params)
+				headResp, err := s3Client.HeadObject(context.Background(), params)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(*headResp.ServerSideEncryption).To(Equal("AES256"))
+				Expect(string(headResp.ServerSideEncryption)).To(Equal("AES256"))
 			})
 		})
 	})
@@ -89,10 +87,10 @@ var _ = Describe("Machine Image Lifecycle", func() {
 					Bucket: aws.String(bucketName),
 					Key:    aws.String(imageURL.Path),
 				}
-				headResp, err := s3Client.HeadObject(params)
+				headResp, err := s3Client.HeadObject(context.Background(), params)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(*headResp.ServerSideEncryption).To(Equal("AES256"))
+				Expect(string(headResp.ServerSideEncryption)).To(Equal("AES256"))
 
 				imageURL, err = url.Parse(manifest.Parts.Part.HeadURL) //nolint:ineffassign,staticcheck
 
@@ -100,10 +98,10 @@ var _ = Describe("Machine Image Lifecycle", func() {
 					Bucket: aws.String(bucketName),
 					Key:    aws.String(imageURL.Path),
 				}
-				headResp, err = s3Client.HeadObject(params)
+				headResp, err = s3Client.HeadObject(context.Background(), params)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(*headResp.ServerSideEncryption).To(Equal("AES256"))
+				Expect(string(headResp.ServerSideEncryption)).To(Equal("AES256"))
 			})
 		})
 	})
@@ -122,18 +120,19 @@ func checkUploadedUrl(getUrl string) int {
 
 		return http.StatusOK
 	case "s3":
-		_, err := s3Client.GetObject(&s3.GetObjectInput{
+		_, err := s3Client.GetObject(context.Background(), &s3.GetObjectInput{
 			Bucket: aws.String(parsedUrl.Host),
 			Key:    aws.String(parsedUrl.Path),
 		})
 
 		if err == nil {
 			return 200
-		} else if err.(awserr.RequestFailure).Code() == s3.ErrCodeNoSuchKey {
-			return 404
-		} else {
-			Expect(err).ToNot(HaveOccurred())
 		}
+		var noSuchKey *s3types.NoSuchKey
+		if errors.As(err, &noSuchKey) {
+			return 404
+		}
+		Expect(err).ToNot(HaveOccurred())
 	}
 
 	return -1
