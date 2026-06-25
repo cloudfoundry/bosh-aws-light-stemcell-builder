@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"light-stemcell-builder/driver"
 	"light-stemcell-builder/driver/manifests"
@@ -50,7 +51,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 				params := &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
-					Key:    aws.String(imageURL.Path),
+					Key:    aws.String(strings.TrimPrefix(imageURL.Path, "/")),
 				}
 				headResp, err := s3Client.HeadObject(context.Background(), params)
 				Expect(err).ToNot(HaveOccurred())
@@ -87,7 +88,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 				params := &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
-					Key:    aws.String(imageURL.Path),
+					Key:    aws.String(strings.TrimPrefix(imageURL.Path, "/")),
 				}
 				headResp, err := s3Client.HeadObject(context.Background(), params)
 				Expect(err).ToNot(HaveOccurred())
@@ -99,7 +100,7 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 				params = &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
-					Key:    aws.String(imageURL.Path),
+					Key:    aws.String(strings.TrimPrefix(imageURL.Path, "/")),
 				}
 				headResp, err = s3Client.HeadObject(context.Background(), params)
 				Expect(err).ToNot(HaveOccurred())
@@ -125,7 +126,7 @@ func checkUploadedUrl(getUrl string) int {
 	case "s3":
 		_, err := s3Client.GetObject(context.Background(), &s3.GetObjectInput{
 			Bucket: aws.String(parsedUrl.Host),
-			Key:    aws.String(parsedUrl.Path),
+			Key:    aws.String(strings.TrimPrefix(parsedUrl.Path, "/")),
 		})
 
 		if err == nil {
