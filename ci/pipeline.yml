@@ -42,7 +42,6 @@ jobs:
       - task: test
         file: bosh-aws-light-stemcell-builder/ci/tasks/test-drivers.yml
         image: bosh-integration-registry-image
-        attempts: 3
         params:
           AWS_PAGER:
           aws_account_id: ((aws_test_account_id))
