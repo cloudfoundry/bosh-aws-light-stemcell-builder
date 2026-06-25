@@ -45,7 +45,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			}
 
 			testMachineImageLifecycle(driverConfig, func(machineImage resources.MachineImage) {
-				imageURL, err := url.Parse(machineImage.GetURL) //nolint:ineffassign,staticcheck
+				imageURL, err := url.Parse(machineImage.GetURL)
+				Expect(err).ToNot(HaveOccurred())
 
 				params := &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
@@ -81,7 +82,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 			}
 
 			testMachineImageManifestLifecycle(driverConfig, func(machineImage resources.MachineImage, manifest manifests.ImportVolumeManifest) {
-				imageURL, err := url.Parse(machineImage.GetURL) //nolint:ineffassign,staticcheck
+				imageURL, err := url.Parse(machineImage.GetURL)
+				Expect(err).ToNot(HaveOccurred())
 
 				params := &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
@@ -92,7 +94,8 @@ var _ = Describe("Machine Image Lifecycle", func() {
 
 				Expect(string(headResp.ServerSideEncryption)).To(Equal("AES256"))
 
-				imageURL, err = url.Parse(manifest.Parts.Part.HeadURL) //nolint:ineffassign,staticcheck
+				imageURL, err = url.Parse(manifest.Parts.Part.HeadURL)
+				Expect(err).ToNot(HaveOccurred())
 
 				params = &s3.HeadObjectInput{
 					Bucket: aws.String(bucketName),
