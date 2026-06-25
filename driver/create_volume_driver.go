@@ -131,8 +131,11 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	d.logger.Printf("waiting for volume to be available: %s\n", *volumeIDptr)
 	waitStartTime = time.Now()
 	volumeAvailableWaiter := ec2.NewVolumeAvailableWaiter(d.ec2Client)
-	err = volumeAvailableWaiter.Wait(ctx, &ec2.DescribeVolumesInput{VolumeIds: []string{*volumeIDptr}}, 30*time.Minute) //nolint:ineffassign,staticcheck
+	err = volumeAvailableWaiter.Wait(ctx, &ec2.DescribeVolumesInput{VolumeIds: []string{*volumeIDptr}}, 30*time.Minute)
 	d.logger.Printf("waited on volume %s for %f seconds\n", *volumeIDptr, time.Since(waitStartTime).Seconds())
+	if err != nil {
+		return resources.Volume{}, fmt.Errorf("waiting for volume %s to be available: %w", *volumeIDptr, err)
+	}
 
 	return resources.Volume{ID: *volumeIDptr}, nil
 }
