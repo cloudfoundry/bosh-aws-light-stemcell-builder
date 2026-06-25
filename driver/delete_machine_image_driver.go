@@ -10,29 +10,19 @@ import (
 
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/resources"
-
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 // The SDKDeleteMachineImageDriver deletes a previously uploaded machine image and manifest from S3
 type SDKDeleteMachineImageDriver struct {
-	s3Client *s3.S3
-	logger   *log.Logger
+	logger *log.Logger
 }
 
 // NewDeleteMachineImageDriver deletes a previously uploaded machine image and manifest from S3
-func NewDeleteMachineImageDriver(logDest io.Writer, creds config.Credentials) *SDKDeleteMachineImageDriver {
+func NewDeleteMachineImageDriver(logDest io.Writer, _ config.Credentials) *SDKDeleteMachineImageDriver {
 	logger := log.New(logDest, "SDKDeleteMachineImageDriver ", log.LstdFlags)
 
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(logger))
-
-	s3Client := s3.New(session.Must(session.NewSession(awsConfig)))
-
 	return &SDKDeleteMachineImageDriver{
-		s3Client: s3Client,
-		logger:   logger,
+		logger: logger,
 	}
 }
 
@@ -60,8 +50,7 @@ func (d *SDKDeleteMachineImageDriver) Delete(machineImage resources.MachineImage
 			return fmt.Errorf("Failed to delete resource '%s': %s", deleteURL, err) //nolint:staticcheck
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			defer resp.Body.Close() //nolint:errcheck
-			// ignore ReadAll err, return http status code err instead
+			defer resp.Body.Close()                                                                                                   //nolint:errcheck
 			respBody, _ := io.ReadAll(resp.Body)                                                                                      //nolint:errcheck
 			return fmt.Errorf("Received invalid response code '%d' deleting resource '%s': %s", resp.StatusCode, deleteURL, respBody) //nolint:staticcheck
 		}

@@ -1,6 +1,7 @@
 package driver_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -9,9 +10,9 @@ import (
 	"light-stemcell-builder/driverset"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
@@ -37,17 +38,17 @@ var _ = Describe("CopyAmiDriver", func() {
 				amiId:     amiFixtureID,
 				encrypted: false,
 				kmsKeyId:  ""},
-			func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+			func(ec2Client *ec2.Client, reqOutput *ec2.DescribeImagesOutput) {
 				snapshotIDptr := getSnapshotID(reqOutput)
 
-				snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
+				snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(context.Background(), &ec2.DescribeSnapshotAttributeInput{
 					SnapshotId: snapshotIDptr,
-					Attribute:  aws.String("createVolumePermission"),
+					Attribute:  "createVolumePermission",
 				})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(len(snapshotAttributes.CreateVolumePermissions)).To(Equal(1))
-				Expect(*snapshotAttributes.CreateVolumePermissions[0].Group).To(Equal("all"))
+				Expect(string(snapshotAttributes.CreateVolumePermissions[0].Group)).To(Equal("all"))
 			})
 	})
 
@@ -59,12 +60,12 @@ var _ = Describe("CopyAmiDriver", func() {
 					encrypted: true,
 					kmsKeyId:  "",
 				},
-				func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+				func(ec2Client *ec2.Client, reqOutput *ec2.DescribeImagesOutput) {
 					snapshotIDptr := getSnapshotID(reqOutput)
 
-					snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(&ec2.DescribeSnapshotAttributeInput{
+					snapshotAttributes, err := ec2Client.DescribeSnapshotAttribute(context.Background(), &ec2.DescribeSnapshotAttributeInput{
 						SnapshotId: snapshotIDptr,
-						Attribute:  aws.String("createVolumePermission"),
+						Attribute:  "createVolumePermission",
 					})
 					Expect(err).ToNot(HaveOccurred())
 
@@ -79,8 +80,8 @@ var _ = Describe("CopyAmiDriver", func() {
 					encrypted: true,
 					kmsKeyId:  "",
 				},
-				func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
-					respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
+				func(ec2Client *ec2.Client, reqOutput *ec2.DescribeImagesOutput) {
+					respSnapshots, err := ec2Client.DescribeSnapshots(context.Background(), &ec2.DescribeSnapshotsInput{SnapshotIds: []string{*reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(*respSnapshots.Snapshots[0].Encrypted).To(BeTrue())
@@ -96,8 +97,8 @@ var _ = Describe("CopyAmiDriver", func() {
 						encrypted: true,
 						kmsKeyId:  destinationRegionKmsKeyId,
 					},
-					func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
-						respSnapshots, err := ec2Client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{SnapshotIds: []*string{reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
+					func(ec2Client *ec2.Client, reqOutput *ec2.DescribeImagesOutput) {
+						respSnapshots, err := ec2Client.DescribeSnapshots(context.Background(), &ec2.DescribeSnapshotsInput{SnapshotIds: []string{*reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId}})
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(*respSnapshots.Snapshots[0].Encrypted).To(BeTrue())
@@ -116,11 +117,11 @@ var _ = Describe("CopyAmiDriver", func() {
 				kmsKeyId:           destinationRegionKmsKeyId,
 				sharedWithAccounts: []string{awsAccount},
 			},
-				func(ec2Client *ec2.EC2, reqOutput *ec2.DescribeImagesOutput) {
+				func(ec2Client *ec2.Client, reqOutput *ec2.DescribeImagesOutput) {
 					attribute := "launchPermission"
-					output, err := ec2Client.DescribeImageAttribute(&ec2.DescribeImageAttributeInput{
+					output, err := ec2Client.DescribeImageAttribute(context.Background(), &ec2.DescribeImageAttributeInput{
 						ImageId:   reqOutput.Images[0].ImageId,
-						Attribute: &attribute,
+						Attribute: ec2types.ImageAttributeName(attribute),
 					})
 					Expect(err).ToNot(HaveOccurred())
 					Expect(*output.LaunchPermissions[0].UserId).To(Equal(awsAccount))
@@ -156,7 +157,7 @@ var _ = Describe("CopyAmiDriver", func() {
 	})
 })
 
-func copyAmi(amiCopyConfig AmiCopyConfig, cb ...func(*ec2.EC2, *ec2.DescribeImagesOutput)) {
+func copyAmi(amiCopyConfig AmiCopyConfig, cb ...func(*ec2.Client, *ec2.DescribeImagesOutput)) {
 	accessibility := resources.PublicAmiAccessibility
 	if amiCopyConfig.encrypted {
 		accessibility = resources.PrivateAmiAccessibility
@@ -191,18 +192,16 @@ func copyAmi(amiCopyConfig AmiCopyConfig, cb ...func(*ec2.EC2, *ec2.DescribeImag
 		RoleArn:   creds.RoleArn,
 		Region:    destinationRegion,
 	}
-	awsSession, err := session.NewSession(destinationCreds.GetAwsConfig())
-	Expect(err).ToNot(HaveOccurred())
-	ec2Client := ec2.New(awsSession)
-	reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(copiedAmi.ID)}})
+	ec2Client := ec2.NewFromConfig(destinationCreds.GetAwsConfig())
+	reqOutput, err := ec2Client.DescribeImages(context.Background(), &ec2.DescribeImagesInput{ImageIds: []string{copiedAmi.ID}})
 	Expect(err).ToNot(HaveOccurred())
 
 	Expect(len(reqOutput.Images)).To(Equal(1))
 
 	firstImage := reqOutput.Images[0]
 	Expect(*firstImage.Name).To(Equal(amiDriverConfig.Name))
-	Expect(*firstImage.Architecture).To(Equal(resources.AmiArchitecture))
-	Expect(*firstImage.VirtualizationType).To(Equal(amiDriverConfig.VirtualizationType))
+	Expect(string(firstImage.Architecture)).To(Equal(resources.AmiArchitecture))
+	Expect(string(firstImage.VirtualizationType)).To(Equal(amiDriverConfig.VirtualizationType))
 	if !amiCopyConfig.encrypted {
 		Expect(*firstImage.Public).To(BeTrue())
 	}
@@ -211,7 +210,7 @@ func copyAmi(amiCopyConfig AmiCopyConfig, cb ...func(*ec2.EC2, *ec2.DescribeImag
 		cb[0](ec2Client, reqOutput)
 	}
 
-	_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(copiedAmi.ID)}) // Ignore DeregisterImageOutput
+	_, err = ec2Client.DeregisterImage(context.Background(), &ec2.DeregisterImageInput{ImageId: aws.String(copiedAmi.ID)})
 	Expect(err).ToNot(HaveOccurred())
 }
 

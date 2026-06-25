@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,10 +12,9 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/manifest"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -118,12 +118,17 @@ cloud_properties:
 		}
 
 		for region, amiID := range amis {
-			var awsConfig *aws.Config
+			var ec2Client *ec2.Client
 			if region == "cn-north-1" {
-				cnCreds := credentials.NewStaticCredentials(cfg.AmiRegions[1].Credentials.AccessKey, cfg.AmiRegions[1].Credentials.SecretKey, "")
-				awsConfig = aws.NewConfig().
-					WithCredentials(cnCreds).
-					WithRegion(region)
+				cnCfg := aws.Config{
+					Region: region,
+					Credentials: credentials.NewStaticCredentialsProvider(
+						cfg.AmiRegions[1].Credentials.AccessKey,
+						cfg.AmiRegions[1].Credentials.SecretKey,
+						"",
+					),
+				}
+				ec2Client = ec2.NewFromConfig(cnCfg)
 			} else {
 				configCreds := config.Credentials{
 					AccessKey: cfg.AmiRegions[0].Credentials.AccessKey,
@@ -131,14 +136,10 @@ cloud_properties:
 					RoleArn:   cfg.AmiRegions[0].Credentials.RoleArn,
 					Region:    region,
 				}
-				awsConfig = configCreds.GetAwsConfig()
+				ec2Client = ec2.NewFromConfig(configCreds.GetAwsConfig())
 			}
 
-			awsSession, err := session.NewSession(awsConfig)
-			Expect(err).ToNot(HaveOccurred())
-			ec2Client := ec2.New(awsSession)
-
-			reqOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(amiID)}})
+			reqOutput, err := ec2Client.DescribeImages(context.Background(), &ec2.DescribeImagesInput{ImageIds: []string{amiID}})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(reqOutput.Images).To(HaveLen(1))
@@ -150,13 +151,13 @@ cloud_properties:
 			}
 			snapshotID := reqOutput.Images[0].BlockDeviceMappings[0].Ebs.SnapshotId
 			Expect(snapshotID).ToNot(BeNil())
-			Expect(aws.BoolValue(reqOutput.Images[0].EnaSupport)).To(BeTrue())
+			Expect(aws.ToBool(reqOutput.Images[0].EnaSupport)).To(BeTrue())
 
-			_, err = ec2Client.DeregisterImage(&ec2.DeregisterImageInput{ImageId: aws.String(amiID)})
+			_, err = ec2Client.DeregisterImage(context.Background(), &ec2.DeregisterImageInput{ImageId: aws.String(amiID)})
 			if err != nil {
 				GinkgoWriter.Printf("Encountered error deregistering image %s in %s: %s", amiID, region, err)
 			}
-			_, err = ec2Client.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: snapshotID})
+			_, err = ec2Client.DeleteSnapshot(context.Background(), &ec2.DeleteSnapshotInput{SnapshotId: snapshotID})
 			if err != nil {
 				GinkgoWriter.Printf("Encountered error deleting snapshot %s in %s: %s", *snapshotID, region, err)
 			}

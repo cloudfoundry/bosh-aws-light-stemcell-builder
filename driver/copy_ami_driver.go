@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -10,10 +11,9 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 // SDKCopyAmiDriver uses the AWS SDK to register an AMI from an existing snapshot in EC2
@@ -39,10 +39,11 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		RoleArn:   d.creds.RoleArn,
 		Region:    dstRegion,
 	}
-	awsConfig := destinationCreds.GetAwsConfig().
-		WithLogger(newDriverLogger(d.logger))
+	cfg := destinationCreds.GetAwsConfig()
+	cfg.Logger = newDriverLogger(d.logger)
 
-	ec2Client := ec2.New(session.Must(session.NewSession(awsConfig)))
+	ec2Client := ec2.NewFromConfig(cfg)
+	ctx := context.Background()
 
 	createStartTime := time.Now()
 	defer func(startTime time.Time) {
@@ -60,7 +61,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	if driverConfig.KmsKeyId != "" {
 		input.KmsKeyId = &driverConfig.KmsKey.ARN //nolint:staticcheck
 	}
-	output, err := ec2Client.CopyImage(input)
+	output, err := ec2Client.CopyImage(ctx, input)
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("copying AMI: %s", err)
 	}
@@ -71,53 +72,42 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	}
 
 	d.logger.Printf("waiting for AMI %s to be available in region %s\n", *amiIDptr, dstRegion)
-	err = d.waitUntilImageAvailable(&ec2.DescribeImagesInput{
-		ImageIds: []*string{amiIDptr},
-	}, ec2Client)
+	imageAvailableWaiter := ec2.NewImageAvailableWaiter(ec2Client, func(o *ec2.ImageAvailableWaiterOptions) {
+		o.MinDelay = 15 * time.Second
+		o.MaxDelay = 15 * time.Second
+	})
+	err = imageAvailableWaiter.Wait(ctx, &ec2.DescribeImagesInput{
+		ImageIds: []string{*amiIDptr},
+	}, 240*15*time.Second)
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("waiting for AMI %s to be available: %s", *amiIDptr, err)
 	}
 
-	name := aws.String(driverConfig.AmiProperties.Tags["distro"] + "-" + driverConfig.AmiProperties.Tags["version"]) //nolint:staticcheck
-	distro := aws.String(driverConfig.AmiProperties.Tags["distro"])                                                  //nolint:staticcheck
-	version := aws.String(driverConfig.AmiProperties.Tags["version"])                                                //nolint:staticcheck
+	name := aws.String(driverConfig.Tags["distro"] + "-" + driverConfig.Tags["version"])
+	distro := aws.String(driverConfig.Tags["distro"])
+	version := aws.String(driverConfig.Tags["version"])
 	tags := &ec2.CreateTagsInput{
-		Resources: []*string{
-			amiIDptr,
-		},
-		Tags: []*ec2.Tag{
-			{
-				Key:   aws.String("Name"),
-				Value: name,
-			},
-			{
-				Key:   aws.String("distro"),
-				Value: distro,
-			},
-			{
-				Key:   aws.String("version"),
-				Value: version,
-			},
-			{
-				Key:   aws.String("published"),
-				Value: aws.String("false"),
-			},
+		Resources: []string{*amiIDptr},
+		Tags: []ec2types.Tag{
+			{Key: aws.String("Name"), Value: name},
+			{Key: aws.String("distro"), Value: distro},
+			{Key: aws.String("version"), Value: version},
+			{Key: aws.String("published"), Value: aws.String("false")},
 		},
 	}
-	d.logger.Printf("tagging AMI: %s, with %s", *amiIDptr, tags)
-	_, err = ec2Client.CreateTags(tags)
+	d.logger.Printf("tagging AMI: %s, with %v", *amiIDptr, tags)
+	_, err = ec2Client.CreateTags(ctx, tags)
 	if err != nil {
 		d.logger.Printf("Error tagging AMI: %s, Error: %s ", *amiIDptr, err.Error())
 	}
 
 	for _, account := range driverConfig.SharedWithAccounts {
-		_, err := ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{
+		accountCopy := account
+		_, err := ec2Client.ModifyImageAttribute(ctx, &ec2.ModifyImageAttributeInput{
 			ImageId: amiIDptr,
-			LaunchPermission: &ec2.LaunchPermissionModifications{
-				Add: []*ec2.LaunchPermission{
-					{
-						UserId: &account,
-					},
+			LaunchPermission: &ec2types.LaunchPermissionModifications{
+				Add: []ec2types.LaunchPermission{
+					{UserId: &accountCopy},
 				},
 			},
 		})
@@ -128,13 +118,11 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 
 	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
 		d.logger.Printf("making AMI: %s public", *amiIDptr)
-		_, err = ec2Client.ModifyImageAttribute(&ec2.ModifyImageAttributeInput{
+		_, err = ec2Client.ModifyImageAttribute(ctx, &ec2.ModifyImageAttributeInput{
 			ImageId: amiIDptr,
-			LaunchPermission: &ec2.LaunchPermissionModifications{
-				Add: []*ec2.LaunchPermission{
-					{
-						Group: aws.String(publicGroup),
-					},
+			LaunchPermission: &ec2types.LaunchPermissionModifications{
+				Add: []ec2types.LaunchPermission{
+					{Group: ec2types.PermissionGroupAll},
 				},
 			},
 		})
@@ -147,11 +135,11 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	var snapshotErr error
 
 	for i := 0; i < 100; i++ {
-		describeImagesOutput, err := ec2Client.DescribeImages(&ec2.DescribeImagesInput{
-			Filters: []*ec2.Filter{
+		describeImagesOutput, err := ec2Client.DescribeImages(ctx, &ec2.DescribeImagesInput{
+			Filters: []ec2types.Filter{
 				{
 					Name:   aws.String("image-id"),
-					Values: []*string{aws.String(*amiIDptr)},
+					Values: []string{*amiIDptr},
 				},
 			},
 		})
@@ -188,45 +176,30 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	}
 
 	d.logger.Printf("snapshot %s for image %s found\n", *snapshotIDptr, *amiIDptr)
-	tags = &ec2.CreateTagsInput{
-		Resources: []*string{
-			snapshotIDptr,
-		},
-		Tags: []*ec2.Tag{
-			{
-				Key:   aws.String("Name"),
-				Value: amiIDptr,
-			},
-			{
-				Key:   aws.String("ami_id"),
-				Value: amiIDptr,
-			},
-			{
-				Key:   aws.String("distro"),
-				Value: distro,
-			},
-			{
-				Key:   aws.String("version"),
-				Value: version,
-			},
+	snapshotTags := &ec2.CreateTagsInput{
+		Resources: []string{*snapshotIDptr},
+		Tags: []ec2types.Tag{
+			{Key: aws.String("Name"), Value: amiIDptr},
+			{Key: aws.String("ami_id"), Value: amiIDptr},
+			{Key: aws.String("distro"), Value: distro},
+			{Key: aws.String("version"), Value: version},
 		},
 	}
-	d.logger.Printf("tagging Snapshot: %s, with %s", *snapshotIDptr, tags)
-	_, err = ec2Client.CreateTags(tags)
+	d.logger.Printf("tagging Snapshot: %s, with %v", *snapshotIDptr, snapshotTags)
+	_, err = ec2Client.CreateTags(ctx, snapshotTags)
 	if err != nil {
 		d.logger.Printf("Error tagging Snapshot: %s, Error: %s ", *snapshotIDptr, err.Error())
 	}
 
 	for _, account := range driverConfig.SharedWithAccounts {
+		accountCopy := account
 		modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
 			SnapshotId:    snapshotIDptr,
-			Attribute:     aws.String("createVolumePermission"),
-			OperationType: aws.String("add"),
-			UserIds: []*string{
-				aws.String(account),
-			},
+			Attribute:     ec2types.SnapshotAttributeNameCreateVolumePermission,
+			OperationType: ec2types.OperationTypeAdd,
+			UserIds:       []string{accountCopy},
 		}
-		_, err = ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+		_, err = ec2Client.ModifySnapshotAttribute(ctx, modifySnapshotAttributeInput)
 		if err != nil {
 			return resources.Ami{}, fmt.Errorf("sharing snapshot with id %s with account %s: %v", *snapshotIDptr, account, err)
 		}
@@ -238,11 +211,11 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 
 	modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
 		SnapshotId:    snapshotIDptr,
-		Attribute:     aws.String("createVolumePermission"),
-		OperationType: aws.String("add"),
-		GroupNames:    []*string{aws.String("all")},
+		Attribute:     ec2types.SnapshotAttributeNameCreateVolumePermission,
+		OperationType: ec2types.OperationTypeAdd,
+		GroupNames:    []string{"all"},
 	}
-	_, err = ec2Client.ModifySnapshotAttribute(modifySnapshotAttributeInput)
+	_, err = ec2Client.ModifySnapshotAttribute(ctx, modifySnapshotAttributeInput)
 	if err != nil {
 		return resources.Ami{}, fmt.Errorf("making snapshot with id %s public: %v", *snapshotIDptr, err)
 	}
@@ -250,13 +223,4 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	d.logger.Printf("snapshot %s is public\n", *snapshotIDptr)
 
 	return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
-}
-
-func (d *SDKCopyAmiDriver) waitUntilImageAvailable(input *ec2.DescribeImagesInput, c *ec2.EC2) error {
-	ctx := aws.BackgroundContext()
-	opts := []request.WaiterOption{
-		request.WithWaiterDelay(request.ConstantWaiterDelay(15 * time.Second)),
-		request.WithWaiterMaxAttempts(240),
-	}
-	return c.WaitUntilImageAvailableWithContext(ctx, input, opts...)
 }

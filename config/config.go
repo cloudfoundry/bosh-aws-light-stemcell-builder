@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -219,46 +218,49 @@ func (r *AmiRegion) validate() error {
 	return nil
 }
 
-func (configCredentials *Credentials) GetAwsConfig() *aws.Config {
-	var creds *credentials.Credentials
+// GetAwsConfig builds an aws.Config from the Credentials.
+func (configCredentials *Credentials) GetAwsConfig() aws.Config {
+	var credProvider aws.CredentialsProvider
 
 	if configCredentials.AccessKey != "" && configCredentials.SecretKey != "" {
-		creds = credentials.NewStaticCredentialsFromCreds(credentials.Value{
-			AccessKeyID:     configCredentials.AccessKey,
-			SecretAccessKey: configCredentials.SecretKey,
-			SessionToken:    configCredentials.SessionToken,
-		})
+		credProvider = credentials.NewStaticCredentialsProvider(
+			configCredentials.AccessKey,
+			configCredentials.SecretKey,
+			configCredentials.SessionToken,
+		)
 	} else {
-		creds = credentials.NewCredentials(&ec2rolecreds.EC2RoleProvider{
-			Client: ec2metadata.New(session.Must(session.NewSession())),
-		})
+		imdsClient := imds.New(imds.Options{})
+		credProvider = aws.NewCredentialsCache(ec2rolecreds.New(func(o *ec2rolecreds.Options) {
+			o.Client = imdsClient
+		}))
 	}
 
-	awsCfg := aws.NewConfig().WithRegion(configCredentials.Region).WithCredentials(creds)
+	cfg := aws.Config{
+		Region:      configCredentials.Region,
+		Credentials: credProvider,
+	}
 
 	if configCredentials.RoleArn != "" {
-		awsCfg.Credentials = stscreds.NewCredentials(
-			session.Must(session.NewSession(awsCfg)),
-			configCredentials.RoleArn,
-		)
+		stsClient := sts.NewFromConfig(cfg)
+		roleProvider := stscreds.NewAssumeRoleProvider(stsClient, configCredentials.RoleArn)
+		cfg.Credentials = aws.NewCredentialsCache(roleProvider)
 	}
 
 	if configCredentials.EndpointBase != "" {
 		endpointBase := configCredentials.EndpointBase
 		region := configCredentials.Region
-		defaultResolver := endpoints.DefaultResolver()
-		awsCfg = awsCfg.WithEndpointResolver(endpoints.ResolverFunc(
-			func(service, reg string, opts ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-				if reg != region {
-					return defaultResolver.EndpointFor(service, reg, opts...)
+		cfg.EndpointResolverWithOptions = aws.EndpointResolverWithOptionsFunc( //nolint:staticcheck
+			func(service, reg string, options ...interface{}) (aws.Endpoint, error) { //nolint:staticcheck
+				if reg == region {
+					return aws.Endpoint{ //nolint:staticcheck
+						URL:           fmt.Sprintf("https://%s.%s.%s", service, reg, endpointBase),
+						SigningRegion: reg,
+					}, nil
 				}
-				return endpoints.ResolvedEndpoint{
-					URL:           fmt.Sprintf("https://%s.%s.%s", service, reg, endpointBase),
-					SigningRegion: reg,
-				}, nil
+				return aws.Endpoint{}, &aws.EndpointNotFoundError{} //nolint:staticcheck
 			},
-		))
+		)
 	}
 
-	return awsCfg
+	return cfg
 }

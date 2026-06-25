@@ -1,6 +1,8 @@
 package driver
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,9 +12,8 @@ import (
 	"light-stemcell-builder/config"
 	"light-stemcell-builder/resources"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
+	kmstypes "github.com/aws/aws-sdk-go-v2/service/kms/types"
 )
 
 type SDKKmsDriver struct {
@@ -36,28 +37,25 @@ func (d *SDKKmsDriver) CreateAlias(driverConfig resources.KmsCreateAliasDriverCo
 		d.logger.Printf("Completed CreateKeyAlias() in %f minutes\n", time.Since(startTime).Minutes())
 	}(createStartTime)
 
+	ctx := context.Background()
 	kmsClient := d.createKmsClient(driverConfig.Region)
 
 	d.logger.Printf("Creating alias: %s\n", driverConfig.KmsKeyAliasName)
-	_, err := kmsClient.CreateAlias(&kms.CreateAliasInput{
+	_, err := kmsClient.CreateAlias(ctx, &kms.CreateAliasInput{
 		AliasName:   &driverConfig.KmsKeyAliasName,
 		TargetKeyId: &driverConfig.KmsKeyId,
 	})
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case kms.ErrCodeAlreadyExistsException:
-				d.logger.Printf("Alias %s already exists\n", driverConfig.KmsKeyAliasName)
-			default:
-				return resources.KmsAlias{}, fmt.Errorf("failed to create alias: %s", err)
-			}
+		var alreadyExistsErr *kmstypes.AlreadyExistsException
+		if errors.As(err, &alreadyExistsErr) {
+			d.logger.Printf("Alias %s already exists\n", driverConfig.KmsKeyAliasName)
 		} else {
 			return resources.KmsAlias{}, fmt.Errorf("failed to create alias: %s", err)
 		}
 	}
 
 	d.logger.Printf("Checking existence of alias: %s\n", driverConfig.KmsKeyAliasName)
-	listAliasResult, err := kmsClient.ListAliases(&kms.ListAliasesInput{
+	listAliasResult, err := kmsClient.ListAliases(ctx, &kms.ListAliasesInput{
 		KeyId: &driverConfig.KmsKeyId,
 	})
 	if err != nil {
@@ -87,28 +85,29 @@ func (d *SDKKmsDriver) ReplicateKey(driverConfig resources.KmsReplicateKeyDriver
 		d.logger.Printf("Completed ReplicateKey() in %f minutes\n", time.Since(startTime).Minutes())
 	}(createStartTime)
 
+	ctx := context.Background()
+
 	d.logger.Printf("Replicating kms key: %s from region %s to region %s\n",
 		driverConfig.KmsKeyId,
 		driverConfig.SourceRegion,
 		driverConfig.TargetRegion)
-	_, err := d.createKmsClient(driverConfig.SourceRegion).ReplicateKey(&kms.ReplicateKeyInput{
+	_, err := d.createKmsClient(driverConfig.SourceRegion).ReplicateKey(ctx, &kms.ReplicateKeyInput{
 		KeyId:         &driverConfig.KmsKeyId,
 		ReplicaRegion: &driverConfig.TargetRegion,
 	})
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case kms.ErrCodeAlreadyExistsException:
-				d.logger.Printf("Kms key %s already replicated\n", driverConfig.KmsKeyId)
-			default:
-				return resources.KmsKey{}, fmt.Errorf("failed to replicate key: %s", err)
-			}
+		var alreadyExistsErr *kmstypes.AlreadyExistsException
+		if errors.As(err, &alreadyExistsErr) {
+			d.logger.Printf("Kms key %s already replicated\n", driverConfig.KmsKeyId)
 		} else {
 			return resources.KmsKey{}, fmt.Errorf("failed to replicate key: %s", err)
 		}
 	}
 
-	listKeyResult, err := d.createKmsClient(driverConfig.TargetRegion).ListKeys(&kms.ListKeysInput{})
+	listKeyResult, err := d.createKmsClient(driverConfig.TargetRegion).ListKeys(ctx, &kms.ListKeysInput{})
+	if err != nil {
+		return resources.KmsKey{}, fmt.Errorf("listing keys: %s", err)
+	}
 	for i := range listKeyResult.Keys {
 		if strings.HasSuffix(driverConfig.KmsKeyId, *listKeyResult.Keys[i].KeyId) {
 			return resources.KmsKey{
@@ -120,7 +119,7 @@ func (d *SDKKmsDriver) ReplicateKey(driverConfig resources.KmsReplicateKeyDriver
 	return resources.KmsKey{}, fmt.Errorf("could not replicated kms key: %s", err)
 }
 
-func (d *SDKKmsDriver) createKmsClient(region string) *kms.KMS {
+func (d *SDKKmsDriver) createKmsClient(region string) *kms.Client {
 	creds := config.Credentials{
 		AccessKey: d.creds.AccessKey,
 		SecretKey: d.creds.SecretKey,
@@ -128,8 +127,8 @@ func (d *SDKKmsDriver) createKmsClient(region string) *kms.KMS {
 		Region:    region,
 	}
 
-	awsConfig := creds.GetAwsConfig().
-		WithLogger(newDriverLogger(d.logger))
+	cfg := creds.GetAwsConfig()
+	cfg.Logger = newDriverLogger(d.logger)
 
-	return kms.New(session.Must(session.NewSession(awsConfig)))
+	return kms.NewFromConfig(cfg)
 }

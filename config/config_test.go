@@ -2,10 +2,13 @@ package config_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 
 	"light-stemcell-builder/config"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -187,14 +190,14 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(*awsCfg.Region).To(Equal(region))
+				Expect(awsCfg.Region).To(Equal(region))
 
-				v, err := awsCfg.Credentials.Get()
+				v, err := awsCfg.Credentials.Retrieve(context.Background())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(v.AccessKeyID).To(Equal(keyID))
 				Expect(v.SecretAccessKey).To(Equal(keyValue))
 				Expect(v.SessionToken).To(BeEmpty())
-				Expect(v.ProviderName).To(Equal("StaticProvider"))
+				Expect(v.Source).To(Equal("StaticCredentials"))
 			})
 		})
 
@@ -209,12 +212,12 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				v, err := awsCfg.Credentials.Get()
+				v, err := awsCfg.Credentials.Retrieve(context.Background())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(v.AccessKeyID).To(Equal(keyID))
 				Expect(v.SecretAccessKey).To(Equal(keyValue))
 				Expect(v.SessionToken).To(Equal(token))
-				Expect(v.ProviderName).To(Equal("StaticProvider"))
+				Expect(v.Source).To(Equal("StaticCredentials"))
 			})
 		})
 
@@ -226,13 +229,12 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(*awsCfg.Region).To(Equal(region))
+				Expect(awsCfg.Region).To(Equal(region))
 				Expect(awsCfg.Credentials).NotTo(BeNil())
-				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
 
-				v, err := awsCfg.Credentials.Get()
+				v, err := awsCfg.Credentials.Retrieve(context.Background())
 				if err == nil {
-					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+					Expect(v.Source).NotTo(Equal("StaticCredentials"))
 				}
 			})
 		})
@@ -247,11 +249,10 @@ var _ = Describe("Config", func() {
 				awsCfg := creds.GetAwsConfig()
 
 				Expect(awsCfg.Credentials).NotTo(BeNil())
-				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
 
-				v, err := awsCfg.Credentials.Get()
+				v, err := awsCfg.Credentials.Retrieve(context.Background())
 				if err == nil {
-					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+					Expect(v.Source).NotTo(Equal("StaticCredentials"))
 				}
 			})
 		})
@@ -266,11 +267,10 @@ var _ = Describe("Config", func() {
 				awsCfg := creds.GetAwsConfig()
 
 				Expect(awsCfg.Credentials).NotTo(BeNil())
-				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
 
-				v, err := awsCfg.Credentials.Get()
+				v, err := awsCfg.Credentials.Retrieve(context.Background())
 				if err == nil {
-					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+					Expect(v.Source).NotTo(Equal("StaticCredentials"))
 				}
 			})
 		})
@@ -286,13 +286,13 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(*awsCfg.Region).To(Equal(region))
-				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
+				Expect(awsCfg.Region).To(Equal(region))
 
-				// STS wraps the static creds, so provider is no longer StaticProvider
-				v, err := awsCfg.Credentials.Get()
+				// STS wraps the static creds; retrieval requires a real STS call which will fail here,
+				// but we verify the credentials are not raw static credentials.
+				v, err := awsCfg.Credentials.Retrieve(context.Background())
 				if err == nil {
-					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+					Expect(v.Source).NotTo(Equal("StaticCredentials"))
 				}
 			})
 		})
@@ -306,12 +306,11 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(*awsCfg.Region).To(Equal(region))
-				Expect(awsCfg.Credentials.IsExpired()).To(BeTrue())
+				Expect(awsCfg.Region).To(Equal(region))
 
-				v, err := awsCfg.Credentials.Get()
+				v, err := awsCfg.Credentials.Retrieve(context.Background())
 				if err == nil {
-					Expect(v.ProviderName).NotTo(Equal("StaticProvider"))
+					Expect(v.Source).NotTo(Equal("StaticCredentials"))
 				}
 			})
 		})
@@ -324,7 +323,7 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(*awsCfg.Region).To(Equal("eu-west-1"))
+				Expect(awsCfg.Region).To(Equal("eu-west-1"))
 			})
 		})
 
@@ -338,12 +337,12 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(awsCfg.EndpointResolver).To(BeNil())
+				Expect(awsCfg.EndpointResolverWithOptions).To(BeNil()) //nolint:staticcheck
 			})
 		})
 
 		Context("when endpoint_base is set", func() {
-			It("resolves unknown regions using the custom endpoint base", func() {
+			It("resolves the configured region using the custom endpoint base", func() {
 				creds := config.Credentials{
 					AccessKey:    keyID,
 					SecretKey:    keyValue,
@@ -353,14 +352,14 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(awsCfg.EndpointResolver).NotTo(BeNil())
-				ep, err := awsCfg.EndpointResolver.EndpointFor("ec2", "eusc-de-east-1")
+				Expect(awsCfg.EndpointResolverWithOptions).NotTo(BeNil())                              //nolint:staticcheck
+				ep, err := awsCfg.EndpointResolverWithOptions.ResolveEndpoint("ec2", "eusc-de-east-1") //nolint:staticcheck
 				Expect(err).NotTo(HaveOccurred())
 				Expect(ep.URL).To(Equal("https://ec2.eusc-de-east-1.amazonaws.eu"))
 				Expect(ep.SigningRegion).To(Equal("eusc-de-east-1"))
 			})
 
-			It("falls back to the default resolver for other regions", func() {
+			It("returns EndpointNotFoundError for other regions, letting the SDK use defaults", func() {
 				creds := config.Credentials{
 					AccessKey:    keyID,
 					SecretKey:    keyValue,
@@ -370,10 +369,11 @@ var _ = Describe("Config", func() {
 
 				awsCfg := creds.GetAwsConfig()
 
-				Expect(awsCfg.EndpointResolver).NotTo(BeNil())
-				ep, err := awsCfg.EndpointResolver.EndpointFor("ec2", "us-east-1")
-				Expect(err).NotTo(HaveOccurred())
-				Expect(ep.URL).To(ContainSubstring("amazonaws.com"))
+				Expect(awsCfg.EndpointResolverWithOptions).NotTo(BeNil())                        //nolint:staticcheck
+				_, err := awsCfg.EndpointResolverWithOptions.ResolveEndpoint("ec2", "us-east-1") //nolint:staticcheck
+				Expect(err).To(HaveOccurred())
+				var epNotFoundErr *aws.EndpointNotFoundError
+				Expect(errors.As(err, &epNotFoundErr)).To(BeTrue())
 			})
 
 			It("uses the custom endpoint for whatever region is set — destination credentials must not inherit endpoint_base", func() {
@@ -386,7 +386,7 @@ var _ = Describe("Config", func() {
 
 				awsCfg := destinationCreds.GetAwsConfig()
 
-				ep, err := awsCfg.EndpointResolver.EndpointFor("ec2", "us-east-1")
+				ep, err := awsCfg.EndpointResolverWithOptions.ResolveEndpoint("ec2", "us-east-1") //nolint:staticcheck
 				Expect(err).NotTo(HaveOccurred())
 				Expect(ep.URL).To(Equal("https://ec2.us-east-1.amazonaws.eu"))
 			})
