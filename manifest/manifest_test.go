@@ -72,6 +72,27 @@ cloud_properties:
 			Expect(resultManifest.CloudProperties.Infrastructure).To(Equal("aws"))
 		})
 
+		It("preserves top-level keys it does not model", func() {
+			manifestBytes = append(manifestBytes, []byte(`
+agent_features:
+- http-password-hmac-sha256
+some_future_key:
+  nested: value`)...)
+			m, err := manifest.NewFromReader(bytes.NewReader(manifestBytes))
+			Expect(err).ToNot(HaveOccurred())
+			m.PublishedAmis = []resources.Ami{{Region: "fake-region", ID: "fake-ami-id", VirtualizationType: resources.HvmAmiVirtualization}}
+
+			writer := &bytes.Buffer{}
+			Expect(m.Write(writer)).To(Succeed())
+
+			result := map[string]interface{}{}
+			Expect(yaml.Unmarshal(writer.Bytes(), &result)).To(Succeed())
+			Expect(result["agent_features"]).To(Equal([]interface{}{"http-password-hmac-sha256"}))
+			Expect(result["some_future_key"]).To(Equal(map[interface{}]interface{}{"nested": "value"}))
+			Expect(result["stemcell_formats"]).To(Equal([]interface{}{"aws-light"}))
+			Expect(m.Extra).To(SatisfyAll(HaveLen(2), HaveKey("agent_features"), HaveKey("some_future_key")))
+		})
+
 		Context("when the name of the stemcell already has 'hvm' in it", func() {
 			BeforeEach(func() {
 				manifestBytes = []byte(`
