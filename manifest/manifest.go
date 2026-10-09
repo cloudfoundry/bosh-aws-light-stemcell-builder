@@ -11,8 +11,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Manifest represents the stemcell manifest. We don't care about anything
-// other than cloud_properties and the name
+// Manifest represents the stemcell manifest. Only the fields this builder
+// reads or rewrites are modeled; other top-level keys pass through Extra.
 type Manifest struct {
 	Name            string          `yaml:"name"`
 	Version         string          `yaml:"version"`
@@ -23,6 +23,10 @@ type Manifest struct {
 	StemcellFormats []string        `yaml:"stemcell_formats"`
 	CloudProperties CloudProperties `yaml:"cloud_properties"`
 	PublishedAmis   []resources.Ami `yaml:"-"`
+
+	// Extra preserves top-level keys this builder does not model, such as
+	// agent_features, so they survive the rewrite.
+	Extra map[string]interface{} `yaml:",inline"`
 }
 
 // RegionToAmiMapping is a simple map of AWS region to AMI ID in that region
