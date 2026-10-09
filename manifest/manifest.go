@@ -14,19 +14,16 @@ import (
 // Manifest represents the stemcell manifest. Only the fields this builder
 // reads or rewrites are modeled; other top-level keys pass through Extra.
 type Manifest struct {
-	Name            string          `yaml:"name"`
-	Version         string          `yaml:"version"`
-	ApiVersion      int             `yaml:"api_version,omitempty"`
-	BoshProtocol    string          `yaml:"bosh_protocol"`
-	Sha1            string          `yaml:"sha1"`
-	OperatingSystem string          `yaml:"operating_system"`
-	StemcellFormats []string        `yaml:"stemcell_formats"`
-	CloudProperties CloudProperties `yaml:"cloud_properties"`
-	PublishedAmis   []resources.Ami `yaml:"-"`
-
-	// Extra preserves top-level keys this builder does not model, such as
-	// agent_features, so they survive the rewrite.
-	Extra map[string]interface{} `yaml:",inline"`
+	Name            string                 `yaml:"name"`
+	Version         string                 `yaml:"version"`
+	ApiVersion      int                    `yaml:"api_version,omitempty"`
+	BoshProtocol    string                 `yaml:"bosh_protocol"`
+	Sha1            string                 `yaml:"sha1"`
+	OperatingSystem string                 `yaml:"operating_system"`
+	StemcellFormats []string               `yaml:"stemcell_formats"`
+	CloudProperties CloudProperties        `yaml:"cloud_properties"`
+	PublishedAmis   []resources.Ami        `yaml:"-"`
+	Extra           map[string]interface{} `yaml:",inline"`
 }
 
 // RegionToAmiMapping is a simple map of AWS region to AMI ID in that region
