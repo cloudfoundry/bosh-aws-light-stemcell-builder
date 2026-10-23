@@ -18,8 +18,9 @@ import (
 
 // SDKCopyAmiDriver uses the AWS SDK to register an AMI from an existing snapshot in EC2
 type SDKCopyAmiDriver struct {
-	creds  config.Credentials
-	logger *log.Logger
+	creds     config.Credentials
+	logger    *log.Logger
+	ec2Client *ec2.Client
 }
 
 // NewCopyAmiDriver creates a SDKCopyAmiDriver for copying AMIs in EC2
@@ -42,7 +43,10 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 	cfg := destinationCreds.GetAwsConfig()
 	cfg.Logger = newDriverLogger(d.logger)
 
-	ec2Client := ec2.NewFromConfig(cfg)
+	ec2Client := d.ec2Client
+	if ec2Client == nil {
+		ec2Client = ec2.NewFromConfig(cfg)
+	}
 	ctx := context.Background()
 
 	createStartTime := time.Now()
@@ -205,7 +209,7 @@ func (d *SDKCopyAmiDriver) Create(driverConfig resources.AmiDriverConfig) (resou
 		}
 	}
 
-	if driverConfig.Encrypted {
+	if driverConfig.Encrypted || driverConfig.Accessibility != resources.PublicAmiAccessibility {
 		return resources.Ami{ID: *amiIDptr, Region: dstRegion}, nil
 	}
 

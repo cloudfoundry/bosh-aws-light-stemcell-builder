@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("SnapshotFromVolumeDriver", func() {
 	It("creates a public snapshot from an existing EBS volume", func() {
-		driverConfig := resources.SnapshotDriverConfig{VolumeID: ebsVolumeID}
+		driverConfig := resources.SnapshotDriverConfig{VolumeID: ebsVolumeID, AmiProperties: resources.AmiProperties{Accessibility: resources.PublicAmiAccessibility}}
 
 		ds := driverset.NewIsolatedRegionDriverSet(GinkgoWriter, creds)
 		driver := ds.CreateSnapshotDriver()

@@ -30,12 +30,14 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		Description:        "fake ami description",
 		AmiName:            "fake ami name",
 		VirtualizationType: "fake virtualization type",
+		SharedWithAccounts: []string{"123456789012"},
 	}
 	var fakeAmiProperties = resources.AmiProperties{
 		Name:               fakeAmiConfig.AmiName,
 		Description:        fakeAmiConfig.Description,
 		Accessibility:      fakeAmiConfig.Visibility,
 		VirtualizationType: fakeAmiConfig.VirtualizationType,
+		SharedWithAccounts: fakeAmiConfig.SharedWithAccounts,
 	}
 
 	It("uses the provided driver set to orchestrate the creation of an AMI", func() {
@@ -110,7 +112,8 @@ var _ = Describe("IsolatedRegionPublisher", func() {
 		Expect(fakeDs.CreateSnapshotDriverCallCount()).To(Equal(1), "Expected Driverset.CreateSnapshotDriver to be called once")
 		Expect(fakeSnapshotDriver.CreateCallCount()).To(Equal(1), "Expected CreateSnapshotDriver.Create to be called once")
 		Expect(fakeSnapshotDriver.CreateArgsForCall(0)).To(Equal(resources.SnapshotDriverConfig{
-			VolumeID: fakeVolumeID,
+			VolumeID:      fakeVolumeID,
+			AmiProperties: fakeAmiProperties,
 		}))
 
 		Expect(fakeDs.CreateAmiDriverCallCount()).To(Equal(1), "Expected Driverset.CreateAmiDriver to be called once")

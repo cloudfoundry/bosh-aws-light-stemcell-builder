@@ -51,15 +51,28 @@ func (d *SDKSnapshotFromVolumeDriver) Create(driverConfig resources.SnapshotDriv
 		return resources.Snapshot{}, fmt.Errorf("creating snapshot from EBS volume: %s: %s", driverConfig.VolumeID, err)
 	}
 
-	modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
-		SnapshotId:    reqOutput.SnapshotId,
-		Attribute:     ec2types.SnapshotAttributeNameCreateVolumePermission,
-		OperationType: ec2types.OperationTypeAdd,
-		GroupNames:    []string{"all"},
+	if driverConfig.Accessibility == resources.PublicAmiAccessibility {
+		modifySnapshotAttributeInput := &ec2.ModifySnapshotAttributeInput{
+			SnapshotId:    reqOutput.SnapshotId,
+			Attribute:     ec2types.SnapshotAttributeNameCreateVolumePermission,
+			OperationType: ec2types.OperationTypeAdd,
+			GroupNames:    []string{"all"},
+		}
+		_, err = d.ec2Client.ModifySnapshotAttribute(ctx, modifySnapshotAttributeInput)
+		if err != nil {
+			return resources.Snapshot{}, fmt.Errorf("making snapshot with id %s public: %s", *reqOutput.SnapshotId, err)
+		}
 	}
-	_, err = d.ec2Client.ModifySnapshotAttribute(ctx, modifySnapshotAttributeInput)
-	if err != nil {
-		return resources.Snapshot{}, fmt.Errorf("making snapshot with id %s public: %s", *reqOutput.SnapshotId, err)
+	if len(driverConfig.SharedWithAccounts) > 0 {
+		_, err = d.ec2Client.ModifySnapshotAttribute(ctx, &ec2.ModifySnapshotAttributeInput{
+			SnapshotId:    reqOutput.SnapshotId,
+			Attribute:     ec2types.SnapshotAttributeNameCreateVolumePermission,
+			OperationType: ec2types.OperationTypeAdd,
+			UserIds:       driverConfig.SharedWithAccounts,
+		})
+		if err != nil {
+			return resources.Snapshot{}, fmt.Errorf("sharing snapshot with configured accounts: %s", err)
+		}
 	}
 
 	d.logger.Printf("waiting on snapshot %s to be completed\n", *reqOutput.SnapshotId)

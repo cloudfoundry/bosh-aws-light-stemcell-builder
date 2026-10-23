@@ -31,6 +31,9 @@ func NewIsolatedRegionPublisher(logDest io.Writer, c Config) *IsolatedRegionPubl
 			VirtualizationType: c.VirtualizationType,
 			Efi:                c.Efi,
 			Tags:               c.Tags,
+			Encrypted:          c.Encrypted,
+			KmsKeyId:           c.KmsKeyId,
+			SharedWithAccounts: c.SharedWithAccounts,
 		},
 		logger: log.New(logDest, "IsolatedRegionPublisher ", log.LstdFlags),
 	}
@@ -41,6 +44,10 @@ func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, 
 	defer func(startTime time.Time) {
 		p.logger.Printf("completed Publish() in %f minutes\n", time.Since(startTime).Minutes())
 	}(createStartTime)
+
+	if p.AmiProperties.Encrypted || p.AmiProperties.KmsKeyId != "" {
+		return nil, fmt.Errorf("encrypted AMIs are not supported by the isolated-region volume import path")
+	}
 
 	machineImageDriverConfig := resources.MachineImageDriverConfig{
 		MachineImagePath:     machineImageConfig.LocalPath,
@@ -81,7 +88,8 @@ func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, 
 	}()
 
 	snapshotDriverConfig := resources.SnapshotDriverConfig{
-		VolumeID: volume.ID,
+		VolumeID:      volume.ID,
+		AmiProperties: p.AmiProperties,
 	}
 
 	snapshotDriver := ds.CreateSnapshotDriver()
