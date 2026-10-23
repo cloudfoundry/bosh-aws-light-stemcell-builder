@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
+# Task parameters may contain credentials.
+set +x
 
 REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 REPO_PARENT="$( cd "${REPO_ROOT}/.." && pwd )"
 
-if [[ -n "${DEBUG:-}" ]]; then
-  set -x
-fi
 
 : "${ami_older_than_days:?}"
 : "${ami_keep_latest:?}"
