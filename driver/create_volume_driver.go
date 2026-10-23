@@ -62,7 +62,7 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 	availabilityZone := availabilityZoneOutput.AvailabilityZones[0].ZoneName
 	fetchManifestResp, err := http.Get(driverConfig.MachineImageManifestURL)
 	if err != nil {
-		return resources.Volume{}, fmt.Errorf("fetching import volume manifest: %s", err)
+		return resources.Volume{}, fmt.Errorf("fetching import volume manifest: %s", requestError(err))
 	}
 
 	defer fetchManifestResp.Body.Close() //nolint:errcheck
@@ -71,17 +71,16 @@ func (d *SDKCreateVolumeDriver) Create(driverConfig resources.VolumeDriverConfig
 		return resources.Volume{}, fmt.Errorf("reading import volume manifest from response: %s", err)
 	}
 	if fetchManifestResp.StatusCode < 200 || fetchManifestResp.StatusCode >= 300 {
-		return resources.Volume{}, fmt.Errorf("Received invalid response code '%d' fetching resource '%s': %s", //nolint:staticcheck
+		return resources.Volume{}, fmt.Errorf("received response code %d fetching resource %s",
 			fetchManifestResp.StatusCode,
-			driverConfig.MachineImageManifestURL,
-			manifestBytes)
+			urlForLog(driverConfig.MachineImageManifestURL))
 	}
 
 	m := manifests.ImportVolumeManifest{}
 
 	err = xml.Unmarshal(manifestBytes, &m)
 	if err != nil {
-		return resources.Volume{}, fmt.Errorf("deserializing import volume manifest. Bytes:\n%s\nError: %s", manifestBytes, err)
+		return resources.Volume{}, fmt.Errorf("deserializing import volume manifest: %s", err)
 	}
 
 	reqOutput, err := d.ec2Client.ImportVolume(ctx, &ec2.ImportVolumeInput{

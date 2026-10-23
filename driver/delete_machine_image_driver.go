@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"light-stemcell-builder/config"
@@ -33,7 +32,7 @@ func (d *SDKDeleteMachineImageDriver) Delete(machineImage resources.MachineImage
 		d.logger.Printf("completed Delete() in %f minutes\n", time.Since(deleteStartTime).Minutes())
 	}(deleteStartTime)
 
-	d.logger.Printf("starting delete for the following resources: %s\n", strings.Join(machineImage.DeleteURLs, ", "))
+	d.logger.Printf("starting delete for %d resources\n", len(machineImage.DeleteURLs))
 
 	client := http.Client{
 		Timeout: time.Duration(30 * time.Second),
@@ -42,17 +41,16 @@ func (d *SDKDeleteMachineImageDriver) Delete(machineImage resources.MachineImage
 	for _, deleteURL := range machineImage.DeleteURLs {
 		deleteReq, err := http.NewRequest(http.MethodDelete, deleteURL, nil)
 		if err != nil {
-			return fmt.Errorf("Failed to create DELETE request for '%s': %s", deleteURL, err) //nolint:staticcheck
+			return fmt.Errorf("invalid DELETE request for %s", urlForLog(deleteURL)) //nolint:staticcheck
 		}
 
 		resp, err := client.Do(deleteReq)
 		if err != nil {
-			return fmt.Errorf("Failed to delete resource '%s': %s", deleteURL, err) //nolint:staticcheck
+			return fmt.Errorf("failed to delete resource %s: %s", urlForLog(deleteURL), requestError(err)) //nolint:staticcheck
 		}
+		resp.Body.Close() //nolint:errcheck
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			defer resp.Body.Close()                                                                                                   //nolint:errcheck
-			respBody, _ := io.ReadAll(resp.Body)                                                                                      //nolint:errcheck
-			return fmt.Errorf("Received invalid response code '%d' deleting resource '%s': %s", resp.StatusCode, deleteURL, respBody) //nolint:staticcheck
+			return fmt.Errorf("received response code %d deleting resource %s", resp.StatusCode, urlForLog(deleteURL))
 		}
 	}
 

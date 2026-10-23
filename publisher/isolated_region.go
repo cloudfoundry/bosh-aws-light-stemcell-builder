@@ -66,7 +66,7 @@ func (p *IsolatedRegionPublisher) Publish(ds driverset.IsolatedRegionDriverSet, 
 	defer func() {
 		err := machineImageDriver.Delete(machineImage)
 		if err != nil {
-			p.logger.Printf("Failed to delete machine image %s: %s", machineImage.GetURL, err)
+			p.logger.Printf("Failed to delete machine image: %s", err)
 		}
 	}()
 

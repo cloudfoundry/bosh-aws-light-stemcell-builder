@@ -42,7 +42,7 @@ func (d *SDKSnapshotFromImageDriver) Create(driverConfig resources.SnapshotDrive
 
 	ctx := context.Background()
 
-	d.logger.Printf("initiating ImportSnapshot task from image: %s\n", driverConfig.MachineImageURL)
+	d.logger.Printf("initiating ImportSnapshot task from image: %s\n", urlForLog(driverConfig.MachineImageURL))
 
 	input := &ec2.ImportSnapshotInput{
 		DiskContainer: &ec2types.SnapshotDiskContainer{

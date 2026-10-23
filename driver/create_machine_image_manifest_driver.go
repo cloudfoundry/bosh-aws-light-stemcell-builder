@@ -133,7 +133,7 @@ func (d *SDKCreateMachineImageManifestDriver) generateManifest(ctx context.Conte
 	}
 	presignedGetURL := getReq.URL
 
-	d.logger.Printf("generated presigned GET URL %s\n", presignedGetURL)
+	d.logger.Printf("generated presigned GET URL %s\n", urlForLog(presignedGetURL))
 
 	headReq, err := d.presignClient.PresignHeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(bucketName),
@@ -144,7 +144,7 @@ func (d *SDKCreateMachineImageManifestDriver) generateManifest(ctx context.Conte
 	}
 	presignedHeadURL := headReq.URL
 
-	d.logger.Printf("generated presigned HEAD URL %s\n", presignedHeadURL)
+	d.logger.Printf("generated presigned HEAD URL %s\n", urlForLog(presignedHeadURL))
 
 	deleteReq, err := d.presignClient.PresignDeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(bucketName),
@@ -155,7 +155,7 @@ func (d *SDKCreateMachineImageManifestDriver) generateManifest(ctx context.Conte
 	}
 	presignedDeleteURL := deleteReq.URL
 
-	d.logger.Printf("generated presigned DELETE URL %s\n", presignedDeleteURL)
+	d.logger.Printf("generated presigned DELETE URL %s\n", urlForLog(presignedDeleteURL))
 
 	imageProps := manifests.MachineImageProperties{
 		KeyName:      keyName,
@@ -182,7 +182,7 @@ func (d *SDKCreateMachineImageManifestDriver) uploadManifest(ctx context.Context
 	}
 	manifestGetURL := getReq.URL
 
-	d.logger.Printf("generated presigned manifest GET URL %s\n", manifestGetURL)
+	d.logger.Printf("generated presigned manifest GET URL %s\n", urlForLog(manifestGetURL))
 
 	deleteReq, err := d.presignClient.PresignDeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(bucketName),
@@ -193,7 +193,7 @@ func (d *SDKCreateMachineImageManifestDriver) uploadManifest(ctx context.Context
 	}
 	manifestDeleteURL := deleteReq.URL
 
-	d.logger.Printf("generated presigned manifest DELETE URL %s\n", manifestDeleteURL)
+	d.logger.Printf("generated presigned manifest DELETE URL %s\n", urlForLog(manifestDeleteURL))
 
 	m.SelfDestructURL = manifestDeleteURL
 
