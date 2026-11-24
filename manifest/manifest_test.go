@@ -72,8 +72,14 @@ cloud_properties:
 			Expect(resultManifest.CloudProperties.Infrastructure).To(Equal("aws"))
 		})
 
-		It("preserves top-level keys it does not model", func() {
+		It("preserves unmodeled manifest fields while replacing the AMI map", func() {
 			manifestBytes = append(manifestBytes, []byte(`
+  ami:
+    old-region: old-ami-id
+  example_list: [one, two]
+  example_empty: []
+  example_map:
+    enabled: false
 agent_features:
 - http-password-hmac-sha256
 some_future_key:
@@ -90,6 +96,12 @@ some_future_key:
 			Expect(result["agent_features"]).To(Equal([]interface{}{"http-password-hmac-sha256"}))
 			Expect(result["some_future_key"]).To(Equal(map[interface{}]interface{}{"nested": "value"}))
 			Expect(result["stemcell_formats"]).To(Equal([]interface{}{"aws-light"}))
+			Expect(result["cloud_properties"]).To(SatisfyAll(
+				HaveKeyWithValue("ami", map[interface{}]interface{}{"fake-region": "fake-ami-id"}),
+				HaveKeyWithValue("example_list", []interface{}{"one", "two"}),
+				HaveKeyWithValue("example_empty", []interface{}{}),
+				HaveKeyWithValue("example_map", map[interface{}]interface{}{"enabled": false}),
+			))
 			Expect(m.Extra).To(SatisfyAll(HaveLen(2), HaveKey("agent_features"), HaveKey("some_future_key")))
 		})
 

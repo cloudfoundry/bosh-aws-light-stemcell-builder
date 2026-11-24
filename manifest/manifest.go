@@ -29,10 +29,11 @@ type Manifest struct {
 // RegionToAmiMapping is a simple map of AWS region to AMI ID in that region
 type RegionToAmiMapping map[string]string
 
-// CloudProperties contains our region to AMI ID mapping and Infrastructure
+// CloudProperties carries source properties and the region-to-AMI mapping.
 type CloudProperties struct {
-	Infrastructure string             `yaml:"infrastructure"`
-	Amis           RegionToAmiMapping `yaml:"ami"`
+	Infrastructure string                 `yaml:"infrastructure"`
+	Amis           RegionToAmiMapping     `yaml:"ami"`
+	Extra          map[string]interface{} `yaml:",inline"`
 }
 
 // NewFromReader creates a new manifest from the YAML stored in the reader
